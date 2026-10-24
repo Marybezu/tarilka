@@ -10,6 +10,9 @@
 - **Журнал їжі** за прийомами: сніданок, обід, вечеря, перекуси. Підсумок за день: калорії, білки, жири, вуглеводи, клітковина.
 - **База продуктів українською** (226 позицій): крупи, овочі, фрукти, м'ясо, риба, молочне, а також борщ, вареники, сирники, голубці, олів'є тощо. Для кожного продукту видно джерело цифр.
 - **Фото тарілки → розклад на калорії.** Модель Gemma 4 працює прямо на телефоні: розпізнає страви й оцінює вагу порцій. Цифри беруться з бази, а не вигадуються моделлю; вагу можна виправити перед збереженням.
+- **Вода й напої**: кнопка «+250 мл» на головному екрані, норма ≈30 мл на кг ваги. Соки, кефір та інші напої з журналу рахуються автоматично.
+- **Кроки** (за бажанням): з Health Connect або з датчика кроків телефону.
+- **Health Connect** (за бажанням): їжа, напої та вага записуються туди, кроки читаються звідти.
 - **Вага**: щоденні записи, графік, тренд за тиждень.
 - **Норми й рекомендації**: формула Міффліна–Сан Жеора, мета (схуднути / тримати / набрати), прості прозорі поради. ШІ може переформулювати їх людською мовою.
 - **Приватність**: усе зберігається лише на телефоні. Інтернет потрібен тільки один раз, щоб завантажити модель (на GrapheneOS після цього можна вимкнути дозвіл «Мережа»).
@@ -65,6 +68,8 @@ APK збирається автоматично в GitHub Actions при кож�
 - Meal diary with daily totals of calories, protein, fat, carbs and fiber.
 - Built-in database of 226 foods in Ukrainian and English, including Ukrainian dishes; the source of every value is shown.
 - Take a photo of your plate: Gemma 4 runs on the phone, recognizes the foods and estimates portions. Nutrient values come from the database; you confirm the grams.
+- Water and drinks with a one-tap "+250 ml".
+- Optional steps (Health Connect or the phone's step sensor) and optional Health Connect sync of meals, drinks and weight.
 - Weight log with chart and weekly trend.
 - Targets (Mifflin–St Jeor) and simple, transparent recommendations, optionally rephrased by the AI.
 - Everything stays on the device. Internet is only needed once to download the model.

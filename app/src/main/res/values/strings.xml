@@ -154,4 +154,21 @@
     <string name="lang_system">System</string>
     <string name="about">About</string>
     <string name="about_text">Tarilka is a free, open-source, offline calorie and weight tracker. Data stays on your phone. Food values: USDA FoodData Central (public domain), typical Ukrainian labels and recipe calculations; the source is shown for each food. This app is not medical advice; for health conditions, pregnancy or eating disorders please talk to a doctor.</string>
+    <string name="water">Water</string>
+    <string name="water_title">Drinks</string>
+    <string name="water_hint">Water, tea, coffee and other drinks. Juice, kefir and other drinks logged as food are counted automatically.</string>
+    <string name="unit_l">L</string>
+    <string name="ml">ml</string>
+    <string name="plus_ml">+%1$d ml</string>
+    <string name="water_target">Fluids: about %1$s L a day (30 ml per kg).</string>
+    <string name="tip_water_low">Drink more: %1$d of %2$d ml so far.</string>
+    <string name="steps_line">%1$d steps · ≈ %2$s kcal</string>
+    <string name="tip_steps_good">%1$d steps today, nice walking.</string>
+    <string name="tip_steps_low">Only %1$d steps today. A 20-minute walk is about 2,000 more.</string>
+    <string name="activity_section">Steps and Health Connect</string>
+    <string name="show_steps">Show steps</string>
+    <string name="show_steps_hint">From Health Connect or the phone\'s step sensor. Shown on the Today screen and used in advice.</string>
+    <string name="hc_sync">Save to Health Connect</string>
+    <string name="hc_sync_hint">Meals, drinks and weight are written to Health Connect so other apps can see them.</string>
+    <string name="hc_unavailable">Health Connect is not available on this phone. Steps will come from the phone\'s sensor.</string>
 </resources>

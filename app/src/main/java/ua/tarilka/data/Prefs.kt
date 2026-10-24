@@ -28,6 +28,27 @@ class Prefs(context: Context) {
         get() = sp.getInt("seedVersion", 0)
         set(v) = sp.edit().putInt("seedVersion", v).apply()
 
+    /** Show steps on the Today screen (Health Connect or the phone's step sensor). */
+    var stepsEnabled: Boolean
+        get() = sp.getBoolean("stepsEnabled", false)
+        set(v) = sp.edit().putBoolean("stepsEnabled", v).apply()
+
+    /** Write meals, drinks and weight to Health Connect. */
+    var healthSync: Boolean
+        get() = sp.getBoolean("healthSync", false)
+        set(v) = sp.edit().putBoolean("healthSync", v).apply()
+
+    /** Step sensor counts since boot; remember the reading at the start of each day. */
+    var stepDay: Long
+        get() = sp.getLong("stepDay", -1)
+        set(v) = sp.edit().putLong("stepDay", v).apply()
+    var stepBase: Long
+        get() = sp.getLong("stepBase", 0)
+        set(v) = sp.edit().putLong("stepBase", v).apply()
+    var stepLast: Long
+        get() = sp.getLong("stepLast", -1)
+        set(v) = sp.edit().putLong("stepLast", v).apply()
+
     private val _profile = MutableStateFlow(loadProfile())
     val profile: StateFlow<Profile> = _profile.asStateFlow()
 

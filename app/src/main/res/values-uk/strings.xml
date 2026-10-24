@@ -154,4 +154,21 @@
     <string name="lang_system">Як у системі</string>
     <string name="about">Про застосунок</string>
     <string name="about_text">Тарілка — безкоштовний офлайн-трекер калорій і ваги з відкритим кодом. Дані залишаються на вашому телефоні. Харчова цінність: USDA FoodData Central (суспільне надбання), типові етикетки українських продуктів і розрахунки за рецептами; джерело вказано для кожного продукту. Застосунок не замінює лікаря; при захворюваннях, вагітності чи розладах харчової поведінки порадьтеся з фахівцем.</string>
+    <string name="water">Вода</string>
+    <string name="water_title">Напої</string>
+    <string name="water_hint">Вода, чай, кава та інші напої. Сік, кефір та інші напої, записані як їжа, рахуються автоматично.</string>
+    <string name="unit_l">л</string>
+    <string name="ml">мл</string>
+    <string name="plus_ml">+%1$d мл</string>
+    <string name="water_target">Рідина: близько %1$s л на день (30 мл на кг).</string>
+    <string name="tip_water_low">Варто більше пити: поки %1$d з %2$d мл.</string>
+    <string name="steps_line">%1$d кроків · ≈ %2$s ккал</string>
+    <string name="tip_steps_good">Сьогодні %1$d кроків, чудова прогулянка.</string>
+    <string name="tip_steps_low">Сьогодні лише %1$d кроків. 20 хвилин ходьби — це ще близько 2 000.</string>
+    <string name="activity_section">Кроки та Health Connect</string>
+    <string name="show_steps">Показувати кроки</string>
+    <string name="show_steps_hint">З Health Connect або з датчика кроків телефону. Видно на екрані «Сьогодні» і враховується в порадах.</string>
+    <string name="hc_sync">Записувати в Health Connect</string>
+    <string name="hc_sync_hint">Їжа, напої та вага записуються в Health Connect, щоб їх бачили інші застосунки.</string>
+    <string name="hc_unavailable">Health Connect недоступний на цьому телефоні. Кроки братимуться з датчика телефону.</string>
 </resources>

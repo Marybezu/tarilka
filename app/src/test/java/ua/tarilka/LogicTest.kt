@@ -51,6 +51,7 @@ class LogicTest {
         assertEquals(104.0, t.protein, 0.01)
         val tiny = Nutrition.targets(p.copy(customKcal = null, weightKg = 45.0, activity = 0), null)
         assertTrue("never below the safety floor", tiny.kcal >= 1200)
+        assertEquals(1950.0, t.waterMl, 0.01)
     }
 
     @Test

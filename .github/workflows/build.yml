@@ -30,21 +30,23 @@ jobs:
 
       - name: Restore signing key
         env:
-          KEYSTORE_B64: ${{ secrets.TARILKA_KEYSTORE_B64 }}
+          PASS: ${{ secrets.TARILKA_KEY_PASS }}
         run: |
-          if [ -n "$KEYSTORE_B64" ]; then
-            echo "$KEYSTORE_B64" | base64 -d > "$RUNNER_TEMP/tarilka.jks"
+          if [ -n "$PASS" ]; then
+            printf %s "$PASS" > "$RUNNER_TEMP/p"
+            openssl enc -d -aes-256-cbc -pbkdf2 -iter 200000 -in signing/tarilka.jks.enc -out "$RUNNER_TEMP/tarilka.jks" -pass file:"$RUNNER_TEMP/p"
+            rm "$RUNNER_TEMP/p"
             echo "TARILKA_KEYSTORE=$RUNNER_TEMP/tarilka.jks" >> "$GITHUB_ENV"
           else
-            echo "::warning::No signing key secret; the APK is signed with a temporary debug key."
+            echo "::warning::Secret TARILKA_KEY_PASS is not set; the APK is signed with a temporary key."
           fi
 
       - name: Test and build
         env:
           VERSION_CODE: ${{ github.run_number }}
-          TARILKA_KEYSTORE_PASSWORD: ${{ secrets.TARILKA_KEYSTORE_PASSWORD }}
-          TARILKA_KEY_ALIAS: ${{ secrets.TARILKA_KEY_ALIAS }}
-          TARILKA_KEY_PASSWORD: ${{ secrets.TARILKA_KEY_PASSWORD }}
+          TARILKA_KEYSTORE_PASSWORD: ${{ secrets.TARILKA_KEY_PASS }}
+          TARILKA_KEY_ALIAS: tarilka
+          TARILKA_KEY_PASSWORD: ${{ secrets.TARILKA_KEY_PASS }}
         shell: bash
         run: |
           set -o pipefail
@@ -72,7 +74,7 @@ jobs:
           path: out/*.apk
 
       - name: Publish release
-        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main' && env.TARILKA_KEYSTORE != ''
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v0.1.${{ github.run_number }}

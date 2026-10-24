@@ -12,6 +12,8 @@ import ua.tarilka.ai.ModelStore
 import ua.tarilka.data.AppDatabase
 import ua.tarilka.data.FoodSeeder
 import ua.tarilka.data.Prefs
+import ua.tarilka.health.HealthSync
+import ua.tarilka.health.StepSensor
 
 class TarilkaApp : Application() {
     lateinit var db: AppDatabase
@@ -21,6 +23,10 @@ class TarilkaApp : Application() {
     lateinit var models: ModelStore
         private set
     lateinit var gemma: GemmaEngine
+        private set
+    lateinit var health: HealthSync
+        private set
+    lateinit var stepSensor: StepSensor
         private set
 
     val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
@@ -35,6 +41,8 @@ class TarilkaApp : Application() {
         prefs = Prefs(this)
         models = ModelStore(this)
         gemma = GemmaEngine(this, models)
+        health = HealthSync(this)
+        stepSensor = StepSensor(this, prefs)
         scope.launch {
             FoodSeeder.seedIfNeeded(this@TarilkaApp, db, prefs)
             _ready.value = true

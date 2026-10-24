@@ -118,12 +118,19 @@ fun CalorieRing(eaten: Double, target: Double, size: Dp = 132.dp) {
 }
 
 @Composable
-fun NutrientBar(label: String, value: Double, target: Double, color: Color, unit: String = stringResource(R.string.unit_g)) {
+fun NutrientBar(
+    label: String,
+    value: Double,
+    target: Double,
+    color: Color,
+    unit: String = stringResource(R.string.unit_g),
+    decimals: Boolean = false,
+) {
     Column(Modifier.fillMaxWidth()) {
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.Bottom) {
             Text(label, style = MaterialTheme.typography.labelLarge, modifier = Modifier.weight(1f))
             Text(
-                "${value.f0()} / ${target.f0()} $unit",
+                if (decimals) "${value.f1()} / ${target.f1()} $unit" else "${value.f0()} / ${target.f0()} $unit",
                 style = MaterialTheme.typography.labelMedium.merge(Numbers),
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -271,4 +278,57 @@ fun LineChart(points: List<Pair<Double, Double>>, modifier: Modifier = Modifier,
             points.forEach { (x, y) -> drawCircle(line, 3.5.dp.toPx(), Offset(px(x), py(y))) }
         }
     }
+}
+
+/** Quick fluid logging: common amounts, a custom amount, and today's list. */
+@Composable
+fun FluidDialog(
+    fluids: List<ua.tarilka.data.FluidEntry>,
+    onAdd: (Double) -> Unit,
+    onDelete: (ua.tarilka.data.FluidEntry) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    var custom by remember { mutableStateOf("") }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.water_title)) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(stringResource(R.string.water_hint), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    listOf(150, 250, 330, 500).forEach { ml ->
+                        AssistChip(onClick = { onAdd(ml.toDouble()) }, label = { Text("$ml") })
+                    }
+                }
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    OutlinedTextField(
+                        value = custom,
+                        onValueChange = { custom = it },
+                        label = { Text(stringResource(R.string.ml)) },
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        modifier = Modifier.weight(1f),
+                    )
+                    TextButton(
+                        enabled = custom.toNumber()?.let { it in 1.0..3000.0 } == true,
+                        onClick = { custom.toNumber()?.let(onAdd); custom = "" },
+                    ) { Text(stringResource(R.string.add)) }
+                }
+                val time = java.time.format.DateTimeFormatter.ofPattern("HH:mm")
+                fluids.asReversed().forEach { f ->
+                    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
+                        Text(
+                            java.time.Instant.ofEpochMilli(f.createdAt).atZone(java.time.ZoneId.systemDefault()).toLocalTime().format(time),
+                            style = MaterialTheme.typography.bodyMedium.merge(Numbers),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                        Spacer(Modifier.width(12.dp))
+                        Text("${f.ml.f0()} ${stringResource(R.string.ml)}", Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium.merge(Numbers))
+                        TextButton(onClick = { onDelete(f) }) { Text(stringResource(R.string.delete)) }
+                    }
+                }
+            }
+        },
+        confirmButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.close)) } },
+    )
 }

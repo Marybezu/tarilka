@@ -7,6 +7,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.flatMapLatest
@@ -17,6 +18,7 @@ import kotlinx.coroutines.FlowPreview
 import ua.tarilka.TarilkaApp
 import ua.tarilka.data.DayTotal
 import ua.tarilka.data.DiaryEntry
+import ua.tarilka.data.FluidEntry
 import ua.tarilka.data.Food
 import ua.tarilka.data.Nutrition
 import ua.tarilka.data.Profile
@@ -33,6 +35,8 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     private val tapp = app as TarilkaApp
     private val db = tapp.db
     private val prefs = tapp.prefs
+    private val health = tapp.health
+    private val stepSensor = tapp.stepSensor
 
     val day = MutableStateFlow(LocalDate.now())
     val query = MutableStateFlow("")
@@ -64,14 +68,85 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         Nutrition.weeklyTrend(list.filter { it.day >= from })
     }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
+    val fluids: StateFlow<List<FluidEntry>> = day.flatMapLatest { db.fluids().forDay(it.toEpochDay()) }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+
+    /** Water entries plus drinks logged as food. */
+    val fluidMl: StateFlow<Double> = combine(
+        fluids,
+        day.flatMapLatest { db.fluids().drinksFromDiary(it.toEpochDay()) },
+    ) { f, drinks -> f.sumOf { it.ml } + drinks }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, 0.0)
+
+    private val _stepsEnabled = MutableStateFlow(prefs.stepsEnabled)
+    val stepsEnabled: StateFlow<Boolean> = _stepsEnabled.asStateFlow()
+    private val _healthSync = MutableStateFlow(prefs.healthSync)
+    val healthSync: StateFlow<Boolean> = _healthSync.asStateFlow()
+    private val _steps = MutableStateFlow<Long?>(null)
+    val steps: StateFlow<Long?> = _steps.asStateFlow()
+
+    val healthAvailable: Boolean get() = health.available
+    val stepSensorPresent: Boolean get() = stepSensor.present
+
     val tips: StateFlow<List<Tip>> = combine(
         combine(totals, targets, entries) { t, tg, e -> Triple(t, tg, e.size) },
         combine(day, profile, weeklyTrend, latestWeight) { d, p, tr, w -> listOf(d, p, tr, w) },
-    ) { (t, tg, n), rest ->
+        combine(fluidMl, steps) { f, st -> f to st },
+    ) { (t, tg, n), rest, (fluid, st) ->
         val d = rest[0] as LocalDate
-        val finished = d.isBefore(LocalDate.now()) || LocalTime.now().hour >= 21
-        Tips.forDay(t, tg, n, finished, rest[1] as Profile, rest[2] as Double?, rest[3] as Double?)
+        val now = LocalTime.now().hour
+        val finished = d.isBefore(LocalDate.now()) || now >= 21
+        val afternoon = d == LocalDate.now() && now >= 15
+        Tips.forDay(t, tg, n, finished, rest[1] as Profile, rest[2] as Double?, rest[3] as Double?, fluid, afternoon, st)
     }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+
+    init {
+        viewModelScope.launch { day.collect { refreshSteps() } }
+    }
+
+    /** Reads steps for the selected day: Health Connect first, then the phone's step sensor (today only). */
+    fun refreshSteps() = viewModelScope.launch {
+        if (!prefs.stepsEnabled) { _steps.value = null; return@launch }
+        val d = day.value
+        val fromHc = runCatching { health.steps(d) }.getOrNull()
+        val fromSensor = if (d == LocalDate.now()) runCatching { stepSensor.today() }.getOrNull() else null
+        _steps.value = when {
+            fromHc != null && fromHc > 0 -> fromHc
+            fromSensor != null -> fromSensor
+            else -> fromHc
+        }
+    }
+
+    fun setStepsEnabled(on: Boolean) {
+        prefs.stepsEnabled = on
+        _stepsEnabled.value = on
+        refreshSteps()
+    }
+
+    fun setHealthSync(on: Boolean) {
+        prefs.healthSync = on
+        _healthSync.value = on
+    }
+
+    private fun sync(block: suspend () -> Unit) {
+        if (prefs.healthSync) tapp.scope.launch { runCatching { block() } }
+    }
+
+    fun addFluid(ml: Double) = viewModelScope.launch {
+        val e = FluidEntry(day = day.value.toEpochDay(), ml = ml, createdAt = timestampFor(day.value))
+        val id = db.fluids().insert(e)
+        sync { health.writeFluid(e.copy(id = id)) }
+    }
+
+    fun deleteFluid(e: FluidEntry) = viewModelScope.launch {
+        db.fluids().delete(e)
+        sync { health.deleteFluid(e) }
+    }
+
+    /** Entries for past days get a midday time so they land on the right day in Health Connect. */
+    private fun timestampFor(d: LocalDate): Long =
+        if (d == LocalDate.now()) System.currentTimeMillis()
+        else d.atTime(12, 0).atZone(java.time.ZoneId.systemDefault()).toInstant().toEpochMilli()
 
     val searchResults: StateFlow<List<Food>> = query.debounce(120).flatMapLatest { q ->
         val clean = q.trim().lowercase().replace('ʼ', '\'').replace('’', '\'')
@@ -84,25 +159,32 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     fun shiftDay(by: Long) { day.value = day.value.plusDays(by) }
     fun today() { day.value = LocalDate.now() }
 
-    fun addFood(food: Food, grams: Double, meal: Int) = viewModelScope.launch {
-        db.diary().insert(DiaryEntry.of(food, grams, day.value.toEpochDay(), meal))
-    }
+    fun addFood(food: Food, grams: Double, meal: Int) = addEntries(listOf(DiaryEntry.of(food, grams, day.value.toEpochDay(), meal)))
 
-    fun addEntries(list: List<DiaryEntry>) = viewModelScope.launch { db.diary().insertAll(list) }
+    fun addEntries(list: List<DiaryEntry>) = viewModelScope.launch {
+        val saved = list.map { e ->
+            val withTime = e.copy(createdAt = timestampFor(LocalDate.ofEpochDay(e.day)))
+            withTime.copy(id = db.diary().insert(withTime))
+        }
+        sync { saved.forEach { health.writeMeal(it) } }
+    }
 
     fun updateGrams(entry: DiaryEntry, grams: Double) = viewModelScope.launch {
         if (entry.grams <= 0) return@launch
         val k = grams / entry.grams
-        db.diary().update(
-            entry.copy(
-                grams = grams, kcal = entry.kcal * k, protein = entry.protein * k,
-                fat = entry.fat * k, carbs = entry.carbs * k, fiber = entry.fiber * k,
-            ),
+        val updated = entry.copy(
+            grams = grams, kcal = entry.kcal * k, protein = entry.protein * k,
+            fat = entry.fat * k, carbs = entry.carbs * k, fiber = entry.fiber * k,
         )
+        db.diary().update(updated)
+        sync { health.deleteMeal(entry); health.writeMeal(updated) }
     }
 
     fun moveEntry(entry: DiaryEntry, meal: Int) = viewModelScope.launch { db.diary().update(entry.copy(meal = meal)) }
-    fun deleteEntry(entry: DiaryEntry) = viewModelScope.launch { db.diary().delete(entry) }
+    fun deleteEntry(entry: DiaryEntry) = viewModelScope.launch {
+        db.diary().delete(entry)
+        sync { health.deleteMeal(entry) }
+    }
 
     fun saveFood(food: Food) = viewModelScope.launch {
         val f = food.copy(searchKey = Food.buildSearchKey(food.nameUk, food.nameEn))
@@ -113,7 +195,9 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     fun toggleFavorite(food: Food) = viewModelScope.launch { db.foods().update(food.copy(favorite = !food.favorite)) }
 
     fun saveWeight(kg: Double, date: LocalDate = LocalDate.now()) = viewModelScope.launch {
-        db.weights().upsert(WeightEntry(date.toEpochDay(), kg))
+        val w = WeightEntry(date.toEpochDay(), kg)
+        db.weights().upsert(w)
+        sync { health.writeWeight(w) }
     }
 
     fun deleteWeight(w: WeightEntry) = viewModelScope.launch { db.weights().delete(w) }

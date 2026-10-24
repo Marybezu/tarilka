@@ -19,6 +19,9 @@ object Tips {
         profile: Profile,
         weeklyTrendKg: Double?,
         currentWeight: Double?,
+        fluidMl: Double = 0.0,
+        afternoon: Boolean = false,
+        steps: Long? = null,
     ): List<Tip> {
         val tips = mutableListOf<Tip>()
         if (entries == 0) {
@@ -55,6 +58,15 @@ object Tips {
                 if (totals.protein >= targets.protein * 0.95 && totals.fiber >= targets.fiber * 0.9) {
                     tips += Tip(R.string.tip_balance_good, kind = Tip.Kind.GOOD)
                 }
+            }
+        }
+        if ((dayFinished || afternoon) && fluidMl < targets.waterMl * 0.6) {
+            tips += Tip(R.string.tip_water_low, listOf(fluidMl.roundToInt(), targets.waterMl.roundToInt()))
+        }
+        if (steps != null) {
+            when {
+                steps >= 10_000 -> tips += Tip(R.string.tip_steps_good, listOf(steps.toInt()), Tip.Kind.GOOD)
+                dayFinished && steps < 4_000 -> tips += Tip(R.string.tip_steps_low, listOf(steps.toInt()))
             }
         }
         if (weeklyTrendKg != null && currentWeight != null) {

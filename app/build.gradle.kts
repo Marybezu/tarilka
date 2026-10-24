@@ -92,6 +92,9 @@ dependencies {
     implementation("androidx.room:room-ktx:$room")
     ksp("androidx.room:room-compiler:$room")
 
+    // Optional sync with Health Connect (steps in; meals, drinks, weight out)
+    implementation("androidx.health.connect:connect-client:1.1.0-beta02")
+
     // On-device Gemma 4 runtime (Google AI Edge, Apache 2.0)
     implementation("com.google.ai.edge.litertlm:litertlm-android:latest.release")
 

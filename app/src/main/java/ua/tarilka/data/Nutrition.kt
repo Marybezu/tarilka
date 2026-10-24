@@ -11,6 +11,8 @@ data class Targets(
     val fiber: Double,
     val bmr: Double,
     val tdee: Double,
+    /** Daily fluid, ml: about 30 ml per kg of body weight. */
+    val waterMl: Double = 2000.0,
 )
 
 object Nutrition {
@@ -44,7 +46,8 @@ object Nutrition {
         val fat = kcal * 0.30 / 9
         val carbs = max(0.0, (kcal - protein * 4 - fat * 9) / 4)
         val fiber = max(25.0, kcal / 1000 * 14)
-        return Targets(kcal, protein, fat, carbs, fiber, bmr, tdee)
+        val water = (w * 30).coerceIn(1500.0, 3500.0)
+        return Targets(kcal, protein, fat, carbs, fiber, bmr, tdee, water)
     }
 
     /** Weight change in kg per week from a least-squares line through the points. */
@@ -64,6 +67,9 @@ object Nutrition {
         if (den == 0.0) return null
         return num / den * 7
     }
+
+    /** Rough energy of walking: ~0.04 kcal per step for 70 kg, scaled by weight. Shown only, not added to targets. */
+    fun stepsKcal(steps: Long, weightKg: Double): Double = steps * 0.04 * weightKg / 70.0
 
     fun Double.r(): Int = roundToInt()
 }

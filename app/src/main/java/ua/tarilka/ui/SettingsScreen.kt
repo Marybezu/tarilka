@@ -68,8 +68,11 @@ fun SettingsScreen(vm: MainViewModel, ai: AiViewModel, padding: PaddingValues) {
                     ),
                     style = MaterialTheme.typography.bodyMedium,
                 )
+                Spacer(Modifier.height(6.dp))
+                Text(stringResource(R.string.water_target, (targets.waterMl / 1000).f1()), style = MaterialTheme.typography.bodyMedium)
             }
         }
+        item { ActivitySection(vm) }
         item { ModelSection(ai) }
         item { LanguageSection() }
         item {
@@ -213,5 +216,64 @@ private fun LanguageSection() {
             FilterChip(current.startsWith("en"), { set("en") }, { Text("English") })
         }
         Spacer(Modifier.height(4.dp))
+    }
+}
+
+@Composable
+private fun ActivitySection(vm: MainViewModel) {
+    val stepsOn by vm.stepsEnabled.collectAsState()
+    val syncOn by vm.healthSync.collectAsState()
+    val hcAvailable = vm.healthAvailable
+    val sensorLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) {
+        vm.refreshSteps()
+    }
+    // One system dialog at a time: Health Connect first, then the step sensor.
+    val hcLauncher = rememberLauncherForActivityResult(
+        androidx.health.connect.client.PermissionController.createRequestPermissionResultContract(),
+    ) { granted ->
+        if (granted.containsAll(ua.tarilka.health.HealthSync.WRITE)) vm.setHealthSync(true)
+        if (vm.stepsEnabled.value && vm.stepSensorPresent) {
+            sensorLauncher.launch(android.Manifest.permission.ACTIVITY_RECOGNITION)
+        } else {
+            vm.refreshSteps()
+        }
+    }
+
+    Section(title = stringResource(R.string.activity_section)) {
+        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            SwitchRow(stringResource(R.string.show_steps), stringResource(R.string.show_steps_hint), stepsOn) { on ->
+                vm.setStepsEnabled(on)
+                if (on) {
+                    when {
+                        hcAvailable -> hcLauncher.launch(setOf(ua.tarilka.health.HealthSync.READ_STEPS))
+                        vm.stepSensorPresent -> sensorLauncher.launch(android.Manifest.permission.ACTIVITY_RECOGNITION)
+                    }
+                }
+            }
+            if (hcAvailable) {
+                SwitchRow(stringResource(R.string.hc_sync), stringResource(R.string.hc_sync_hint), syncOn) { on ->
+                    if (on) hcLauncher.launch(ua.tarilka.health.HealthSync.WRITE + ua.tarilka.health.HealthSync.READ_STEPS)
+                    else vm.setHealthSync(false)
+                }
+            } else {
+                Text(stringResource(R.string.hc_unavailable), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        }
+    }
+}
+
+@Composable
+private fun SwitchRow(title: String, hint: String, checked: Boolean, onChange: (Boolean) -> Unit) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onChange(!checked) },
+    ) {
+        Column(Modifier.weight(1f)) {
+            Text(title, style = MaterialTheme.typography.bodyLarge)
+            Text(hint, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+        androidx.compose.material3.Switch(checked = checked, onCheckedChange = onChange)
     }
 }

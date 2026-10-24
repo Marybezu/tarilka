@@ -90,3 +90,22 @@ interface WeightDao {
     @Delete
     suspend fun delete(entry: WeightEntry)
 }
+
+@Dao
+interface FluidDao {
+    @Query("SELECT * FROM fluids WHERE day = :day ORDER BY createdAt")
+    fun forDay(day: Long): Flow<List<FluidEntry>>
+
+    /** Drinks logged as food (juice, kefir, coffee…) also count as fluid; 1 g ≈ 1 ml. */
+    @Query(
+        """SELECT COALESCE(SUM(d.grams), 0) FROM diary d JOIN foods f ON f.id = d.foodId
+           WHERE d.day = :day AND f.category = 'drinks'"""
+    )
+    fun drinksFromDiary(day: Long): Flow<Double>
+
+    @Insert
+    suspend fun insert(entry: FluidEntry): Long
+
+    @Delete
+    suspend fun delete(entry: FluidEntry)
+}

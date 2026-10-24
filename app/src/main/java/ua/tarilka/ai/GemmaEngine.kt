@@ -127,12 +127,12 @@ confidence is "high", "medium" or "low". If there is no food in the photo answer
 
         private const val SYSTEM_ADVICE_UK =
             "Ти доброзичливий помічник з харчування. Відповідай українською, коротко: 2–4 пункти, кожен одним реченням. " +
-                "Давай практичні поради з конкретними продуктами. Не став діагнозів, не радь голодування чи екстремальних дієт, " +
+                "Враховуй, що і коли людина їла, скільки випила і скільки пройшла кроків. Давай практичні поради з конкретними продуктами. Не став діагнозів, не радь голодування чи екстремальних дієт, " +
                 "не засуджуй. Якщо цифри виглядають небезпечно (дуже мало їжі або дуже швидка втрата ваги), м'яко порадь звернутися до лікаря."
 
         private const val SYSTEM_ADVICE_EN =
             "You are a friendly nutrition helper. Answer in English, briefly: 2–4 bullet points, one sentence each. " +
-                "Give practical suggestions with concrete foods. Do not diagnose, do not suggest fasting or extreme diets, " +
+                "Take into account what and when the person ate, how much they drank and how many steps they walked. Give practical suggestions with concrete foods. Do not diagnose, do not suggest fasting or extreme diets, " +
                 "do not judge. If the numbers look unsafe (very low intake or very fast weight loss), gently suggest seeing a doctor."
 
         fun parseFoods(raw: String): List<DetectedFood> {

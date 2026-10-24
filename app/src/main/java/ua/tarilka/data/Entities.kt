@@ -78,6 +78,15 @@ data class WeightEntry(
     val kg: Double,
 )
 
+/** Water and other drinks without calories. */
+@Entity(tableName = "fluids", indices = [Index("day")])
+data class FluidEntry(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val day: Long,
+    val ml: Double,
+    val createdAt: Long = System.currentTimeMillis(),
+)
+
 /** Sum of nutrients for one day. */
 data class DayTotal(
     val day: Long,

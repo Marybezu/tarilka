@@ -69,9 +69,23 @@ fun TodayScreen(
     val model by ai.model.collectAsState()
     val advice by ai.advice.collectAsState()
     val adviceLoading by ai.adviceLoading.collectAsState()
+    val fluidMl by vm.fluidMl.collectAsState()
+    val fluids by vm.fluids.collectAsState()
+    val steps by vm.steps.collectAsState()
+    val stepsEnabled by vm.stepsEnabled.collectAsState()
+    val weight by vm.latestWeight.collectAsState()
     val macros = LocalMacroColors.current
     val context = LocalContext.current
     var editing by remember { mutableStateOf<DiaryEntry?>(null) }
+    var fluidDialog by remember { mutableStateOf(false) }
+    val lifecycle = androidx.lifecycle.compose.LocalLifecycleOwner.current
+    androidx.compose.runtime.DisposableEffect(lifecycle) {
+        val obs = androidx.lifecycle.LifecycleEventObserver { _, e ->
+            if (e == androidx.lifecycle.Lifecycle.Event.ON_RESUME) vm.refreshSteps()
+        }
+        lifecycle.lifecycle.addObserver(obs)
+        onDispose { lifecycle.lifecycle.removeObserver(obs) }
+    }
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -104,6 +118,32 @@ fun TodayScreen(
                         NutrientBar(stringResource(R.string.fiber), totals.fiber, targets.fiber, macros.fiber)
                     }
                 }
+                Spacer(Modifier.height(12.dp))
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                Spacer(Modifier.height(10.dp))
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Column(
+                        Modifier
+                            .weight(1f)
+                            .clickable { fluidDialog = true },
+                    ) {
+                        NutrientBar(
+                            "💧 " + stringResource(R.string.water),
+                            fluidMl / 1000, targets.waterMl / 1000, macros.carbs,
+                            unit = stringResource(R.string.unit_l), decimals = true,
+                        )
+                    }
+                    Spacer(Modifier.width(12.dp))
+                    FilledTonalButton(onClick = { vm.addFluid(250.0) }) { Text(stringResource(R.string.plus_ml, 250)) }
+                }
+                if (stepsEnabled && steps != null) {
+                    Spacer(Modifier.height(8.dp))
+                    val kcal = ua.tarilka.data.Nutrition.stepsKcal(steps!!, weight ?: profile.weightKg)
+                    Text(
+                        "👣 " + stringResource(R.string.steps_line, steps!!.toInt(), kcal.f0()),
+                        style = MaterialTheme.typography.bodyMedium.merge(Numbers),
+                    )
+                }
             }
         }
 
@@ -125,7 +165,7 @@ fun TodayScreen(
                                 TextButton(onClick = ai::clearAdvice) { Text(stringResource(R.string.hide)) }
                             }
                             else -> FilledTonalButton(onClick = {
-                                val summary = adviceSummary(context, entries, totals, targets, tips)
+                                val summary = adviceSummary(context, entries, totals, targets, tips, fluidMl, steps)
                                 ai.requestAdvice(summary, isUkrainian())
                             }) {
                                 Icon(Icons.Filled.Star, null, Modifier.size(18.dp))
@@ -167,6 +207,15 @@ fun TodayScreen(
                 }
             }
         }
+    }
+
+    if (fluidDialog) {
+        FluidDialog(
+            fluids = fluids,
+            onAdd = { vm.addFluid(it) },
+            onDelete = { vm.deleteFluid(it) },
+            onDismiss = { fluidDialog = false },
+        )
     }
 
     editing?.let { e ->
@@ -337,9 +386,19 @@ private fun adviceSummary(
     totals: ua.tarilka.data.Totals,
     targets: ua.tarilka.data.Targets,
     tips: List<Tip>,
+    fluidMl: Double,
+    steps: Long?,
 ): String = buildString {
-    appendLine("Foods eaten today:")
-    entries.forEach { appendLine("- ${it.nameEn} (${it.nameUk}), ${it.grams.f0()} g, ${it.kcal.f0()} kcal") }
+    val time = java.time.format.DateTimeFormatter.ofPattern("HH:mm")
+    val now = java.time.LocalTime.now().format(time)
+    appendLine("Current time: $now.")
+    appendLine("Foods eaten today (time, name, amount):")
+    entries.forEach {
+        val t = java.time.Instant.ofEpochMilli(it.createdAt).atZone(java.time.ZoneId.systemDefault()).toLocalTime().format(time)
+        appendLine("- $t ${it.nameEn} (${it.nameUk}), ${it.grams.f0()} g, ${it.kcal.f0()} kcal")
+    }
+    appendLine("Fluids today: ${fluidMl.f0()} ml (target ${targets.waterMl.f0()} ml).")
+    if (steps != null) appendLine("Steps today: $steps.")
     appendLine(
         "Totals: ${totals.kcal.f0()} kcal (target ${targets.kcal.f0()}), protein ${totals.protein.f0()} g " +
             "(target ${targets.protein.f0()}), fat ${totals.fat.f0()} g (target ${targets.fat.f0()}), " +

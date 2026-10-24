@@ -45,6 +45,7 @@ def main() -> int:
     rows = list(csv.DictReader(lines, delimiter=";"))
     out = ["| code | food | match | field | ours | USDA |", "|---|---|---|---|---|---|"]
     ok = flagged = missing = 0
+    details = []
     all_desc = list(desc_to_id)
     for r in rows:
         if r["source"] != "USDA":
@@ -52,6 +53,11 @@ def main() -> int:
         ref = r["ref"].strip().lower()
         fid = desc_to_id.get(ref)
         match = "exact"
+        if fid is None:
+            # USDA often appends notes, e.g. "(Includes foods for USDA's Food Distribution Program)".
+            pref = [d for d in all_desc if d.startswith(ref)]
+            if pref:
+                fid = desc_to_id[min(pref, key=len)]
         if fid is None:
             close = difflib.get_close_matches(ref, all_desc, n=1, cutoff=0.6)
             if not close:
@@ -71,6 +77,14 @@ def main() -> int:
             if abs(ours - theirs) > tol:
                 diffs.append((k, ours, theirs))
         if diffs or match != "exact":
+            u = values.get(fid, {})
+            details.append(f"- **{r['code']} {r['name_en']}** (ref: {r['ref']}) → fdc {fid}: " +
+                           ", ".join(f"{k} {u.get(k)}" for k in ("kcal", "protein", "fat", "carbs", "fiber")))
+            words = set(ref.replace(",", " ").split()) - {"and", "or", "with", "without"}
+            cands = [d for d in all_desc if words <= set(d.replace(",", " ").split())][:4]
+            for d in cands:
+                v = values.get(desc_to_id[d], {})
+                details.append(f"  - candidate: {d} → " + ", ".join(f"{k} {v.get(k)}" for k in ("kcal", "protein", "fat", "carbs", "fiber")))
             flagged += 1
             if not diffs:
                 out.append(f"| {r['code']} | {r['name_en']} | {match} | ok | | |")
@@ -80,6 +94,8 @@ def main() -> int:
             ok += 1
     print(f"## USDA cross-check\n\n{ok} rows match exactly, {flagged} need a look, {missing} not found.\n")
     print("\n".join(out))
+    print("\n### Details\n")
+    print("\n".join(details))
     return 0
 
 

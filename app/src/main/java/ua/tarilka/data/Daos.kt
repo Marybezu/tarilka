@@ -39,6 +39,18 @@ interface FoodDao {
     @Upsert
     suspend fun upsertAll(foods: List<Food>)
 
+    @Query("SELECT * FROM foods WHERE code IS NULL")
+    suspend fun customOnce(): List<Food>
+
+    @Query("DELETE FROM foods WHERE code IS NULL")
+    suspend fun deleteCustom()
+
+    @Query("SELECT code FROM foods WHERE code IS NOT NULL AND favorite = 1")
+    suspend fun favoriteCodes(): List<String>
+
+    @Query("UPDATE foods SET favorite = (code IN (:codes)) WHERE code IS NOT NULL")
+    suspend fun setFavorites(codes: List<String>)
+
     @Insert
     suspend fun insert(food: Food): Long
 
@@ -69,6 +81,12 @@ interface DiaryDao {
     @Insert
     suspend fun insertAll(entries: List<DiaryEntry>)
 
+    @Query("SELECT * FROM diary ORDER BY day, meal, createdAt")
+    suspend fun allOnce(): List<DiaryEntry>
+
+    @Query("DELETE FROM diary")
+    suspend fun deleteAll()
+
     @Update
     suspend fun update(entry: DiaryEntry)
 
@@ -86,6 +104,12 @@ interface WeightDao {
 
     @Upsert
     suspend fun upsert(entry: WeightEntry)
+
+    @Query("SELECT * FROM weights ORDER BY day")
+    suspend fun allOnce(): List<WeightEntry>
+
+    @Query("DELETE FROM weights")
+    suspend fun deleteAll()
 
     @Delete
     suspend fun delete(entry: WeightEntry)
@@ -105,6 +129,15 @@ interface FluidDao {
 
     @Insert
     suspend fun insert(entry: FluidEntry): Long
+
+    @Query("SELECT * FROM fluids ORDER BY day, createdAt")
+    suspend fun allOnce(): List<FluidEntry>
+
+    @Query("DELETE FROM fluids")
+    suspend fun deleteAll()
+
+    @Insert
+    suspend fun insertAll(entries: List<FluidEntry>)
 
     @Delete
     suspend fun delete(entry: FluidEntry)

@@ -74,6 +74,7 @@ fun SettingsScreen(vm: MainViewModel, ai: AiViewModel, padding: PaddingValues) {
         }
         item { ActivitySection(vm) }
         item { ModelSection(ai) }
+        item { DataSection(vm) }
         item { AppearanceSection(vm) }
         item { LanguageSection() }
         item {
@@ -294,5 +295,50 @@ private fun AppearanceSection(vm: MainViewModel) {
             Spacer(Modifier.height(6.dp))
             SwitchRow(stringResource(R.string.dynamic_color), stringResource(R.string.dynamic_color_hint), dynamic, vm::setDynamicColor)
         }
+    }
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun DataSection(vm: MainViewModel) {
+    val message by vm.dataMessage.collectAsState()
+    val pending by vm.pendingImport.collectAsState()
+    val date = java.time.LocalDate.now().toString()
+    val exportJson = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { uri ->
+        if (uri != null) vm.exportBackup(uri)
+    }
+    val exportCsv = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("text/csv")) { uri ->
+        if (uri != null) vm.exportCsv(uri)
+    }
+    val importJson = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        if (uri != null) vm.readImport(uri)
+    }
+    Section(title = stringResource(R.string.data_title)) {
+        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text(stringResource(R.string.data_hint), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Button(onClick = { exportJson.launch("tarilka-$date.json") }) { Text(stringResource(R.string.export_backup)) }
+                OutlinedButton(onClick = { importJson.launch(arrayOf("application/json", "text/plain", "application/octet-stream")) }) {
+                    Text(stringResource(R.string.import_backup))
+                }
+                OutlinedButton(onClick = { exportCsv.launch("tarilka-diary-$date.csv") }) { Text(stringResource(R.string.export_csv)) }
+            }
+            message?.let {
+                Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.primary)
+            }
+        }
+    }
+    pending?.let { (_, s) ->
+        androidx.compose.material3.AlertDialog(
+            onDismissRequest = { vm.pendingImport.value = null },
+            title = { Text(stringResource(R.string.import_title)) },
+            text = { Text(stringResource(R.string.import_confirm, s.diary, s.fluids, s.weights, s.foods)) },
+            confirmButton = {
+                TextButton(onClick = vm::confirmImport) {
+                    Text(stringResource(R.string.import_replace), color = MaterialTheme.colorScheme.error)
+                }
+            },
+            dismissButton = { TextButton(onClick = { vm.pendingImport.value = null }) { Text(stringResource(R.string.cancel)) } },
+        )
     }
 }

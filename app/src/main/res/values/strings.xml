@@ -178,4 +178,15 @@
     <string name="theme_dark">Dark</string>
     <string name="dynamic_color">Colors from wallpaper</string>
     <string name="dynamic_color_hint">Material You: accent colors follow your wallpaper.</string>
+    <string name="data_title">Data</string>
+    <string name="data_hint">Everything is stored only on this phone. Make a backup from time to time, or before switching phones.</string>
+    <string name="export_backup">Export backup</string>
+    <string name="import_backup">Import</string>
+    <string name="export_csv">Diary as CSV</string>
+    <string name="export_done">Saved.</string>
+    <string name="data_error">Error: %1$s</string>
+    <string name="import_title">Restore from backup?</string>
+    <string name="import_confirm">The file has %1$d food entries, %2$d drinks, %3$d weigh-ins and %4$d own foods. Your current diary, drinks, weight and own foods will be replaced.</string>
+    <string name="import_replace">Replace</string>
+    <string name="import_done">Restored: %1$d food entries, %2$d weigh-ins.</string>
 </resources>

@@ -211,4 +211,52 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         ua.tarilka.applyThemeMode(mode)
     }
     fun setDynamicColor(on: Boolean) = prefs.setDynamicColor(on)
+
+    // ---- export / import ----
+
+    /** Result of the last export or import, shown once in Settings. */
+    val dataMessage = MutableStateFlow<String?>(null)
+
+    fun exportBackup(uri: android.net.Uri) = viewModelScope.launch {
+        dataMessage.value = runCatching {
+            val json = ua.tarilka.data.Backup.export(db, prefs)
+            writeText(uri, json)
+            getApplication<Application>().getString(ua.tarilka.R.string.export_done)
+        }.getOrElse { getApplication<Application>().getString(ua.tarilka.R.string.data_error, it.message ?: "") }
+    }
+
+    fun exportCsv(uri: android.net.Uri) = viewModelScope.launch {
+        dataMessage.value = runCatching {
+            writeText(uri, ua.tarilka.data.Backup.diaryCsv(db, ua.tarilka.data.isUkrainian()))
+            getApplication<Application>().getString(ua.tarilka.R.string.export_done)
+        }.getOrElse { getApplication<Application>().getString(ua.tarilka.R.string.data_error, it.message ?: "") }
+    }
+
+    /** Step 1: read and check the file. Step 2 ([confirmImport]) replaces the data. */
+    val pendingImport = MutableStateFlow<Pair<String, ua.tarilka.data.Backup.Summary>?>(null)
+
+    fun readImport(uri: android.net.Uri) = viewModelScope.launch {
+        runCatching {
+            val text = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                getApplication<Application>().contentResolver.openInputStream(uri)!!.bufferedReader().use { it.readText() }
+            }
+            pendingImport.value = text to ua.tarilka.data.Backup.peek(text)
+        }.onFailure {
+            dataMessage.value = getApplication<Application>().getString(ua.tarilka.R.string.data_error, it.message ?: "")
+        }
+    }
+
+    fun confirmImport() = viewModelScope.launch {
+        val (text, _) = pendingImport.value ?: return@launch
+        pendingImport.value = null
+        dataMessage.value = runCatching {
+            val s = ua.tarilka.data.Backup.restore(db, prefs, text)
+            getApplication<Application>().getString(ua.tarilka.R.string.import_done, s.diary, s.weights)
+        }.getOrElse { getApplication<Application>().getString(ua.tarilka.R.string.data_error, it.message ?: "") }
+    }
+
+    private suspend fun writeText(uri: android.net.Uri, text: String) =
+        kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+            getApplication<Application>().contentResolver.openOutputStream(uri, "wt")!!.use { it.write(text.toByteArray(Charsets.UTF_8)) }
+        }
 }

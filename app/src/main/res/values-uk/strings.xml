@@ -178,4 +178,15 @@
     <string name="theme_dark">Темна</string>
     <string name="dynamic_color">Кольори зі шпалер</string>
     <string name="dynamic_color_hint">Material You: акцентні кольори підлаштовуються під шпалери.</string>
+    <string name="data_title">Дані</string>
+    <string name="data_hint">Усе зберігається лише на цьому телефоні. Час від часу робіть резервну копію, а також перед зміною телефону.</string>
+    <string name="export_backup">Експорт копії</string>
+    <string name="import_backup">Імпорт</string>
+    <string name="export_csv">Журнал у CSV</string>
+    <string name="export_done">Збережено.</string>
+    <string name="data_error">Помилка: %1$s</string>
+    <string name="import_title">Відновити з копії?</string>
+    <string name="import_confirm">У файлі %1$d записів їжі, %2$d напоїв, %3$d зважувань і %4$d своїх продуктів. Поточні журнал, напої, вага й свої продукти буде замінено.</string>
+    <string name="import_replace">Замінити</string>
+    <string name="import_done">Відновлено: %1$d записів їжі, %2$d зважувань.</string>
 </resources>

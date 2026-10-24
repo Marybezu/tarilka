@@ -25,8 +25,8 @@ interface FoodDao {
 
     @Query(
         """SELECT f.* FROM foods f JOIN
-           (SELECT foodId, MAX(createdAt) AS last FROM diary WHERE foodId IS NOT NULL GROUP BY foodId) d
-           ON f.id = d.foodId ORDER BY d.last DESC LIMIT 15"""
+           (SELECT foodId, MAX(createdAt) AS lastUsed FROM diary WHERE foodId IS NOT NULL GROUP BY foodId) d
+           ON f.id = d.foodId ORDER BY d.lastUsed DESC LIMIT 15"""
     )
     fun recent(): Flow<List<Food>>
 

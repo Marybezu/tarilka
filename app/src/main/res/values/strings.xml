@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Tarilka</string>
+
+    <string name="tab_today">Today</string>
+    <string name="tab_weight">Weight</string>
+    <string name="tab_foods">Foods</string>
+    <string name="tab_settings">Settings</string>
+
+    <string name="meal_breakfast">Breakfast</string>
+    <string name="meal_lunch">Lunch</string>
+    <string name="meal_dinner">Dinner</string>
+    <string name="meal_snack">Snacks</string>
+
+    <string name="today">Today</string>
+    <string name="yesterday">Yesterday</string>
+    <string name="prev_day">Previous day</string>
+    <string name="next_day">Next day</string>
+
+    <string name="protein">Protein</string>
+    <string name="fat">Fat</string>
+    <string name="carbs">Carbs</string>
+    <string name="fiber">Fiber</string>
+    <string name="calories">Calories</string>
+    <string name="short_protein">P</string>
+    <string name="short_fat">F</string>
+    <string name="short_carbs">C</string>
+    <string name="unit_g">g</string>
+    <string name="unit_kcal">kcal</string>
+    <string name="kg">kg</string>
+    <string name="grams">Grams</string>
+    <string name="of_kcal">of %1$s kcal</string>
+    <string name="per_100g">Per 100 g</string>
+    <string name="per_100g_pfc">P·F·C per 100 g</string>
+
+    <string name="add">Add</string>
+    <string name="photo">Photo</string>
+    <string name="add_to">Add to %1$s</string>
+    <string name="save">Save</string>
+    <string name="cancel">Cancel</string>
+    <string name="delete">Delete</string>
+    <string name="edit">Edit</string>
+    <string name="close">Close</string>
+    <string name="back">Back</string>
+    <string name="clear">Clear</string>
+    <string name="hide">Hide</string>
+    <string name="replace">Replace</string>
+    <string name="favorite">Favorite</string>
+
+    <string name="profile_hint">Fill in your profile in Settings to get personal calorie and nutrient targets. Until then, average values are used.</string>
+    <string name="recommendations">Recommendations</string>
+    <string name="week_title">Last 7 days</string>
+    <string name="week_avg">Average %1$s kcal over %2$d days with entries, protein %3$s g a day.</string>
+
+    <string name="tip_empty">Nothing logged yet. Add a meal by hand or take a photo of your plate.</string>
+    <string name="tip_remaining">About %1$d kcal left for today.</string>
+    <string name="tip_over">Over today\'s target by %1$d kcal. One day doesn\'t matter much, look at the weekly average.</string>
+    <string name="tip_under">Only %1$d kcal logged. If that is real, it is too little to feel well; check whether something is missing.</string>
+    <string name="tip_on_target">Calories are right on target.</string>
+    <string name="tip_protein_low">Protein is low: %1$d of %2$d g. Good sources: cottage cheese, eggs, poultry, fish, beans, lentils.</string>
+    <string name="tip_fiber_low">Fiber is low: %1$d of %2$d g. Add vegetables, buckwheat or oats, beans, berries, whole-grain bread.</string>
+    <string name="tip_fat_high">Fat is high today (%1$d g). Watch oil, mayonnaise, sausages and pastries.</string>
+    <string name="tip_balance_good">Great balance of protein and fiber today.</string>
+    <string name="tip_weight_fast">Weight is dropping fast (%1$.1f kg a week). More than 1%% of body weight a week is a lot; consider eating a bit more or talking to a doctor.</string>
+    <string name="tip_weight_up">Weight trend is going up (%1$.1f kg a week) while the goal is to lose. Check portions and snacks.</string>
+    <string name="tip_weight_down_good">Weight is going down steadily (%1$.1f kg a week). Keep it up.</string>
+    <string name="tip_weight_gain_none">The goal is to gain, but weight is not increasing (%1$.1f kg a week). Add a snack or a bigger portion.</string>
+
+    <string name="ai_advice">Advice from on-device AI</string>
+    <string name="ai_thinking">The AI is thinking…</string>
+
+    <string name="search_food">Search food</string>
+    <string name="recent">Recent</string>
+    <string name="all_foods">All foods</string>
+    <string name="nothing_found">Nothing found. You can add your own food from a package label.</string>
+    <string name="new_food">New food</string>
+    <string name="edit_food">Edit food</string>
+    <string name="choose_food">Choose food</string>
+    <string name="label_hint">Enter values per 100 g, as printed on the package.</string>
+    <string name="name_uk">Name in Ukrainian</string>
+    <string name="name_en">Name in English</string>
+    <string name="kcal_100">Calories per 100 g</string>
+    <string name="portion_g">Portion, g</string>
+    <string name="source">Source</string>
+    <string name="source_usda">USDA (lab data)</string>
+    <string name="source_label">Typical label</string>
+    <string name="source_recipe">Recipe calculation</string>
+    <string name="source_ai">AI estimate</string>
+    <string name="source_custom">Your food</string>
+
+    <string name="weight_today">Today\'s weight</string>
+    <string name="weight_saved_today">Saved today: %1$s kg. Saving again replaces it.</string>
+    <string name="weight_chart">Chart</string>
+    <string name="days_n">%1$d days</string>
+    <string name="trend_week">Trend: %1$s kg a week</string>
+    <string name="chart_need_more">Add at least two weigh-ins to see the chart.</string>
+    <string name="energy_title">Energy</string>
+    <string name="energy_text">Basal metabolism ≈ %1$s kcal, with activity ≈ %2$s kcal. Your daily target is %3$s kcal.</string>
+    <string name="history">History</string>
+
+    <string name="profile">Profile</string>
+    <string name="female">Female</string>
+    <string name="male">Male</string>
+    <string name="age">Age</string>
+    <string name="height_cm">Height, cm</string>
+    <string name="weight_kg">Weight, kg</string>
+    <string name="activity">Activity</string>
+    <string name="activity_0">Sedentary (desk work, little walking)</string>
+    <string name="activity_1">Light (walks, 1–3 workouts a week)</string>
+    <string name="activity_2">Moderate (3–5 workouts a week)</string>
+    <string name="activity_3">High (6–7 workouts a week)</string>
+    <string name="activity_4">Very high (physical work + sport)</string>
+    <string name="goal">Goal</string>
+    <string name="goal_lose">Lose weight</string>
+    <string name="goal_maintain">Maintain</string>
+    <string name="goal_gain">Gain weight</string>
+    <string name="custom_kcal">Own calorie target (optional)</string>
+    <string name="your_targets">Daily targets</string>
+    <string name="targets_text">%1$s kcal · protein %2$s g · fat %3$s g · carbs %4$s g · fiber %5$s g. Calculated with the Mifflin–St Jeor formula; the app never suggests eating below your basal metabolism.</string>
+
+    <string name="ai_title">On-device AI (Gemma 4)</string>
+    <string name="ai_explain">Recognizes food on photos and gives advice. Runs entirely on the phone, works offline. The model is about 2.6 GB.</string>
+    <string name="ai_ready">Model ready: %1$s (%2$d MB)</string>
+    <string name="ai_download">Download model (2.6 GB, use Wi-Fi)</string>
+    <string name="ai_downloading">Downloading: %1$d of %2$d MB. You can leave the app.</string>
+    <string name="ai_import">Choose a model file…</string>
+    <string name="ai_import_hint">Or download gemma-4-E2B-it.litertlm yourself from %1$s and choose it here.</string>
+    <string name="ai_importing">Copying the model…</string>
+    <string name="ai_failed">Failed: %1$s</string>
+    <string name="ai_delete">Delete model</string>
+    <string name="ai_delete_confirm">Yes, delete</string>
+    <string name="ai_setup">Set up AI</string>
+
+    <string name="photo_title">Plate photo</string>
+    <string name="photo_need_model">To recognize food on photos, download the on-device AI model first (once).</string>
+    <string name="photo_note">What is it? (optional)</string>
+    <string name="photo_note_hint">e.g. borscht with sour cream, a slice of rye bread</string>
+    <string name="take_photo">Take photo</string>
+    <string name="from_gallery">From gallery</string>
+    <string name="photo_privacy">The photo is analyzed on the phone and is not sent anywhere.</string>
+    <string name="analyzing">Analyzing… %1$d s</string>
+    <string name="analyzing_hint">The first run takes longer while the model loads.</string>
+    <string name="ai_error">Could not analyze: %1$s</string>
+    <string name="try_again">Try again</string>
+    <string name="no_food_found">No food found on the photo. Try another angle or add the food by hand.</string>
+    <string name="review_hint">Check the weights: the AI estimates portions from the photo and can be off. Values come from the database when a food is recognized.</string>
+    <string name="ai_estimate">AI estimate, not from the database</string>
+    <string name="from_db">From database · %1$s</string>
+    <string name="low_confidence">unsure</string>
+    <string name="add_item">Add item</string>
+    <string name="new_photo">New photo</string>
+
+    <string name="language">Language</string>
+    <string name="lang_system">System</string>
+    <string name="about">About</string>
+    <string name="about_text">Tarilka is a free, open-source, offline calorie and weight tracker. Data stays on your phone. Food values: USDA FoodData Central (public domain), typical Ukrainian labels and recipe calculations; the source is shown for each food. This app is not medical advice; for health conditions, pregnancy or eating disorders please talk to a doctor.</string>
+</resources>

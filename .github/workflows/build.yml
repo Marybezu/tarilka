@@ -1,0 +1,71 @@
+name: Build APK
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check food database
+        run: python3 scripts/check_foods.py
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.14.3"
+
+      - name: Restore signing key
+        env:
+          KEYSTORE_B64: ${{ secrets.TARILKA_KEYSTORE_B64 }}
+        run: |
+          if [ -n "$KEYSTORE_B64" ]; then
+            echo "$KEYSTORE_B64" | base64 -d > "$RUNNER_TEMP/tarilka.jks"
+            echo "TARILKA_KEYSTORE=$RUNNER_TEMP/tarilka.jks" >> "$GITHUB_ENV"
+          else
+            echo "::warning::No signing key secret; the APK is signed with a temporary debug key."
+          fi
+
+      - name: Test and build
+        env:
+          VERSION_CODE: ${{ github.run_number }}
+          TARILKA_KEYSTORE_PASSWORD: ${{ secrets.TARILKA_KEYSTORE_PASSWORD }}
+          TARILKA_KEY_ALIAS: ${{ secrets.TARILKA_KEY_ALIAS }}
+          TARILKA_KEY_PASSWORD: ${{ secrets.TARILKA_KEY_PASSWORD }}
+        run: gradle --no-daemon --stacktrace testReleaseUnitTest assembleRelease
+
+      - name: Name the APK
+        run: |
+          mkdir -p out
+          cp app/build/outputs/apk/release/app-release.apk "out/tarilka-0.1.${{ github.run_number }}.apk"
+          ls -la out
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: tarilka-apk
+          path: out/*.apk
+
+      - name: Publish release
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v0.1.${{ github.run_number }}
+          name: Tarilka 0.1.${{ github.run_number }}
+          files: out/*.apk
+          make_latest: true
+          body: |
+            Install: download the .apk below on your phone and open it.
+            Встановлення: завантажте .apk нижче на телефоні й відкрийте його.

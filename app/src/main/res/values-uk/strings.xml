@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Тарілка</string>
+
+    <string name="tab_today">Сьогодні</string>
+    <string name="tab_weight">Вага</string>
+    <string name="tab_foods">Продукти</string>
+    <string name="tab_settings">Налаштування</string>
+
+    <string name="meal_breakfast">Сніданок</string>
+    <string name="meal_lunch">Обід</string>
+    <string name="meal_dinner">Вечеря</string>
+    <string name="meal_snack">Перекуси</string>
+
+    <string name="today">Сьогодні</string>
+    <string name="yesterday">Вчора</string>
+    <string name="prev_day">Попередній день</string>
+    <string name="next_day">Наступний день</string>
+
+    <string name="protein">Білки</string>
+    <string name="fat">Жири</string>
+    <string name="carbs">Вуглеводи</string>
+    <string name="fiber">Клітковина</string>
+    <string name="calories">Калорії</string>
+    <string name="short_protein">Б</string>
+    <string name="short_fat">Ж</string>
+    <string name="short_carbs">В</string>
+    <string name="unit_g">г</string>
+    <string name="unit_kcal">ккал</string>
+    <string name="kg">кг</string>
+    <string name="grams">Грами</string>
+    <string name="of_kcal">з %1$s ккал</string>
+    <string name="per_100g">На 100 г</string>
+    <string name="per_100g_pfc">Б·Ж·В на 100 г</string>
+
+    <string name="add">Додати</string>
+    <string name="photo">Фото</string>
+    <string name="add_to">Додати: %1$s</string>
+    <string name="save">Зберегти</string>
+    <string name="cancel">Скасувати</string>
+    <string name="delete">Видалити</string>
+    <string name="edit">Змінити</string>
+    <string name="close">Закрити</string>
+    <string name="back">Назад</string>
+    <string name="clear">Очистити</string>
+    <string name="hide">Сховати</string>
+    <string name="replace">Замінити</string>
+    <string name="favorite">Улюблене</string>
+
+    <string name="profile_hint">Заповніть профіль у Налаштуваннях, щоб отримати особисті норми калорій і нутрієнтів. Поки що використовуються середні значення.</string>
+    <string name="recommendations">Рекомендації</string>
+    <string name="week_title">Останні 7 днів</string>
+    <string name="week_avg">У середньому %1$s ккал за %2$d дн. із записами, білка %3$s г на день.</string>
+
+    <string name="tip_empty">Ще нічого не записано. Додайте прийом їжі вручну або сфотографуйте тарілку.</string>
+    <string name="tip_remaining">На сьогодні залишилось близько %1$d ккал.</string>
+    <string name="tip_over">Норму перевищено на %1$d ккал. Один день мало що вирішує, дивіться на середнє за тиждень.</string>
+    <string name="tip_under">Записано лише %1$d ккал. Якщо це так, то це замало для доброго самопочуття; перевірте, чи нічого не пропущено.</string>
+    <string name="tip_on_target">Калорії точно в нормі.</string>
+    <string name="tip_protein_low">Мало білка: %1$d з %2$d г. Добрі джерела: кисломолочний сир, яйця, птиця, риба, квасоля, сочевиця.</string>
+    <string name="tip_fiber_low">Мало клітковини: %1$d з %2$d г. Додайте овочі, гречку чи вівсянку, бобові, ягоди, цільнозерновий хліб.</string>
+    <string name="tip_fat_high">Сьогодні багато жирів (%1$d г). Зверніть увагу на олію, майонез, ковбаси та випічку.</string>
+    <string name="tip_balance_good">Чудовий баланс білка й клітковини сьогодні.</string>
+    <string name="tip_weight_fast">Вага знижується швидко (%1$.1f кг на тиждень). Понад 1%% ваги тіла на тиждень — це багато; можливо, варто їсти трохи більше або порадитися з лікарем.</string>
+    <string name="tip_weight_up">Тренд ваги зростає (%1$.1f кг на тиждень), хоча мета — схуднути. Перевірте порції та перекуси.</string>
+    <string name="tip_weight_down_good">Вага стабільно знижується (%1$.1f кг на тиждень). Так тримати.</string>
+    <string name="tip_weight_gain_none">Мета — набрати вагу, але вона не зростає (%1$.1f кг на тиждень). Додайте перекус або більшу порцію.</string>
+
+    <string name="ai_advice">Порада від ШІ на телефоні</string>
+    <string name="ai_thinking">ШІ думає…</string>
+
+    <string name="search_food">Пошук продукту</string>
+    <string name="recent">Нещодавні</string>
+    <string name="all_foods">Усі продукти</string>
+    <string name="nothing_found">Нічого не знайдено. Можна додати свій продукт з етикетки.</string>
+    <string name="new_food">Новий продукт</string>
+    <string name="edit_food">Змінити продукт</string>
+    <string name="choose_food">Оберіть продукт</string>
+    <string name="label_hint">Вкажіть значення на 100 г, як на упаковці.</string>
+    <string name="name_uk">Назва українською</string>
+    <string name="name_en">Назва англійською</string>
+    <string name="kcal_100">Калорії на 100 г</string>
+    <string name="portion_g">Порція, г</string>
+    <string name="source">Джерело</string>
+    <string name="source_usda">USDA (лабораторні дані)</string>
+    <string name="source_label">Типова етикетка</string>
+    <string name="source_recipe">Розрахунок за рецептом</string>
+    <string name="source_ai">Оцінка ШІ</string>
+    <string name="source_custom">Ваш продукт</string>
+
+    <string name="weight_today">Вага сьогодні</string>
+    <string name="weight_saved_today">Сьогодні збережено: %1$s кг. Нове значення замінить його.</string>
+    <string name="weight_chart">Графік</string>
+    <string name="days_n">%1$d днів</string>
+    <string name="trend_week">Тренд: %1$s кг на тиждень</string>
+    <string name="chart_need_more">Додайте щонайменше два зважування, щоб побачити графік.</string>
+    <string name="energy_title">Енергія</string>
+    <string name="energy_text">Базовий обмін ≈ %1$s ккал, з активністю ≈ %2$s ккал. Ваша денна норма — %3$s ккал.</string>
+    <string name="history">Історія</string>
+
+    <string name="profile">Профіль</string>
+    <string name="female">Жінка</string>
+    <string name="male">Чоловік</string>
+    <string name="age">Вік</string>
+    <string name="height_cm">Зріст, см</string>
+    <string name="weight_kg">Вага, кг</string>
+    <string name="activity">Активність</string>
+    <string name="activity_0">Сидяча (офіс, мало ходьби)</string>
+    <string name="activity_1">Легка (прогулянки, 1–3 тренування на тиждень)</string>
+    <string name="activity_2">Помірна (3–5 тренувань на тиждень)</string>
+    <string name="activity_3">Висока (6–7 тренувань на тиждень)</string>
+    <string name="activity_4">Дуже висока (фізична праця + спорт)</string>
+    <string name="goal">Мета</string>
+    <string name="goal_lose">Схуднути</string>
+    <string name="goal_maintain">Тримати вагу</string>
+    <string name="goal_gain">Набрати вагу</string>
+    <string name="custom_kcal">Своя норма калорій (необовʼязково)</string>
+    <string name="your_targets">Денні норми</string>
+    <string name="targets_text">%1$s ккал · білки %2$s г · жири %3$s г · вуглеводи %4$s г · клітковина %5$s г. Розраховано за формулою Міффліна–Сан Жеора; застосунок ніколи не пропонує їсти менше за базовий обмін.</string>
+
+    <string name="ai_title">ШІ на телефоні (Gemma 4)</string>
+    <string name="ai_explain">Розпізнає їжу на фото і дає поради. Працює повністю на телефоні, без інтернету. Модель займає близько 2,6 ГБ.</string>
+    <string name="ai_ready">Модель готова: %1$s (%2$d МБ)</string>
+    <string name="ai_download">Завантажити модель (2,6 ГБ, краще через Wi-Fi)</string>
+    <string name="ai_downloading">Завантаження: %1$d з %2$d МБ. Можна вийти із застосунку.</string>
+    <string name="ai_import">Обрати файл моделі…</string>
+    <string name="ai_import_hint">Або завантажте gemma-4-E2B-it.litertlm самостійно з %1$s і оберіть його тут.</string>
+    <string name="ai_importing">Копіюю модель…</string>
+    <string name="ai_failed">Помилка: %1$s</string>
+    <string name="ai_delete">Видалити модель</string>
+    <string name="ai_delete_confirm">Так, видалити</string>
+    <string name="ai_setup">Налаштувати ШІ</string>
+
+    <string name="photo_title">Фото тарілки</string>
+    <string name="photo_need_model">Щоб розпізнавати їжу на фото, спершу один раз завантажте модель ШІ.</string>
+    <string name="photo_note">Що це? (необовʼязково)</string>
+    <string name="photo_note_hint">напр. борщ зі сметаною, скибка житнього хліба</string>
+    <string name="take_photo">Сфотографувати</string>
+    <string name="from_gallery">З галереї</string>
+    <string name="photo_privacy">Фото аналізується на телефоні й нікуди не надсилається.</string>
+    <string name="analyzing">Аналізую… %1$d с</string>
+    <string name="analyzing_hint">Перший раз довше, бо модель завантажується в памʼять.</string>
+    <string name="ai_error">Не вдалося проаналізувати: %1$s</string>
+    <string name="try_again">Спробувати ще</string>
+    <string name="no_food_found">На фото не знайдено їжі. Спробуйте інший ракурс або додайте вручну.</string>
+    <string name="review_hint">Перевірте вагу: ШІ оцінює порції на око і може помилятися. Якщо продукт розпізнано, цифри беруться з бази.</string>
+    <string name="ai_estimate">Оцінка ШІ, не з бази</string>
+    <string name="from_db">З бази · %1$s</string>
+    <string name="low_confidence">не впевнено</string>
+    <string name="add_item">Додати продукт</string>
+    <string name="new_photo">Нове фото</string>
+
+    <string name="language">Мова</string>
+    <string name="lang_system">Як у системі</string>
+    <string name="about">Про застосунок</string>
+    <string name="about_text">Тарілка — безкоштовний офлайн-трекер калорій і ваги з відкритим кодом. Дані залишаються на вашому телефоні. Харчова цінність: USDA FoodData Central (суспільне надбання), типові етикетки українських продуктів і розрахунки за рецептами; джерело вказано для кожного продукту. Застосунок не замінює лікаря; при захворюваннях, вагітності чи розладах харчової поведінки порадьтеся з фахівцем.</string>
+</resources>

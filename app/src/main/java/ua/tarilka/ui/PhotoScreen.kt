@@ -166,9 +166,9 @@ fun PhotoScreen(
                     Text(stringResource(R.string.photo_privacy), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
-            ui.image?.let { file ->
+            ui.preview?.let { preview ->
                 item(key = "img") {
-                    val bmp = remember(file.path, file.lastModified()) { BitmapFactory.decodeFile(file.path)?.asImageBitmap() }
+                    val bmp = remember(preview) { preview.asImageBitmap() }
                     if (bmp != null) {
                         Image(
                             bmp, null,

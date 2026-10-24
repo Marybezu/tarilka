@@ -61,4 +61,15 @@ class LogicTest {
         assertNotNull(tr)
         assertEquals(-0.7, tr!!, 0.001)
     }
+
+    @Test
+    fun backupEncryption() {
+        val plain = """{"format":"tarilka-backup","diary":[]}"""
+        val enc = ua.tarilka.data.Backup.encrypt(plain, "пароль-123")
+        assertTrue(ua.tarilka.data.Backup.isEncrypted(enc))
+        assertTrue(!enc.contains("diary"))
+        assertEquals(plain, ua.tarilka.data.Backup.decrypt(enc, "пароль-123"))
+        val wrong = runCatching { ua.tarilka.data.Backup.decrypt(enc, "інший") }
+        assertTrue("wrong password must fail", wrong.isFailure)
+    }
 }

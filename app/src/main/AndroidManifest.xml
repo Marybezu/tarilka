@@ -2,9 +2,9 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <!-- Used ONLY for the optional one-time download of the AI model.
-         On GrapheneOS you can revoke the Network permission after that. -->
-    <uses-permission android:name="android.permission.INTERNET" />
+    <!-- No internet: the app cannot send anything anywhere. Removed even if a library asks for it. -->
+    <uses-permission android:name="android.permission.INTERNET" tools:node="remove" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" tools:node="remove" />
 
     <!-- Optional: the phone's own step counter -->
     <uses-permission android:name="android.permission.ACTIVITY_RECOGNITION" />

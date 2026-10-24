@@ -16,6 +16,45 @@ object Backup {
     const val FORMAT = "tarilka-backup"
     const val VERSION = 1
 
+    private const val ENCRYPTED = "tarilka-backup-encrypted"
+    private const val ITERATIONS = 310_000
+
+    /** AES-256-GCM with a key derived from the password (PBKDF2-HMAC-SHA256). */
+    fun encrypt(plain: String, password: String): String {
+        val rnd = java.security.SecureRandom()
+        val salt = ByteArray(16).also(rnd::nextBytes)
+        val iv = ByteArray(12).also(rnd::nextBytes)
+        val c = javax.crypto.Cipher.getInstance("AES/GCM/NoPadding")
+        c.init(javax.crypto.Cipher.ENCRYPT_MODE, key(password, salt, ITERATIONS), javax.crypto.spec.GCMParameterSpec(128, iv))
+        val data = c.doFinal(plain.toByteArray(Charsets.UTF_8))
+        val b64 = java.util.Base64.getEncoder()
+        return JSONObject().put("format", ENCRYPTED).put("version", 1)
+            .put("kdf", "PBKDF2WithHmacSHA256").put("iterations", ITERATIONS)
+            .put("salt", b64.encodeToString(salt)).put("iv", b64.encodeToString(iv))
+            .put("data", b64.encodeToString(data)).toString(1)
+    }
+
+    fun isEncrypted(text: String): Boolean = runCatching { JSONObject(text).optString("format") == ENCRYPTED }.getOrDefault(false)
+
+    /** Throws if the password is wrong (GCM checks integrity). */
+    fun decrypt(text: String, password: String): String {
+        val o = JSONObject(text)
+        val b64 = java.util.Base64.getDecoder()
+        val c = javax.crypto.Cipher.getInstance("AES/GCM/NoPadding")
+        c.init(
+            javax.crypto.Cipher.DECRYPT_MODE,
+            key(password, b64.decode(o.getString("salt")), o.getInt("iterations")),
+            javax.crypto.spec.GCMParameterSpec(128, b64.decode(o.getString("iv"))),
+        )
+        return String(c.doFinal(b64.decode(o.getString("data"))), Charsets.UTF_8)
+    }
+
+    private fun key(password: String, salt: ByteArray, iterations: Int): javax.crypto.SecretKey {
+        val spec = javax.crypto.spec.PBEKeySpec(password.toCharArray(), salt, iterations, 256)
+        val raw = javax.crypto.SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256").generateSecret(spec).encoded
+        return javax.crypto.spec.SecretKeySpec(raw, "AES")
+    }
+
     data class Summary(val diary: Int, val fluids: Int, val weights: Int, val foods: Int)
 
     suspend fun export(db: AppDatabase, prefs: Prefs): String {

@@ -119,12 +119,9 @@
     <string name="targets_text">%1$s kcal · protein %2$s g · fat %3$s g · carbs %4$s g · fiber %5$s g. Calculated with the Mifflin–St Jeor formula; the app never suggests eating below your basal metabolism.</string>
 
     <string name="ai_title">On-device AI (Gemma 4)</string>
-    <string name="ai_explain">Recognizes food on photos and gives advice. Runs entirely on the phone, works offline. The model is about 2.6 GB.</string>
+    <string name="ai_explain">Recognizes food on photos and gives advice. Runs entirely on the phone. The model is about 2.6 GB and is only needed for photos and AI advice; everything else works without it.</string>
     <string name="ai_ready">Model ready: %1$s (%2$d MB)</string>
-    <string name="ai_download">Download model (2.6 GB, use Wi-Fi)</string>
-    <string name="ai_downloading">Downloading: %1$d of %2$d MB. You can leave the app.</string>
     <string name="ai_import">Choose a model file…</string>
-    <string name="ai_import_hint">Or download gemma-4-E2B-it.litertlm yourself from %1$s and choose it here.</string>
     <string name="ai_importing">Copying the model…</string>
     <string name="ai_failed">Failed: %1$s</string>
     <string name="ai_delete">Delete model</string>
@@ -189,4 +186,17 @@
     <string name="import_confirm">The file has %1$d food entries, %2$d drinks, %3$d weigh-ins and %4$d own foods. Your current diary, drinks, weight and own foods will be replaced.</string>
     <string name="import_replace">Replace</string>
     <string name="import_done">Restored: %1$d food entries, %2$d weigh-ins.</string>
+    <string name="ai_steps">1. Open the model page and download %1$s in your browser (about 2.6 GB, Wi-Fi recommended).\n2. Come back and choose the downloaded file. The app has no internet access, so this is the only way in.</string>
+    <string name="ai_open_page">Open model page</string>
+    <string name="ai_delete_original">Delete the downloaded file after copying</string>
+    <string name="ai_original_deleted">The downloaded file was deleted to free up space.</string>
+    <string name="ai_original_kept">The downloaded file could not be deleted from there; you can delete it in Files.</string>
+    <string name="password">Password</string>
+    <string name="password_repeat">Repeat password</string>
+    <string name="password_hint">Optional. With a password the file is encrypted (AES-256) and can only be restored with it. There is no way to recover a forgotten password.</string>
+    <string name="password_enter">This backup is encrypted. Enter its password.</string>
+    <string name="password_wrong">Wrong password.</string>
+    <string name="unlock">Open</string>
+    <string name="export_plain">Save without password</string>
+    <string name="export_encrypted">Save encrypted</string>
 </resources>

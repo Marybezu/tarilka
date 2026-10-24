@@ -119,12 +119,9 @@
     <string name="targets_text">%1$s ккал · білки %2$s г · жири %3$s г · вуглеводи %4$s г · клітковина %5$s г. Розраховано за формулою Міффліна–Сан Жеора; застосунок ніколи не пропонує їсти менше за базовий обмін.</string>
 
     <string name="ai_title">ШІ на телефоні (Gemma 4)</string>
-    <string name="ai_explain">Розпізнає їжу на фото і дає поради. Працює повністю на телефоні, без інтернету. Модель займає близько 2,6 ГБ.</string>
+    <string name="ai_explain">Розпізнає їжу на фото і дає поради. Працює повністю на телефоні. Модель займає близько 2,6 ГБ і потрібна лише для фото та порад ШІ, усе інше працює без неї.</string>
     <string name="ai_ready">Модель готова: %1$s (%2$d МБ)</string>
-    <string name="ai_download">Завантажити модель (2,6 ГБ, краще через Wi-Fi)</string>
-    <string name="ai_downloading">Завантаження: %1$d з %2$d МБ. Можна вийти із застосунку.</string>
     <string name="ai_import">Обрати файл моделі…</string>
-    <string name="ai_import_hint">Або завантажте gemma-4-E2B-it.litertlm самостійно з %1$s і оберіть його тут.</string>
     <string name="ai_importing">Копіюю модель…</string>
     <string name="ai_failed">Помилка: %1$s</string>
     <string name="ai_delete">Видалити модель</string>
@@ -189,4 +186,17 @@
     <string name="import_confirm">У файлі %1$d записів їжі, %2$d напоїв, %3$d зважувань і %4$d своїх продуктів. Поточні журнал, напої, вага й свої продукти буде замінено.</string>
     <string name="import_replace">Замінити</string>
     <string name="import_done">Відновлено: %1$d записів їжі, %2$d зважувань.</string>
+    <string name="ai_steps">1. Відкрийте сторінку моделі й завантажте %1$s у браузері (близько 2,6 ГБ, краще через Wi-Fi).\n2. Поверніться й оберіть завантажений файл. Застосунок не має доступу до інтернету, тому модель потрапляє лише так.</string>
+    <string name="ai_open_page">Відкрити сторінку моделі</string>
+    <string name="ai_delete_original">Видалити завантажений файл після копіювання</string>
+    <string name="ai_original_deleted">Завантажений файл видалено, щоб звільнити місце.</string>
+    <string name="ai_original_kept">Не вдалося видалити завантажений файл звідти; його можна видалити в «Файлах».</string>
+    <string name="password">Пароль</string>
+    <string name="password_repeat">Повторіть пароль</string>
+    <string name="password_hint">Необовʼязково. З паролем файл шифрується (AES-256) і відновити його можна лише з ним. Забутий пароль відновити неможливо.</string>
+    <string name="password_enter">Ця копія зашифрована. Введіть її пароль.</string>
+    <string name="password_wrong">Неправильний пароль.</string>
+    <string name="unlock">Відкрити</string>
+    <string name="export_plain">Зберегти без пароля</string>
+    <string name="export_encrypted">Зберегти зашифрованою</string>
 </resources>

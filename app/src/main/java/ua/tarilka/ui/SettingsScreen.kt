@@ -156,16 +156,25 @@ private fun ProfileSection(profile: Profile, onSave: (Profile) -> Unit) {
 private fun ModelSection(ai: AiViewModel) {
     val state by ai.model.collectAsState()
     val importing by ai.importProgress.collectAsState()
+    val note by ai.importNote.collectAsState()
+    val context = androidx.compose.ui.platform.LocalContext.current
     var confirmDelete by remember { mutableStateOf(false) }
+    var deleteOriginal by remember { mutableStateOf(true) }
     val picker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
-        if (uri != null) ai.import(uri)
+        if (uri != null) ai.import(uri, deleteOriginal)
     }
 
     Section(title = stringResource(R.string.ai_title)) {
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Text(stringResource(R.string.ai_explain), style = MaterialTheme.typography.bodyMedium)
-            when (val s = state) {
-                is ModelStore.State.Ready -> {
+            note?.let { Text(stringResource(it), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant) }
+            val s = state
+            when {
+                importing != null -> {
+                    LinearProgressIndicator(progress = { importing ?: 0f }, modifier = Modifier.fillMaxWidth())
+                    Text(stringResource(R.string.ai_importing), style = MaterialTheme.typography.bodySmall)
+                }
+                s is ModelStore.State.Ready -> {
                     Text(stringResource(R.string.ai_ready, s.file.name, s.sizeMb), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.primary)
                     if (confirmDelete) {
                         Row {
@@ -178,22 +187,25 @@ private fun ModelSection(ai: AiViewModel) {
                         OutlinedButton(onClick = { confirmDelete = true }) { Text(stringResource(R.string.ai_delete)) }
                     }
                 }
-                is ModelStore.State.Downloading -> {
-                    LinearProgressIndicator(progress = { s.progress }, modifier = Modifier.fillMaxWidth())
-                    Text(stringResource(R.string.ai_downloading, s.downloadedMb, s.totalMb), style = MaterialTheme.typography.bodySmall)
-                    OutlinedButton(onClick = ai::cancelDownload) { Text(stringResource(R.string.cancel)) }
-                }
                 else -> {
                     if (s is ModelStore.State.Failed) {
                         Text(stringResource(R.string.ai_failed, s.reason), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
                     }
-                    if (importing != null) {
-                        LinearProgressIndicator(progress = { importing ?: 0f }, modifier = Modifier.fillMaxWidth())
-                        Text(stringResource(R.string.ai_importing), style = MaterialTheme.typography.bodySmall)
-                    } else {
-                        Button(onClick = ai::download) { Text(stringResource(R.string.ai_download)) }
-                        OutlinedButton(onClick = { picker.launch(arrayOf("*/*")) }) { Text(stringResource(R.string.ai_import)) }
-                        Text(stringResource(R.string.ai_import_hint, ModelStore.E2B_PAGE), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(stringResource(R.string.ai_steps, ModelStore.E2B_FILE), style = MaterialTheme.typography.bodySmall)
+                    Button(onClick = {
+                        runCatching {
+                            context.startActivity(
+                                android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(ModelStore.E2B_PAGE + "/tree/main")),
+                            )
+                        }
+                    }) { Text(stringResource(R.string.ai_open_page)) }
+                    OutlinedButton(onClick = { picker.launch(arrayOf("*/*")) }) { Text(stringResource(R.string.ai_import)) }
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.clickable { deleteOriginal = !deleteOriginal },
+                    ) {
+                        androidx.compose.material3.Checkbox(checked = deleteOriginal, onCheckedChange = { deleteOriginal = it })
+                        Text(stringResource(R.string.ai_delete_original), style = MaterialTheme.typography.bodyMedium)
                     }
                 }
             }
@@ -303,9 +315,14 @@ private fun AppearanceSection(vm: MainViewModel) {
 private fun DataSection(vm: MainViewModel) {
     val message by vm.dataMessage.collectAsState()
     val pending by vm.pendingImport.collectAsState()
+    val encrypted by vm.encryptedImport.collectAsState()
+    val wrong by vm.wrongPassword.collectAsState()
     val date = java.time.LocalDate.now().toString()
+    var askPassword by remember { mutableStateOf(false) }
+    var password by remember { mutableStateOf("") }
     val exportJson = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { uri ->
-        if (uri != null) vm.exportBackup(uri)
+        if (uri != null) vm.exportBackup(uri, password)
+        password = ""
     }
     val exportCsv = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("text/csv")) { uri ->
         if (uri != null) vm.exportCsv(uri)
@@ -317,7 +334,7 @@ private fun DataSection(vm: MainViewModel) {
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Text(stringResource(R.string.data_hint), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Button(onClick = { exportJson.launch("tarilka-$date.json") }) { Text(stringResource(R.string.export_backup)) }
+                Button(onClick = { askPassword = true }) { Text(stringResource(R.string.export_backup)) }
                 OutlinedButton(onClick = { importJson.launch(arrayOf("application/json", "text/plain", "application/octet-stream")) }) {
                     Text(stringResource(R.string.import_backup))
                 }
@@ -327,6 +344,43 @@ private fun DataSection(vm: MainViewModel) {
                 Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.primary)
             }
         }
+    }
+    if (askPassword) {
+        var repeat by remember { mutableStateOf("") }
+        androidx.compose.material3.AlertDialog(
+            onDismissRequest = { askPassword = false },
+            title = { Text(stringResource(R.string.export_backup)) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(stringResource(R.string.password_hint), style = MaterialTheme.typography.bodySmall)
+                    PasswordField(stringResource(R.string.password), password) { password = it }
+                    if (password.isNotEmpty()) PasswordField(stringResource(R.string.password_repeat), repeat) { repeat = it }
+                }
+            },
+            confirmButton = {
+                TextButton(enabled = password.isEmpty() || password == repeat, onClick = {
+                    askPassword = false
+                    exportJson.launch("tarilka-$date.json")
+                }) { Text(stringResource(if (password.isEmpty()) R.string.export_plain else R.string.export_encrypted)) }
+            },
+            dismissButton = { TextButton(onClick = { askPassword = false; password = "" }) { Text(stringResource(R.string.cancel)) } },
+        )
+    }
+    encrypted?.let {
+        var pw by remember { mutableStateOf("") }
+        androidx.compose.material3.AlertDialog(
+            onDismissRequest = { vm.encryptedImport.value = null },
+            title = { Text(stringResource(R.string.import_title)) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(stringResource(R.string.password_enter), style = MaterialTheme.typography.bodySmall)
+                    PasswordField(stringResource(R.string.password), pw) { pw = it }
+                    if (wrong) Text(stringResource(R.string.password_wrong), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
+                }
+            },
+            confirmButton = { TextButton(enabled = pw.isNotEmpty(), onClick = { vm.unlockImport(pw) }) { Text(stringResource(R.string.unlock)) } },
+            dismissButton = { TextButton(onClick = { vm.encryptedImport.value = null }) { Text(stringResource(R.string.cancel)) } },
+        )
     }
     pending?.let { (_, s) ->
         androidx.compose.material3.AlertDialog(
@@ -341,4 +395,17 @@ private fun DataSection(vm: MainViewModel) {
             dismissButton = { TextButton(onClick = { vm.pendingImport.value = null }) { Text(stringResource(R.string.cancel)) } },
         )
     }
+}
+
+@Composable
+private fun PasswordField(label: String, value: String, onChange: (String) -> Unit) {
+    androidx.compose.material3.OutlinedTextField(
+        value = value,
+        onValueChange = onChange,
+        label = { Text(label) },
+        singleLine = true,
+        visualTransformation = androidx.compose.ui.text.input.PasswordVisualTransformation(),
+        keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Password),
+        modifier = Modifier.fillMaxWidth(),
+    )
 }

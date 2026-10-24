@@ -15,6 +15,21 @@ import kotlin.math.max
 object PhotoUtil {
     private fun dir(context: Context) = File(context.cacheDir, "photos").apply { mkdirs() }
 
+    /** Deletes every temporary photo. */
+    fun clear(context: Context) {
+        dir(context).listFiles()?.forEach { it.delete() }
+    }
+
+    /** A small preview kept in memory only. */
+    fun thumbnail(file: File, maxSide: Int = 480): Bitmap? {
+        val src = BitmapFactory.decodeFile(file.path) ?: return null
+        val scale = minOf(1f, maxSide.toFloat() / max(src.width, src.height))
+        if (scale >= 1f) return src
+        val out = Bitmap.createScaledBitmap(src, (src.width * scale).toInt(), (src.height * scale).toInt(), true)
+        if (out !== src) src.recycle()
+        return out
+    }
+
     /** A content:// uri the system camera app can write the photo into. */
     fun captureUri(context: Context): Uri {
         val f = File(dir(context), "capture.jpg")

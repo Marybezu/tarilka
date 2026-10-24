@@ -217,10 +217,12 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     /** Result of the last export or import, shown once in Settings. */
     val dataMessage = MutableStateFlow<String?>(null)
 
-    fun exportBackup(uri: android.net.Uri) = viewModelScope.launch {
+    fun exportBackup(uri: android.net.Uri, password: String) = viewModelScope.launch {
         dataMessage.value = runCatching {
             val json = ua.tarilka.data.Backup.export(db, prefs)
-            writeText(uri, json)
+            writeText(uri, if (password.isEmpty()) json else kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) {
+                ua.tarilka.data.Backup.encrypt(json, password)
+            })
             getApplication<Application>().getString(ua.tarilka.R.string.export_done)
         }.getOrElse { getApplication<Application>().getString(ua.tarilka.R.string.data_error, it.message ?: "") }
     }
@@ -240,10 +242,29 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
             val text = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
                 getApplication<Application>().contentResolver.openInputStream(uri)!!.bufferedReader().use { it.readText() }
             }
-            pendingImport.value = text to ua.tarilka.data.Backup.peek(text)
+            if (ua.tarilka.data.Backup.isEncrypted(text)) {
+                encryptedImport.value = text
+            } else {
+                pendingImport.value = text to ua.tarilka.data.Backup.peek(text)
+            }
         }.onFailure {
             dataMessage.value = getApplication<Application>().getString(ua.tarilka.R.string.data_error, it.message ?: "")
         }
+    }
+
+    /** An encrypted backup waiting for its password. */
+    val encryptedImport = MutableStateFlow<String?>(null)
+    val wrongPassword = MutableStateFlow(false)
+
+    fun unlockImport(password: String) = viewModelScope.launch {
+        val text = encryptedImport.value ?: return@launch
+        runCatching {
+            kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) { ua.tarilka.data.Backup.decrypt(text, password) }
+        }.onSuccess { plain ->
+            encryptedImport.value = null
+            wrongPassword.value = false
+            pendingImport.value = plain to ua.tarilka.data.Backup.peek(plain)
+        }.onFailure { wrongPassword.value = true }
     }
 
     fun confirmImport() = viewModelScope.launch {

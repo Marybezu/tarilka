@@ -62,6 +62,14 @@ jobs:
           git init -q && git checkout -q -b ci-logs && git add . && git -c user.name=ci -c user.email=ci@localhost commit -qm "build log ${{ github.run_number }}"
           git push -qf "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}" ci-logs
 
+      - name: Check permissions (no internet allowed)
+        run: |
+          AAPT=$(ls "$ANDROID_HOME"/build-tools/*/aapt2 | sort -V | tail -1)
+          "$AAPT" dump permissions app/build/outputs/apk/release/app-release.apk | tee permissions.txt
+          if grep -qE "android.permission.(INTERNET|ACCESS_NETWORK_STATE)" permissions.txt; then
+            echo "::error::The APK requests network access"; exit 1
+          fi
+
       - name: Name the APK
         run: |
           mkdir -p out

@@ -32,7 +32,8 @@ data class ReviewItem(
 }
 
 data class PhotoUi(
-    val image: File? = null,
+    /** Small in-memory preview; the photo files are deleted right after analysis. */
+    val preview: android.graphics.Bitmap? = null,
     val note: String = "",
     val working: Boolean = false,
     val analyzed: Boolean = false,
@@ -60,26 +61,17 @@ class AiViewModel(app: Application) : AndroidViewModel(app) {
     private val _adviceLoading = MutableStateFlow(false)
     val adviceLoading: StateFlow<Boolean> = _adviceLoading.asStateFlow()
 
-    private var poller: Job? = null
-
-    init { refreshModel() }
+    init {
+        refreshModel()
+        PhotoUtil.clear(app)
+    }
 
     fun refreshModel() {
         _model.value = models.state()
-        if (_model.value is ModelStore.State.Downloading && poller?.isActive != true) {
-            poller = viewModelScope.launch {
-                while (isActive) {
-                    delay(1000)
-                    val s = models.state()
-                    _model.value = s
-                    if (s !is ModelStore.State.Downloading) break
-                }
-            }
-        }
     }
 
-    fun download() { models.startDownload(); refreshModel() }
-    fun cancelDownload() { models.cancelDownload(); refreshModel() }
+    /** Message after importing a model (e.g. the original file could not be deleted). */
+    val importNote = MutableStateFlow<Int?>(null)
 
     fun deleteModel() {
         gemma.release()
@@ -87,20 +79,31 @@ class AiViewModel(app: Application) : AndroidViewModel(app) {
         refreshModel()
     }
 
-    fun import(uri: Uri) = viewModelScope.launch {
+    fun import(uri: Uri, deleteOriginal: Boolean) = viewModelScope.launch {
         _importProgress.value = 0f
-        runCatching { models.import(uri) { p -> _importProgress.value = p } }
+        importNote.value = null
+        gemma.release()
+        runCatching { models.import(uri, deleteOriginal) { p -> _importProgress.value = p } }
+            .onSuccess { r ->
+                refreshModel()
+                importNote.value = when (r.originalDeleted) {
+                    true -> ua.tarilka.R.string.ai_original_deleted
+                    false -> ua.tarilka.R.string.ai_original_kept
+                    null -> null
+                }
+            }
             .onFailure { _model.value = ModelStore.State.Failed(it.message ?: "import failed") }
         _importProgress.value = null
-        gemma.release()
-        if (_model.value !is ModelStore.State.Failed) refreshModel()
     }
 
     // ---- photo analysis ----
 
     fun setNote(text: String) = _photo.update { it.copy(note = text) }
 
-    fun resetPhoto() { _photo.value = PhotoUi() }
+    fun resetPhoto() {
+        _photo.value = PhotoUi()
+        PhotoUtil.clear(getApplication())
+    }
 
     fun analyze(uri: Uri) = viewModelScope.launch {
         _photo.update { it.copy(working = true, error = null, items = emptyList(), analyzed = false, seconds = 0) }
@@ -109,7 +112,7 @@ class AiViewModel(app: Application) : AndroidViewModel(app) {
         }
         try {
             val img = PhotoUtil.prepare(getApplication(), uri)
-            _photo.update { it.copy(image = img) }
+            _photo.update { it.copy(preview = PhotoUtil.thumbnail(img)) }
             val foods = tapp.db.foods().allOnce()
             val names = foods.filter { it.code != null }.map { it.nameEn }
             val detected = gemma.analyzePhoto(img, _photo.value.note, names)
@@ -121,6 +124,8 @@ class AiViewModel(app: Application) : AndroidViewModel(app) {
         } catch (t: Throwable) {
             _photo.update { it.copy(error = t.message ?: t.javaClass.simpleName) }
         } finally {
+            // Nothing of the photo stays on disk.
+            PhotoUtil.clear(getApplication())
             ticker.cancel()
             _photo.update { it.copy(working = false) }
         }

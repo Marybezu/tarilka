@@ -6,7 +6,7 @@ g02;grains;Гречка суха;Buckwheat groats, dry;;;;Buckwheat groats, roas
 g03;grains;Рис білий варений;White rice, cooked;180;тарілка;plate;Rice, white, long-grain, regular, enriched, cooked
 g04;grains;Рис білий сухий;White rice, dry;;;;Rice, white, long-grain, regular, raw, enriched
 g05;grains;Рис бурий варений;Brown rice, cooked;180;тарілка;plate;Rice, brown, long-grain, cooked
-g06;grains;Вівсянка на воді;Oatmeal, cooked with water;250;тарілка;bowl;Cereals, oats, regular and quick and instant, unenriched, cooked with water (includes boiling and microwaving), without salt
+g06;grains;Вівсянка на воді;Oatmeal, cooked with water;250;тарілка;bowl;Cereals, oats, regular and quick and instant, unenriched, cooked with water (includes boiling and microwaving), with salt
 g07;grains;Вівсяні пластівці сухі;Rolled oats, dry;40;порція;serving;Cereals, oats, regular and quick, not fortified, dry
 g08;grains;Пшоно варене;Millet, cooked;200;тарілка;plate;Millet, cooked
 g09;grains;Пшоно сухе;Millet, dry;;;;Millet, raw
@@ -17,7 +17,7 @@ g15;grains;Макарони варені;Pasta, cooked;200;тарілка;plate;
 g16;grains;Макарони сухі;Pasta, dry;;;;Pasta, dry, enriched
 g17;grains;Кускус варений;Couscous, cooked;180;тарілка;plate;Couscous, cooked
 g18;grains;Борошно пшеничне;Wheat flour, white;;;;Wheat flour, white, all-purpose, enriched, bleached
-g20;grains;Кукурудзяні пластівці;Corn flakes;30;порція;serving;Cereals ready-to-eat, KELLOGG, KELLOGG'S CORN FLAKES
+g20;grains;Кукурудзяні пластівці;Corn flakes;30;порція;serving;Cereals ready-to-eat, RALSTON Corn Flakes
 b01;bread;Хліб білий пшеничний;White bread;30;скибка;slice;Bread, white, commercially prepared (includes soft bread crumbs)
 b02;bread;Хліб житній;Rye bread;30;скибка;slice;Bread, rye
 b03;bread;Хліб цільнозерновий;Whole-wheat bread;30;скибка;slice;Bread, whole-wheat, commercially prepared
@@ -93,7 +93,7 @@ m07;meat;Індичка, грудка;Turkey breast, cooked;150;порція;ser
 m08;meat;Свинина пісна (вирізка);Pork tenderloin, cooked;150;порція;serving;Pork, fresh, loin, tenderloin, separable lean only, cooked, roasted
 m09;meat;Свинина корейка;Pork loin, cooked;150;порція;serving;Pork, fresh, loin, whole, separable lean and fat, cooked, roasted
 m10;meat;Сало;Salo (cured pork fat);20;шматочок;slice;Pork, cured, salt pork, raw
-m11;meat;Бекон смажений;Bacon, fried;10;смужка;strip;Pork, cured, bacon, cooked, pan-fried
+m11;meat;Бекон смажений;Bacon, fried;10;смужка;strip;Pork, cured, bacon, cooked, baked
 m12;meat;Фарш яловичий смажений;Ground beef 85%, cooked;100;порція;serving;Beef, ground, 85% lean meat / 15% fat, patty, cooked, pan-broiled
 m16;meat;Салямі / сирокопчена ковбаса;Salami, dry;20;скибки;slices;Salami, dry or hard, pork
 m20;meat;Печінка куряча тушкована;Chicken liver, cooked;100;порція;serving;Chicken, liver, all classes, cooked, simmered
@@ -101,12 +101,12 @@ s01;fish;Лосось запечений;Salmon, cooked;150;порція;serving
 s02;fish;Лосось сирий / слабосолений;Salmon, raw;50;порція;serving;Fish, salmon, Atlantic, farmed, raw
 s03;fish;Тунець консервований у власному соку;Tuna, canned in water;100;банка;can;Fish, tuna, light, canned in water, drained solids
 s04;fish;Оселедець маринований;Herring, pickled;50;порція;serving;Fish, herring, Atlantic, pickled
-s05;fish;Минтай / хек приготований;Pollock / hake, cooked;150;порція;serving;Fish, pollock, Alaska, cooked, dry heat (may contain additional sodium from tripolyphosphate used as a processing aid)
+s05;fish;Минтай / хек приготований;Pollock / hake, cooked;150;порція;serving;Fish, pollock, Alaska, cooked, dry heat (may contain additives to retain moisture)
 s06;fish;Тріска приготована;Cod, cooked;150;порція;serving;Fish, cod, Atlantic, cooked, dry heat
 s07;fish;Скумбрія;Mackerel, cooked;150;порція;serving;Fish, mackerel, Atlantic, cooked, dry heat
 s08;fish;Креветки варені;Shrimp, cooked;100;порція;serving;Crustaceans, shrimp, cooked
 s09;fish;Сардини / шпроти в олії;Sardines in oil;60;порція;serving;Fish, sardine, Atlantic, canned in oil, drained solids with bone
-s10;fish;Крабові палички;Crab sticks (surimi);100;порція;serving;Crustaceans, crab, imitation, made from surimi
+s10;fish;Крабові палички;Crab sticks (surimi);100;порція;serving;Crustaceans, crab, alaska king, imitation, made from surimi
 d01;dairy;Молоко 1%;Milk 1%;250;склянка;glass;Milk, lowfat, fluid, 1% milkfat, with added vitamin A and vitamin D
 d03;dairy;Молоко 3,2%;Milk 3.2%;250;склянка;glass;Milk, whole, 3.25% milkfat, with added vitamin D
 d04;dairy;Кефір 1%;Kefir 1%;250;склянка;glass;Kefir, lowfat, plain, LIFEWAY
@@ -159,7 +159,7 @@ dr06;drinks;Пиво світле;Beer, lager;500;пляшка;bottle;Alcoholic 
 dr07;drinks;Вино червоне сухе;Red wine, dry;150;келих;glass;Alcoholic beverage, wine, table, red
 dr08;drinks;Вино біле сухе;White wine, dry;150;келих;glass;Alcoholic beverage, wine, table, white
 dr09;drinks;Горілка 40%;Vodka 40%;50;чарка;shot;Alcoholic beverage, distilled, all (gin, rum, vodka, whiskey) 80 proof
-x01;fastfood;Піца сирна;Cheese pizza;110;шматок;slice;Fast foods, pizza chain, 14" pizza, cheese topping, regular crust
+x01;fastfood;Піца сирна;Cheese pizza;110;шматок;slice;Fast food, pizza chain, 14" pizza, cheese topping, regular crust
 a01;sauces;Кетчуп;Ketchup;15;ложка;tbsp;Catsup
 a02;sauces;Гірчиця;Mustard;10;ложечка;tsp;Mustard, prepared, yellow
 a03;sauces;Соєвий соус;Soy sauce;15;ложка;tbsp;Soy sauce made from soy and wheat (shoyu)
@@ -183,7 +183,6 @@ g36;grains;Локшина яєчна варена;Egg noodles, cooked;200;тар
 g37;grains;Макарони цільнозернові варені;Whole-wheat pasta, cooked;200;тарілка;plate;Pasta, whole-wheat, cooked
 g38;grains;Рисова локшина варена;Rice noodles, cooked;200;тарілка;plate;Rice noodles, cooked
 g39;grains;Гречка зелена (сира);Green buckwheat, raw;;;;Buckwheat
-g40;grains;Пластівці кукурудзяні з цукром;Frosted corn flakes;30;порція;serving;Cereals ready-to-eat, KELLOGG, KELLOGG'S FROSTED FLAKES
 b08;bread;Багет;Baguette;60;шматок;piece;Bread, french or vienna (includes sourdough)
 b09;bread;Хліб багатозерновий;Multigrain bread;30;скибка;slice;Bread, multi-grain (includes whole-grain)
 b10;bread;Тост пшеничний;White toast;25;скибка;slice;Bread, white, commercially prepared, toasted
@@ -233,7 +232,7 @@ v63;veg;Шиітаке;Shiitake;100;порція;serving;Mushrooms, shiitake, ra
 v64;veg;Печериці смажені;Mushrooms, stir-fried;100;порція;serving;Mushrooms, white, stir-fried
 v65;veg;Гриби консервовані;Canned mushrooms;100;порція;serving;Mushrooms, canned, drained solids
 v66;veg;Кукурудза консервована;Canned sweet corn;80;порція;serving;Corn, sweet, yellow, canned, whole kernel, drained solids
-v67;veg;Горошок консервований;Canned green peas;80;порція;serving;Peas, green, canned, regular pack, drained solids
+v67;veg;Горошок консервований;Canned green peas;80;порція;serving;Peas, green, canned
 v68;veg;Оливки зелені;Green olives;30;жменя;handful;Olives, pickled, canned or bottled, green
 v69;veg;Маслини;Black olives;30;жменя;handful;Olives, ripe, canned (small-extra large)
 v70;veg;Квасоля стручкова варена;Green beans, boiled;150;порція;serving;Beans, snap, green, cooked, boiled, drained, without salt
@@ -269,7 +268,7 @@ f44;fruit;Журавлина сушена;Dried cranberries;30;жменя;handfu
 f45;fruit;Кокос (мʼякоть);Coconut meat;40;порція;serving;Nuts, coconut meat, raw
 f46;fruit;Ананас консервований;Canned pineapple;150;порція;serving;Pineapple, canned, juice pack, solids and liquids
 f47;fruit;Персики консервовані;Canned peaches;150;порція;serving;Peaches, canned, heavy syrup pack, solids and liquids
-f48;fruit;Яблучне пюре;Applesauce;100;порція;serving;Applesauce, canned, unsweetened, without added ascorbic acid (includes USDA commodity)
+f48;fruit;Яблучне пюре;Applesauce;100;порція;serving;Applesauce, canned, unsweetened
 f49;fruit;Фейхоа;Feijoa;50;шт;piece;Feijoa, raw
 f50;fruit;Ківі золотий;Golden kiwi;80;шт;piece;Kiwifruit, ZESPRI SunGold, raw
 f51;fruit;Карамбола;Starfruit;90;шт;piece;Carambola, (starfruit), raw
@@ -278,7 +277,7 @@ f53;fruit;Вишня заморожена;Frozen sour cherries;150;склянк�
 f54;fruit;Полуниця заморожена;Frozen strawberries;150;склянка;cup;Strawberries, frozen, unsweetened
 f55;fruit;Чорниця заморожена;Frozen blueberries;150;склянка;cup;Blueberries, frozen, unsweetened
 m21;meat;Курячий фарш;Ground chicken, raw;;;;Chicken, ground, raw
-m22;meat;Куряче стегно сире;Chicken thigh, raw;;;;Chicken, broilers or fryers, thigh, meat only, raw
+m22;meat;Куряче стегно сире;Chicken thigh, raw;;;;Chicken, broilers or fryers, dark meat, thigh, meat only, raw
 m23;meat;Курячі гомілки;Chicken drumsticks, cooked;80;шт;piece;Chicken, broilers or fryers, drumstick, meat and skin, cooked, roasted
 m24;meat;Курка варена;Chicken, stewed;150;порція;serving;Chicken, broilers or fryers, meat only, cooked, stewed
 m25;meat;Курячі сердечка;Chicken hearts, cooked;100;порція;serving;Chicken, heart, all classes, cooked, simmered
@@ -342,7 +341,7 @@ d33;dairy;Брі;Brie;30;порція;serving;Cheese, brie
 d34;dairy;Вершковий сир;Cream cheese;30;порція;serving;Cheese, cream
 d35;dairy;Плавлений сир;Processed cheese;20;скибка;slice;Cheese, pasteurized process, American, fortified with vitamin D
 d36;dairy;Козячий сир мʼякий;Soft goat cheese;30;порція;serving;Cheese, goat, soft type
-d37;dairy;Йогурт знежирений;Nonfat yogurt;150;порція;serving;Yogurt, plain, skim milk, 13 grams protein per 8 ounce
+d37;dairy;Йогурт знежирений;Nonfat yogurt;150;порція;serving;Yogurt, plain, skim milk
 d38;dairy;Йогурт грецький 0%;Greek yogurt, nonfat;150;порція;serving;Yogurt, Greek, plain, nonfat
 d39;dairy;Морозиво шоколадне;Chocolate ice cream;80;порція;serving;Ice creams, chocolate
 d40;dairy;Масло топлене (гхі);Ghee;10;ложка;tbsp;Butter oil, anhydrous
@@ -362,7 +361,7 @@ l10;legumes;Квасоля чорна варена;Black beans, cooked;150;по�
 l11;legumes;Квасоля суха;Kidney beans, dry;;;;Beans, kidney, red, mature seeds, raw
 l12;legumes;Сочевиця суха;Lentils, dry;;;;Lentils, raw
 l13;legumes;Нут сухий;Chickpeas, dry;;;;Chickpeas (garbanzo beans, bengal gram), mature seeds, raw
-l14;legumes;Горох сухий;Split peas, dry;;;;Peas, split, mature seeds, raw
+l14;legumes;Горох сухий;Split peas, dry;;;;Peas, green, split, mature seeds, raw
 l15;legumes;Соєве молоко;Soy milk;250;склянка;glass;Soymilk, original and vanilla, unfortified
 l16;legumes;Соя варена;Soybeans, cooked;150;порція;serving;Soybeans, mature cooked, boiled, without salt
 l17;legumes;Маш варений;Mung beans, cooked;150;порція;serving;Mung beans, mature seeds, cooked, boiled, without salt
@@ -399,12 +398,11 @@ c20;sweets;Мармелад;Jelly candies;30;порція;serving;Candies, gumdr
 c21;sweets;Батончик злаковий;Granola bar;25;шт;piece;Snacks, granola bars, hard, plain
 c22;sweets;Печиво з шоколадом;Chocolate chip cookies;15;шт;piece;Cookies, chocolate chip, commercially prepared, regular, higher fat
 c23;sweets;Імбирне печиво / пряники;Gingersnaps;10;шт;piece;Cookies, gingersnaps
-c24;sweets;Брауні;Brownie;60;шт;piece;Brownies, commercially prepared
-c25;sweets;Чізкейк;Cheesecake;100;шматок;piece;Cheesecake commercially prepared
+c24;sweets;Брауні;Brownie;60;шт;piece;Cookies, brownies, commercially prepared
+c25;sweets;Чізкейк;Cheesecake;100;шматок;piece;Cake, cheesecake, commercially prepared
 c26;sweets;Пиріг яблучний;Apple pie;120;шматок;piece;Pie, apple, commercially prepared, enriched flour
 c27;sweets;Торт шоколадний;Chocolate cake;100;шматок;piece;Cake, chocolate, commercially prepared with chocolate frosting, in-store bakery
 c28;sweets;Бісквіт;Sponge cake;60;шматок;piece;Cake, sponge, commercially prepared
-c29;sweets;Еклер;Eclair;100;шт;piece;Cream puffs, prepared from recipe, eclair, custard-filled with chocolate glaze
 c30;sweets;Желе;Jelly dessert;120;порція;serving;Gelatin desserts, dry mix, prepared with water
 c31;sweets;Чипси кукурудзяні (начос);Tortilla chips;30;жменя;handful;Snacks, tortilla chips, plain, white corn
 c32;sweets;Брецелі солоні;Pretzels;30;жменя;handful;Snacks, pretzels, hard, plain, salted
@@ -441,7 +439,7 @@ a14;sauces;Дріжджі сухі;Dry yeast;7;пакетик;packet;Leavening a
 a15;sauces;Соус теріякі;Teriyaki sauce;15;ложка;tbsp;Sauce, teriyaki, ready-to-serve
 a16;sauces;Соус сальса;Salsa;30;ложка;tbsp;Sauce, salsa, ready-to-serve
 a17;sauces;Кориця;Cinnamon;2;ложечка;tsp;Spices, cinnamon, ground
-x07;fastfood;Піца пепероні;Pepperoni pizza;110;шматок;slice;Fast foods, pizza chain, 14" pizza, pepperoni topping, regular crust
+x07;fastfood;Піца пепероні;Pepperoni pizza;110;шматок;slice;Fast food, pizza chain, 14" pizza, pepperoni topping, regular crust
 x08;fastfood;Бурито з квасолею;Bean burrito;200;шт;piece;Fast foods, burrito, with beans
 x09;fastfood;Локшина швидкого приготування (суха);Instant ramen, dry;80;пачка;pack;Soup, ramen noodle, any flavor, dry
 x10;fastfood;Картопля фрі (духовка);Oven fries;120;порція;serving;Potatoes, french fried, all types, salt added in processing, frozen, home-prepared, oven heated

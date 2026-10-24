@@ -80,7 +80,10 @@ def main() -> int:
         if fid is None:
             pref = [d for d in all_desc if d.startswith(ref)]
             if pref:
-                fid = desc[min(pref, key=len)]
+                chosen = min(pref, key=len)
+                fid = desc[chosen]
+                if chosen != ref:
+                    report.append(f"- {r['code']} {r['name_en']}: matched by prefix → `{chosen}`")
         if fid is None:
             words = set(re.sub(r"[,()]", " ", ref).split()) - {"and", "or", "with", "without", "raw", "cooked"}
             cands = sorted((d for d in all_desc if words and words <= set(re.sub(r"[,()]", " ", d).split())), key=len)[:5]

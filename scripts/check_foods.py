@@ -71,7 +71,9 @@ def main() -> int:
             problems.append(f"{code}: fiber > carbs")
         calc = 4 * p + 9 * f + 4 * c + 7 * alc
         tol = max(12.0, 0.15 * kcal)
-        if abs(calc - kcal) > tol and code not in KCAL_EXCEPTIONS:
+        # USDA rows are official values (food-specific Atwater factors, fiber, organic acids):
+        # check the hand-entered rows only.
+        if d["source"] != "USDA" and abs(calc - kcal) > tol and code not in KCAL_EXCEPTIONS:
             problems.append(f"{code} {d['name_en']}: kcal {kcal} vs macros {calc:.0f}")
     print(f"{len(data)} foods checked")
     for p in problems:

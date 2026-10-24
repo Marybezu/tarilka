@@ -5,7 +5,7 @@ SR Legacy dataset (public domain).
 Usage: verify_usda.py <path to SR Legacy CSV folder or zip>
 Download: https://fdc.nal.usda.gov/fdc-datasets/FoodData_Central_sr_legacy_food_csv_2018-04.zip
 
-Prints a Markdown report. Exit code is always 0; the report is for humans.
+Prints a Markdown report (also saved to the usda-report branch by CI). Exit code is always 0.
 """
 import csv
 import difflib

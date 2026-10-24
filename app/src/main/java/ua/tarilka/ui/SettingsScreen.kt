@@ -74,6 +74,7 @@ fun SettingsScreen(vm: MainViewModel, ai: AiViewModel, padding: PaddingValues) {
         }
         item { ActivitySection(vm) }
         item { ModelSection(ai) }
+        item { AppearanceSection(vm) }
         item { LanguageSection() }
         item {
             Section(title = stringResource(R.string.about)) {
@@ -275,5 +276,23 @@ private fun SwitchRow(title: String, hint: String, checked: Boolean, onChange: (
             Text(hint, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
         androidx.compose.material3.Switch(checked = checked, onCheckedChange = onChange)
+    }
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun AppearanceSection(vm: MainViewModel) {
+    var mode by remember { mutableStateOf(vm.themeMode) }
+    val dynamic by vm.dynamicColor.collectAsState()
+    Section(title = stringResource(R.string.appearance)) {
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            listOf(R.string.theme_system, R.string.theme_light, R.string.theme_dark).forEachIndexed { i, res ->
+                FilterChip(mode == i, { mode = i; vm.setThemeMode(i) }, { Text(stringResource(res)) })
+            }
+        }
+        if (android.os.Build.VERSION.SDK_INT >= 31) {
+            Spacer(Modifier.height(6.dp))
+            SwitchRow(stringResource(R.string.dynamic_color), stringResource(R.string.dynamic_color_hint), dynamic, vm::setDynamicColor)
+        }
     }
 }

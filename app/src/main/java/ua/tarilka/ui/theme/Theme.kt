@@ -93,9 +93,18 @@ private val Type = Typography().run {
 val Numbers = TextStyle(fontFamily = FontFamily.Default, fontFeatureSettings = "tnum")
 
 @Composable
-fun TarilkaTheme(content: @Composable () -> Unit) {
+fun TarilkaTheme(dynamicColor: Boolean = false, content: @Composable () -> Unit) {
+    // AppCompat night mode (Light / Dark / System) is already applied to the configuration.
     val dark = isSystemInDarkTheme()
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val scheme = when {
+        dynamicColor && android.os.Build.VERSION.SDK_INT >= 31 ->
+            if (dark) androidx.compose.material3.dynamicDarkColorScheme(context)
+            else androidx.compose.material3.dynamicLightColorScheme(context)
+        dark -> Dark
+        else -> Light
+    }
     androidx.compose.runtime.CompositionLocalProvider(LocalMacroColors provides if (dark) DarkMacros else LightMacros) {
-        MaterialTheme(colorScheme = if (dark) Dark else Light, typography = Type, content = content)
+        MaterialTheme(colorScheme = scheme, typography = Type, content = content)
     }
 }

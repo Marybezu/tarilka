@@ -171,4 +171,11 @@
     <string name="hc_sync">Записувати в Health Connect</string>
     <string name="hc_sync_hint">Їжа, напої та вага записуються в Health Connect, щоб їх бачили інші застосунки.</string>
     <string name="hc_unavailable">Health Connect недоступний на цьому телефоні. Кроки братимуться з датчика телефону.</string>
+    <string name="tab_options">Опції</string>
+    <string name="appearance">Вигляд</string>
+    <string name="theme_system">Як у системі</string>
+    <string name="theme_light">Світла</string>
+    <string name="theme_dark">Темна</string>
+    <string name="dynamic_color">Кольори зі шпалер</string>
+    <string name="dynamic_color_hint">Material You: акцентні кольори підлаштовуються під шпалери.</string>
 </resources>

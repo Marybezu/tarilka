@@ -203,4 +203,12 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     fun deleteWeight(w: WeightEntry) = viewModelScope.launch { db.weights().delete(w) }
 
     fun saveProfile(p: Profile) = prefs.saveProfile(p)
+
+    val themeMode: Int get() = prefs.themeMode
+    val dynamicColor: StateFlow<Boolean> = prefs.dynamicColor
+    fun setThemeMode(mode: Int) {
+        prefs.themeMode = mode
+        ua.tarilka.applyThemeMode(mode)
+    }
+    fun setDynamicColor(on: Boolean) = prefs.setDynamicColor(on)
 }

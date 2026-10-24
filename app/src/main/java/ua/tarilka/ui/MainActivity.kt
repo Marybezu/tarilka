@@ -17,6 +17,7 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
@@ -34,7 +35,11 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
-        setContent { TarilkaTheme { AppRoot() } }
+        val prefs = (application as ua.tarilka.TarilkaApp).prefs
+        setContent {
+            val dynamic by prefs.dynamicColor.collectAsState()
+            TarilkaTheme(dynamicColor = dynamic) { AppRoot() }
+        }
     }
 }
 
@@ -121,7 +126,7 @@ private fun Tabs(vm: MainViewModel, ai: AiViewModel, tab: Int, onTab: (Int) -> U
                 NavigationBarItem(tab == 0, { onTab(0) }, { Icon(Icons.Filled.Home, null) }, label = { Text(stringResource(R.string.tab_today)) })
                 NavigationBarItem(tab == 1, { onTab(1) }, { Icon(painterResource(R.drawable.ic_scale), null) }, label = { Text(stringResource(R.string.tab_weight)) })
                 NavigationBarItem(tab == 2, { onTab(2) }, { Icon(Icons.AutoMirrored.Filled.List, null) }, label = { Text(stringResource(R.string.tab_foods)) })
-                NavigationBarItem(tab == 3, { onTab(3) }, { Icon(Icons.Filled.Settings, null) }, label = { Text(stringResource(R.string.tab_settings)) })
+                NavigationBarItem(tab == 3, { onTab(3) }, { Icon(Icons.Filled.Settings, null) }, label = { Text(stringResource(R.string.tab_options), maxLines = 1) })
             }
         },
     ) { pad ->

@@ -184,7 +184,7 @@ fun TodayScreen(
                 MealSection(
                     meal = meal,
                     entries = list,
-                    showPhoto = true,
+                    showPhoto = model is ModelStore.State.Ready,
                     onAdd = { onAdd(meal) },
                     onPhoto = { onPhoto(meal) },
                     onEntry = { editing = it },

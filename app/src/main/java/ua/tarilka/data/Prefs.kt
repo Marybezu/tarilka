@@ -49,6 +49,19 @@ class Prefs(context: Context) {
         get() = sp.getLong("stepLast", -1)
         set(v) = sp.edit().putLong("stepLast", v).apply()
 
+    /** 0 = follow system, 1 = light, 2 = dark */
+    var themeMode: Int
+        get() = sp.getInt("themeMode", 0)
+        set(v) = sp.edit().putInt("themeMode", v).apply()
+
+    private val _dynamicColor = MutableStateFlow(sp.getBoolean("dynamicColor", false))
+    /** Material You: colors from the wallpaper. */
+    val dynamicColor: StateFlow<Boolean> = _dynamicColor.asStateFlow()
+    fun setDynamicColor(on: Boolean) {
+        sp.edit().putBoolean("dynamicColor", on).apply()
+        _dynamicColor.value = on
+    }
+
     private val _profile = MutableStateFlow(loadProfile())
     val profile: StateFlow<Profile> = _profile.asStateFlow()
 

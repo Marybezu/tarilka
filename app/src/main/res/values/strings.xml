@@ -171,4 +171,11 @@
     <string name="hc_sync">Save to Health Connect</string>
     <string name="hc_sync_hint">Meals, drinks and weight are written to Health Connect so other apps can see them.</string>
     <string name="hc_unavailable">Health Connect is not available on this phone. Steps will come from the phone\'s sensor.</string>
+    <string name="tab_options">Settings</string>
+    <string name="appearance">Appearance</string>
+    <string name="theme_system">System</string>
+    <string name="theme_light">Light</string>
+    <string name="theme_dark">Dark</string>
+    <string name="dynamic_color">Colors from wallpaper</string>
+    <string name="dynamic_color_hint">Material You: accent colors follow your wallpaper.</string>
 </resources>

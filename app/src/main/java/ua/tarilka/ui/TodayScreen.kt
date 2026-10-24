@@ -290,7 +290,7 @@ private fun DayHeader(day: LocalDate, onPrev: () -> Unit, onNext: () -> Unit, on
             Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, stringResource(R.string.next_day))
         }
         IconButton(onClick = onHistory) {
-            Icon(androidx.compose.material.icons.Icons.Filled.DateRange, stringResource(R.string.history_title))
+            Icon(painterResource(R.drawable.ic_calendar), stringResource(R.string.history_title))
         }
     }
 }

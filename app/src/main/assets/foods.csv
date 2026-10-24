@@ -93,7 +93,7 @@ m03;meat;Куряче стегно без шкіри;Chicken thigh, skinless, co
 m04;meat;Куряче стегно зі шкірою;Chicken thigh with skin, cooked;229;23.26;15.25;0;0;0;120;шт;piece;USDA;Chicken, broilers or fryers, thigh, meat and skin, cooked, roasted
 m05;meat;Курячі крильця;Chicken wings, cooked;254;23.79;16.87;0;0;0;35;шт;piece;USDA;Chicken, broilers or fryers, wing, meat and skin, cooked, roasted
 m06;meat;Курка запечена зі шкірою;Roast chicken with skin;239;27.3;13.6;0;0;0;200;порція;serving;USDA;Chicken, broilers or fryers, meat and skin, cooked, roasted
-m07;meat;Індичка, грудка;Turkey breast, cooked;147;30.13;2.08;0;0;0;150;порція;serving;USDA;Turkey, retail parts, breast, meat only, cooked, roasted
+m07;meat;Індичка, грудка;Turkey breast, cooked;136;29.51;1.97;0;0;0;150;порція;serving;USDA;Turkey, retail parts, breast, meat only, cooked, roasted
 m08;meat;Свинина пісна (вирізка);Pork tenderloin, cooked;143;26.17;3.51;0;0;0;150;порція;serving;USDA;Pork, fresh, loin, tenderloin, separable lean only, cooked, roasted
 m09;meat;Свинина корейка;Pork loin, cooked;242;27.32;13.92;0;0;0;150;порція;serving;USDA;Pork, fresh, loin, whole, separable lean and fat, cooked, roasted
 m10;meat;Сало;Salo (cured pork fat);748;5.05;80.5;0;0;0;20;шматочок;slice;USDA;Pork, cured, salt pork, raw

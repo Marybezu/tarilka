@@ -141,4 +141,28 @@ interface FluidDao {
 
     @Delete
     suspend fun delete(entry: FluidEntry)
+
+    @Query("SELECT day, SUM(ml) AS ml FROM fluids WHERE day BETWEEN :from AND :to GROUP BY day")
+    fun totals(from: Long, to: Long): Flow<List<DayFluid>>
+}
+
+@Dao
+interface NoteDao {
+    @Query("SELECT * FROM notes WHERE day = :day")
+    fun forDay(day: Long): Flow<DayNote?>
+
+    @Query("SELECT * FROM notes ORDER BY day")
+    fun all(): Flow<List<DayNote>>
+
+    @Query("SELECT * FROM notes ORDER BY day")
+    suspend fun allOnce(): List<DayNote>
+
+    @Upsert
+    suspend fun upsert(note: DayNote)
+
+    @Query("DELETE FROM notes WHERE day = :day")
+    suspend fun delete(day: Long)
+
+    @Query("DELETE FROM notes")
+    suspend fun deleteAll()
 }

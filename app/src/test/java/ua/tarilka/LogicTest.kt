@@ -72,4 +72,18 @@ class LogicTest {
         val wrong = runCatching { ua.tarilka.data.Backup.decrypt(enc, "інший") }
         assertTrue("wrong password must fail", wrong.isFailure)
     }
+
+    @Test
+    fun recipePer100() {
+        val buckwheatDry = foods.first { it.code == "g02" } // 346 kcal
+        val butter = foods.first { it.code == "d18" } // 748 kcal
+        val items = listOf(ua.tarilka.data.RecipeItem(buckwheatDry, 100.0), ua.tarilka.data.RecipeItem(butter, 10.0))
+        // Raw weight 110 g, but cooked with water to 300 g.
+        val t = ua.tarilka.data.Recipe.per100(items, 300.0)
+        assertEquals((346.0 + 74.8) / 300 * 100, t.kcal, 0.01)
+        val json = ua.tarilka.data.Recipe.encode(items, 300.0)
+        val (back, cooked) = ua.tarilka.data.Recipe.decode(json, foods)
+        assertEquals(2, back.size)
+        assertEquals(300.0, cooked!!, 0.01)
+    }
 }

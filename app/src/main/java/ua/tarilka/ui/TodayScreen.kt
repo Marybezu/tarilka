@@ -58,6 +58,7 @@ fun TodayScreen(
     padding: PaddingValues,
     onAdd: (meal: Int) -> Unit,
     onPhoto: (meal: Int) -> Unit,
+    onHistory: () -> Unit,
 ) {
     val day by vm.day.collectAsState()
     val entries by vm.entries.collectAsState()
@@ -74,6 +75,8 @@ fun TodayScreen(
     val steps by vm.steps.collectAsState()
     val stepsEnabled by vm.stepsEnabled.collectAsState()
     val weight by vm.latestWeight.collectAsState()
+    val note by vm.note.collectAsState()
+    var noteDialog by remember { mutableStateOf(false) }
     val macros = LocalMacroColors.current
     val context = LocalContext.current
     var editing by remember { mutableStateOf<DiaryEntry?>(null) }
@@ -96,7 +99,7 @@ fun TodayScreen(
         ),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        item { DayHeader(day, onPrev = { vm.shiftDay(-1) }, onNext = { vm.shiftDay(1) }, onToday = vm::today) }
+        item { DayHeader(day, onPrev = { vm.shiftDay(-1) }, onNext = { vm.shiftDay(1) }, onToday = vm::today, onHistory = onHistory) }
 
         if (!profile.isSet) {
             item {
@@ -165,7 +168,7 @@ fun TodayScreen(
                                 TextButton(onClick = ai::clearAdvice) { Text(stringResource(R.string.hide)) }
                             }
                             else -> FilledTonalButton(onClick = {
-                                val summary = adviceSummary(context, entries, totals, targets, tips, fluidMl, steps)
+                                val summary = adviceSummary(context, entries, totals, targets, tips, fluidMl, steps, note)
                                 ai.requestAdvice(summary, isUkrainian())
                             }) {
                                 Icon(Icons.Filled.Star, null, Modifier.size(18.dp))
@@ -192,6 +195,19 @@ fun TodayScreen(
             }
         }
 
+        item(key = "note") {
+            Section(
+                modifier = Modifier.clickable { noteDialog = true },
+                title = stringResource(R.string.note_title),
+            ) {
+                Text(
+                    note.ifEmpty { stringResource(R.string.note_hint) },
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = if (note.isEmpty()) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface,
+                )
+            }
+        }
+
         item {
             val withData = week.filter { it.kcal > 0 }
             if (withData.isNotEmpty()) {
@@ -207,6 +223,25 @@ fun TodayScreen(
                 }
             }
         }
+    }
+
+    if (noteDialog) {
+        var text by remember { mutableStateOf(note) }
+        androidx.compose.material3.AlertDialog(
+            onDismissRequest = { noteDialog = false },
+            title = { Text(stringResource(R.string.note_title)) },
+            text = {
+                androidx.compose.material3.OutlinedTextField(
+                    value = text,
+                    onValueChange = { text = it.take(1000) },
+                    placeholder = { Text(stringResource(R.string.note_hint)) },
+                    minLines = 3,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            },
+            confirmButton = { TextButton(onClick = { vm.saveNote(text); noteDialog = false }) { Text(stringResource(R.string.save)) } },
+            dismissButton = { TextButton(onClick = { noteDialog = false }) { Text(stringResource(R.string.cancel)) } },
+        )
     }
 
     if (fluidDialog) {
@@ -235,7 +270,7 @@ fun TodayScreen(
 }
 
 @Composable
-private fun DayHeader(day: LocalDate, onPrev: () -> Unit, onNext: () -> Unit, onToday: () -> Unit) {
+private fun DayHeader(day: LocalDate, onPrev: () -> Unit, onNext: () -> Unit, onToday: () -> Unit, onHistory: () -> Unit) {
     val today = LocalDate.now()
     val label = when (day) {
         today -> stringResource(R.string.today)
@@ -253,6 +288,9 @@ private fun DayHeader(day: LocalDate, onPrev: () -> Unit, onNext: () -> Unit, on
         )
         IconButton(onClick = onNext, enabled = day.isBefore(today)) {
             Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, stringResource(R.string.next_day))
+        }
+        IconButton(onClick = onHistory) {
+            Icon(androidx.compose.material.icons.Icons.Filled.DateRange, stringResource(R.string.history_title))
         }
     }
 }
@@ -388,6 +426,7 @@ private fun adviceSummary(
     tips: List<Tip>,
     fluidMl: Double,
     steps: Long?,
+    note: String,
 ): String = buildString {
     val time = java.time.format.DateTimeFormatter.ofPattern("HH:mm")
     val now = java.time.LocalTime.now().format(time)
@@ -399,6 +438,7 @@ private fun adviceSummary(
     }
     appendLine("Fluids today: ${fluidMl.f0()} ml (target ${targets.waterMl.f0()} ml).")
     if (steps != null) appendLine("Steps today: $steps.")
+    if (note.isNotBlank()) appendLine("The person's note for today: ${note.take(300)}")
     appendLine(
         "Totals: ${totals.kcal.f0()} kcal (target ${targets.kcal.f0()}), protein ${totals.protein.f0()} g " +
             "(target ${targets.protein.f0()}), fat ${totals.fat.f0()} g (target ${targets.fat.f0()}), " +

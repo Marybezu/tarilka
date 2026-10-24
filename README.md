@@ -14,6 +14,8 @@
 - **Кроки** (за бажанням): з Health Connect або з датчика кроків телефону.
 - **Health Connect** (за бажанням): їжа, напої та вага записуються туди, кроки читаються звідти.
 - **Вага**: щоденні записи, графік, тренд за тиждень.
+- **Свої продукти й страви**: з етикетки або з інгредієнтів (застосунок рахує калорії на 100 г, з урахуванням ваги готової страви).
+- **Нотатка дня** (самопочуття, голод, настрій) та **історія** всіх днів з підсумками.
 - **Експорт та імпорт**: резервна копія всіх даних (за бажанням зашифрована паролем) і журнал у CSV для таблиць.
 - **Норми й рекомендації**: формула Міффліна–Сан Жеора, мета (схуднути / тримати / набрати), прості прозорі поради. ШІ може переформулювати їх людською мовою.
 - **Приватність**: застосунок не має доступу до інтернету й за замовчуванням не запитує жодного дозволу. Докладно — у розділі [Приватність](#приватність).
@@ -100,6 +102,7 @@ APK збирається автоматично в GitHub Actions при кож�
 - Meal diary with daily totals of calories, protein, fat, carbs and fiber.
 - Built-in database of 226 foods in Ukrainian and English, including Ukrainian dishes; the source of every value is shown.
 - Take a photo of your plate: Gemma 4 runs on the phone, recognizes the foods and estimates portions. Nutrient values come from the database; you confirm the grams.
+- Own foods from a label or own dishes from ingredients; a day note; history of all days.
 - Water and drinks with a one-tap "+250 ml".
 - Optional steps (Health Connect or the phone's step sensor) and optional Health Connect sync of meals, drinks and weight.
 - Weight log with chart and weekly trend.

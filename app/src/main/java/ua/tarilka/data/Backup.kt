@@ -76,7 +76,7 @@ object Backup {
                             .put("kcal", f.kcal).put("protein", f.protein).put("fat", f.fat)
                             .put("carbs", f.carbs).put("fiber", f.fiber)
                             .put("portionG", f.portionG ?: JSONObject.NULL).put("favorite", f.favorite)
-                            .put("source", f.source),
+                            .put("source", f.source).put("recipe", f.recipe ?: JSONObject.NULL),
                     )
                 }
             })
@@ -98,6 +98,11 @@ object Backup {
             .put("fluids", JSONArray().apply {
                 db.fluids().allOnce().forEach {
                     put(JSONObject().put("day", LocalDate.ofEpochDay(it.day).toString()).put("ml", it.ml).put("createdAt", it.createdAt))
+                }
+            })
+            .put("notes", JSONArray().apply {
+                db.notes().allOnce().forEach {
+                    put(JSONObject().put("day", LocalDate.ofEpochDay(it.day).toString()).put("text", it.text))
                 }
             })
             .put("weights", JSONArray().apply {
@@ -130,6 +135,7 @@ object Backup {
             db.fluids().deleteAll()
             db.weights().deleteAll()
             db.foods().deleteCustom()
+            db.notes().deleteAll()
 
             val idMap = mutableMapOf<Long, Long>()
             o.optJSONArray("customFoods")?.let { arr ->
@@ -146,9 +152,22 @@ object Backup {
                             portionUk = if (f.isNull("portionG")) null else "порція",
                             portionEn = if (f.isNull("portionG")) null else "serving",
                             source = f.optString("source", "CUSTOM"), favorite = f.optBoolean("favorite"),
+                            recipe = if (f.isNull("recipe")) null else f.optString("recipe"),
                         ),
                     )
                     idMap[f.getLong("id")] = newId
+                }
+            }
+            // Recipes refer to own foods by id; ids change on restore, so remap them.
+            if (idMap.isNotEmpty()) {
+                db.foods().customOnce().filter { it.recipe != null }.forEach { f ->
+                    val r = JSONObject(f.recipe!!)
+                    val items = r.optJSONArray("items") ?: return@forEach
+                    for (i in 0 until items.length()) {
+                        val it = items.getJSONObject(i)
+                        if (it.has("id")) idMap[it.getLong("id")]?.let { n -> it.put("id", n) }
+                    }
+                    db.foods().update(f.copy(recipe = r.toString()))
                 }
             }
             val favs = o.optJSONArray("favorites")?.let { a -> (0 until a.length()).map { a.getString(it) } } ?: emptyList()
@@ -177,6 +196,12 @@ object Backup {
                     val e = arr.getJSONObject(i)
                     FluidEntry(day = LocalDate.parse(e.getString("day")).toEpochDay(), ml = e.getDouble("ml"), createdAt = e.optLong("createdAt"))
                 })
+            }
+            o.optJSONArray("notes")?.let { arr ->
+                for (i in 0 until arr.length()) {
+                    val e = arr.getJSONObject(i)
+                    db.notes().upsert(DayNote(LocalDate.parse(e.getString("day")).toEpochDay(), e.getString("text")))
+                }
             }
             o.optJSONArray("weights")?.let { arr ->
                 for (i in 0 until arr.length()) {

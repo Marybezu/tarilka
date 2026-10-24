@@ -49,7 +49,10 @@ private sealed interface Overlay {
     data class Photo(val meal: Int) : Overlay
     /** Pick a food for the photo review: replace item [index], or add a new one when null. */
     data class PickForPhoto(val index: Int?) : Overlay
-    data class EditFood(val food: Food?) : Overlay
+    /** Not a data class: each editor keeps its own form state while ingredients are picked. */
+    class EditFood(food: Food?) : Overlay { val draft = FoodDraft(food) }
+    class PickIngredient(val draft: FoodDraft) : Overlay
+    data object History : Overlay
 }
 
 @Composable
@@ -100,9 +103,29 @@ private fun AppRoot() {
         )
 
         is Overlay.EditFood -> EditFoodScreen(
-            initial = top.food,
+            draft = top.draft,
+            vm = vm,
             onBack = ::pop,
             onSave = { vm.saveFood(it); pop() },
+            onAddIngredient = { push(Overlay.PickIngredient(top.draft)) },
+        )
+
+        is Overlay.PickIngredient -> AddFoodScreen(
+            vm = vm,
+            title = stringResource(R.string.add_ingredient),
+            onBack = ::pop,
+            onPicked = { food, grams ->
+                top.draft.items.add(ua.tarilka.data.RecipeItem(food, grams))
+                vm.query.value = ""
+                pop()
+            },
+            onCreateFood = { push(Overlay.EditFood(null)) },
+        )
+
+        Overlay.History -> HistoryScreen(
+            vm = vm,
+            onBack = ::pop,
+            onOpen = { d -> vm.day.value = d; tab = 0; stack.clear() },
         )
 
         null -> Tabs(vm, ai, tab, onTab = { tab = it }, push = ::push)
@@ -131,7 +154,7 @@ private fun Tabs(vm: MainViewModel, ai: AiViewModel, tab: Int, onTab: (Int) -> U
         },
     ) { pad ->
         when (tab) {
-            0 -> TodayScreen(vm, ai, pad, onAdd = { push(Overlay.AddFood(it)) }, onPhoto = { push(Overlay.Photo(it)) })
+            0 -> TodayScreen(vm, ai, pad, onAdd = { push(Overlay.AddFood(it)) }, onPhoto = { push(Overlay.Photo(it)) }, onHistory = { push(Overlay.History) })
             1 -> WeightScreen(vm, pad)
             2 -> FoodsScreen(vm, pad, onEdit = { push(Overlay.EditFood(it)) })
             else -> SettingsScreen(vm, ai, pad)

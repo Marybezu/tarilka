@@ -26,6 +26,8 @@ data class Food(
     val source: String,
     val favorite: Boolean = false,
     val searchKey: String = buildSearchKey(nameUk, nameEn),
+    /** For the user's own dishes: {"items":[{"id":1,"g":200}],"cooked":850} */
+    val recipe: String? = null,
 ) {
     fun name(): String = localized(nameUk, nameEn)
     fun portionName(): String? = if (isUkrainian()) portionUk else portionEn
@@ -86,6 +88,15 @@ data class FluidEntry(
     val ml: Double,
     val createdAt: Long = System.currentTimeMillis(),
 )
+
+/** A short free-text note for a day (how you felt, hunger, mood…). */
+@Entity(tableName = "notes")
+data class DayNote(
+    @PrimaryKey val day: Long,
+    val text: String,
+)
+
+data class DayFluid(val day: Long, val ml: Double)
 
 /** Sum of nutrients for one day. */
 data class DayTotal(

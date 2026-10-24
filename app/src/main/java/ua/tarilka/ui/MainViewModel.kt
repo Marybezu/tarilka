@@ -156,6 +156,40 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     val recent: StateFlow<List<Food>> = db.foods().recent()
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
+    // ---- day note ----
+
+    val note: StateFlow<String> = day.flatMapLatest { d -> db.notes().forDay(d.toEpochDay()).map { it?.text ?: "" } }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, "")
+
+    fun saveNote(text: String) = viewModelScope.launch {
+        val d = day.value.toEpochDay()
+        if (text.isBlank()) db.notes().delete(d) else db.notes().upsert(ua.tarilka.data.DayNote(d, text.trim()))
+    }
+
+    // ---- history: one row per day that has anything logged ----
+
+    data class HistoryDay(val day: LocalDate, val kcal: Double, val fluidMl: Double, val weight: Double?, val note: Boolean)
+
+    val history: StateFlow<List<HistoryDay>> = run {
+        val to = LocalDate.now().toEpochDay()
+        val from = to - 365
+        combine(
+            db.diary().totals(from, to), db.fluids().totals(from, to), db.weights().all(), db.notes().all(),
+        ) { food, fluid, weight, notes ->
+            val f = food.associateBy { it.day }
+            val w = fluid.associateBy { it.day }
+            val kg = weight.associateBy { it.day }
+            val n = notes.map { it.day }.toSet()
+            (f.keys + w.keys + kg.keys.filter { it >= from } + n).sortedDescending().map { d ->
+                HistoryDay(LocalDate.ofEpochDay(d), f[d]?.kcal ?: 0.0, w[d]?.ml ?: 0.0, kg[d]?.kg, d in n)
+            }
+        }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    // ---- recipes ----
+
+    suspend fun allFoods(): List<Food> = db.foods().allOnce()
+
     fun shiftDay(by: Long) { day.value = day.value.plusDays(by) }
     fun today() { day.value = LocalDate.now() }
 

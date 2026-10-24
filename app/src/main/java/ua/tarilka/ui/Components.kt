@@ -168,6 +168,7 @@ fun sourceLabel(source: String): String = stringResource(
         "LABEL" -> R.string.source_label
         "RECIPE" -> R.string.source_recipe
         "AI" -> R.string.source_ai
+        "RECIPE_USER" -> R.string.source_recipe_user
         else -> R.string.source_custom
     },
 )

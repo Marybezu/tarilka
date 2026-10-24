@@ -199,4 +199,15 @@
     <string name="unlock">Open</string>
     <string name="export_plain">Save without password</string>
     <string name="export_encrypted">Save encrypted</string>
+    <string name="note_title">Note</string>
+    <string name="note_hint">How do you feel today? Hunger, mood, sleep…</string>
+    <string name="history_title">History</string>
+    <string name="history_empty">Nothing logged yet.</string>
+    <string name="from_label">From a label</string>
+    <string name="from_ingredients">From ingredients</string>
+    <string name="recipe_hint">Add raw ingredients with their weights. The app calculates the values per 100 g of the dish.</string>
+    <string name="add_ingredient">Add ingredient</string>
+    <string name="cooked_weight">Weight of the finished dish, g (optional)</string>
+    <string name="cooked_weight_hint">Ingredients weigh %1$s g. If the dish boiled down or absorbed water, weigh it and enter the weight for accurate values.</string>
+    <string name="source_recipe_user">Your recipe</string>
 </resources>

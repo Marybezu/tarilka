@@ -199,4 +199,15 @@
     <string name="unlock">Відкрити</string>
     <string name="export_plain">Зберегти без пароля</string>
     <string name="export_encrypted">Зберегти зашифрованою</string>
+    <string name="note_title">Нотатка</string>
+    <string name="note_hint">Як самопочуття сьогодні? Голод, настрій, сон…</string>
+    <string name="history_title">Історія</string>
+    <string name="history_empty">Ще нічого не записано.</string>
+    <string name="from_label">З етикетки</string>
+    <string name="from_ingredients">З інгредієнтів</string>
+    <string name="recipe_hint">Додайте сирі інгредієнти з вагою. Застосунок порахує значення на 100 г страви.</string>
+    <string name="add_ingredient">Додати інгредієнт</string>
+    <string name="cooked_weight">Вага готової страви, г (необовʼязково)</string>
+    <string name="cooked_weight_hint">Інгредієнти важать %1$s г. Якщо страва уварилася або вбрала воду, зважте її та впишіть вагу для точних цифр.</string>
+    <string name="source_recipe_user">Ваш рецепт</string>
 </resources>

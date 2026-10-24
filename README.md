@@ -8,7 +8,7 @@
 ## Що вміє
 
 - **Журнал їжі** за прийомами: сніданок, обід, вечеря, перекуси. Підсумок за день: калорії, білки, жири, вуглеводи, клітковина.
-- **База продуктів українською** (226 позицій): крупи, овочі, фрукти, м'ясо, риба, молочне, а також борщ, вареники, сирники, голубці, олів'є тощо. Для кожного продукту видно джерело цифр.
+- **База продуктів українською** (592 позиції): крупи, овочі, фрукти, м'ясо, риба, молочне, а також борщ, вареники, сирники, голубці, олів'є тощо. Для кожного продукту видно джерело цифр.
 - **Фото тарілки → розклад на калорії.** Модель Gemma 4 працює прямо на телефоні: розпізнає страви й оцінює вагу порцій. Цифри беруться з бази, а не вигадуються моделлю; вагу можна виправити перед збереженням.
 - **Вода й напої**: кнопка «+250 мл» на головному екрані, норма ≈30 мл на кг ваги. Соки, кефір та інші напої з журналу рахуються автоматично.
 - **Кроки** (за бажанням): з Health Connect або з датчика кроків телефону.
@@ -101,7 +101,7 @@ APK збирається автоматично в GitHub Actions при кож�
 **Tarilka** ("plate" in Ukrainian) is a free, open-source, offline food and weight tracker.
 
 - Meal diary with daily totals of calories, protein, fat, carbs and fiber.
-- Built-in database of 226 foods in Ukrainian and English, including Ukrainian dishes; the source of every value is shown.
+- Built-in database of 592 foods in Ukrainian and English, including Ukrainian dishes; the source of every value is shown.
 - Take a photo of your plate: Gemma 4 runs on the phone, recognizes the foods and estimates portions. Nutrient values come from the database; you confirm the grams.
 - Own foods from a label or own dishes from ingredients; a day note; history of all days.
 - Water and drinks with a one-tap "+250 ml".

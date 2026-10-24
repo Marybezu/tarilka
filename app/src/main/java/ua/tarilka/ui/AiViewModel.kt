@@ -114,7 +114,9 @@ class AiViewModel(app: Application) : AndroidViewModel(app) {
             val img = PhotoUtil.prepare(getApplication(), uri)
             _photo.update { it.copy(preview = PhotoUtil.thumbnail(img)) }
             val foods = tapp.db.foods().allOnce()
-            val names = foods.filter { it.code != null }.map { it.nameEn }
+            // Only ready-to-eat foods (those with a typical portion) to keep the prompt short.
+            val names = foods.filter { it.code != null && it.portionG != null && it.category !in setOf("sauces", "fats") }
+                .map { it.nameEn }
             val detected = gemma.analyzePhoto(img, _photo.value.note, names)
             val items = detected.map { d ->
                 val match = FoodMatcher.best(d.nameEn, d.nameUk, foods)

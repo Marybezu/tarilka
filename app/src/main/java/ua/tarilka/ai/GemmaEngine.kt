@@ -61,7 +61,7 @@ class GemmaEngine(private val context: Context, private val models: ModelStore) 
             modelPath = path,
             backend = b,
             visionBackend = if (gpu) Backend.GPU() else Backend.CPU(),
-            maxNumTokens = 4096,
+            maxNumTokens = 8192,
             cacheDir = context.cacheDir.absolutePath,
         )
         return Engine(config).also { it.initialize() }

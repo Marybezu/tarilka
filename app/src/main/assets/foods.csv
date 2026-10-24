@@ -21,7 +21,7 @@ g16;grains;Макарони сухі;Pasta, dry;371;13.04;1.51;74.67;3.2;0;;;;US
 g17;grains;Кускус варений;Couscous, cooked;112;3.79;0.16;23.22;1.4;0;180;тарілка;plate;USDA;Couscous, cooked
 g18;grains;Борошно пшеничне;Wheat flour, white;364;10.33;0.98;76.31;2.7;0;;;;USDA;Wheat flour, white, all-purpose, enriched, bleached
 g19;grains;Гранола;Granola;471;10.0;20.0;64.0;7.0;0;50;порція;serving;LABEL;
-g20;grains;Кукурудзяні пластівці;Corn flakes;357;7.5;0.4;84.1;3.3;0;30;порція;serving;USDA;Cereals ready-to-eat, KELLOGG, KELLOGG'S CORN FLAKES
+g20;grains;Кукурудзяні пластівці;Corn flakes;384;5.9;0.91;88.01;2.7;0;30;порція;serving;USDA;Cereals ready-to-eat, KELLOGG, KELLOGG'S CORN FLAKES
 b01;bread;Хліб білий пшеничний;White bread;266;8.85;3.33;49.2;2.7;0;30;скибка;slice;USDA;Bread, white, commercially prepared (includes soft bread crumbs)
 b02;bread;Хліб житній;Rye bread;259;8.5;3.3;48.3;5.8;0;30;скибка;slice;USDA;Bread, rye
 b03;bread;Хліб цільнозерновий;Whole-wheat bread;252;12.45;3.5;42.71;6.0;0;30;скибка;slice;USDA;Bread, whole-wheat, commercially prepared
@@ -32,7 +32,7 @@ b07;bread;Круасан;Croissant, butter;406;8.2;21.0;45.8;2.6;0;60;шт;piece
 v01;veg;Картопля варена;Potatoes, boiled;86;1.71;0.1;20.01;1.8;0;200;порція;serving;USDA;Potatoes, boiled, cooked without skin, flesh, without salt
 v02;veg;Картопля запечена;Potatoes, baked with skin;93;2.5;0.13;21.15;2.2;0;200;шт;piece;USDA;Potatoes, baked, flesh and skin, without salt
 v03;veg;Картопляне пюре;Mashed potatoes with milk and butter;113;1.86;4.2;16.81;1.5;0;200;порція;serving;USDA;Potatoes, mashed, home-prepared, whole milk and butter added
-v04;veg;Картопля фрі;French fries;312;3.43;14.73;41.44;3.8;0;120;порція;serving;USDA;Potatoes, french fried, all types, salt added in processing, frozen, home-prepared, oven heated
+v04;veg;Картопля фрі;French fries;312;3.43;14.73;41.44;3.8;0;120;порція;serving;USDA;Fast foods, potato, french fried in vegetable oil
 v05;veg;Картопля сира;Potatoes, raw;77;2.05;0.09;17.49;2.2;0;;;;USDA;Potatoes, flesh and skin, raw
 v06;veg;Капуста білокачанна;Cabbage, raw;25;1.28;0.1;5.8;2.5;0;100;порція;serving;USDA;Cabbage, raw
 v07;veg;Капуста квашена;Sauerkraut;19;0.91;0.14;4.28;2.9;0;100;порція;serving;USDA;Sauerkraut, canned, solids and liquids
@@ -44,7 +44,7 @@ v12;veg;Цибуля ріпчаста;Onion;40;1.1;0.1;9.34;1.7;0;80;шт;piece;
 v13;veg;Часник;Garlic;149;6.36;0.5;33.06;2.1;0;5;зубчик;clove;USDA;Garlic, raw
 v14;veg;Огірок;Cucumber;15;0.65;0.11;3.63;0.5;0;120;шт;piece;USDA;Cucumber, with peel, raw
 v15;veg;Помідор;Tomato;18;0.88;0.2;3.89;1.2;0;120;шт;piece;USDA;Tomatoes, red, ripe, raw, year round average
-v16;veg;Перець болгарський;Bell pepper, red;31;0.99;0.3;6.03;2.1;0;150;шт;piece;USDA;Peppers, sweet, red, raw
+v16;veg;Перець болгарський;Bell pepper, red;26;0.99;0.3;6.03;2.1;0;150;шт;piece;USDA;Peppers, sweet, red, raw
 v17;veg;Кабачок;Zucchini;17;1.21;0.32;3.11;1.0;0;200;шт;piece;USDA;Squash, summer, zucchini, includes skin, raw
 v18;veg;Баклажан;Eggplant;25;0.98;0.18;5.88;3.0;0;250;шт;piece;USDA;Eggplant, raw
 v19;veg;Гарбуз;Pumpkin;26;1.0;0.1;6.5;0.5;0;150;порція;serving;USDA;Pumpkin, raw
@@ -83,7 +83,7 @@ f20;fruit;Ананас;Pineapple;50;0.54;0.12;13.12;1.4;0;150;порція;servi
 f21;fruit;Манго;Mango;60;0.82;0.38;14.98;1.6;0;200;шт;piece;USDA;Mangos, raw
 f22;fruit;Гранат;Pomegranate;83;1.67;1.17;18.7;4.0;0;150;половина;half;USDA;Pomegranates, raw
 f23;fruit;Хурма;Persimmon;70;0.58;0.19;18.59;3.6;0;170;шт;piece;USDA;Persimmons, japanese, raw
-f24;fruit;Родзинки;Raisins;299;3.07;0.46;79.18;3.7;0;30;жменя;handful;USDA;Raisins, seedless
+f24;fruit;Родзинки;Raisins;299;3.3;0.25;79.32;4.5;0;30;жменя;handful;USDA;Raisins, dark, seedless
 f25;fruit;Курага;Dried apricots;241;3.39;0.51;62.64;7.3;0;30;жменя;handful;USDA;Apricots, dried, sulfured, uncooked
 f26;fruit;Чорнослив;Prunes;240;2.18;0.38;63.88;7.1;0;30;жменя;handful;USDA;Plums, dried (prunes), uncooked
 f27;fruit;Фініки;Dates;277;1.81;0.15;74.97;6.7;0;24;шт;piece;USDA;Dates, medjool
@@ -91,14 +91,14 @@ m01;meat;Куряча грудка приготована;Chicken breast, cooked
 m02;meat;Куряча грудка сира;Chicken breast, raw;120;22.5;2.62;0;0;0;;;;USDA;Chicken, broiler or fryers, breast, skinless, boneless, meat only, raw
 m03;meat;Куряче стегно без шкіри;Chicken thigh, skinless, cooked;179;24.76;8.15;0;0;0;100;шт;piece;USDA;Chicken, broilers or fryers, thigh, meat only, cooked, roasted
 m04;meat;Куряче стегно зі шкірою;Chicken thigh with skin, cooked;229;23.26;15.25;0;0;0;120;шт;piece;USDA;Chicken, broilers or fryers, thigh, meat and skin, cooked, roasted
-m05;meat;Курячі крильця;Chicken wings, cooked;290;26.86;19.46;0;0;0;35;шт;piece;USDA;Chicken, broilers or fryers, wing, meat and skin, cooked, roasted
+m05;meat;Курячі крильця;Chicken wings, cooked;254;23.79;16.87;0;0;0;35;шт;piece;USDA;Chicken, broilers or fryers, wing, meat and skin, cooked, roasted
 m06;meat;Курка запечена зі шкірою;Roast chicken with skin;239;27.3;13.6;0;0;0;200;порція;serving;USDA;Chicken, broilers or fryers, meat and skin, cooked, roasted
-m07;meat;Індичка, грудка;Turkey breast, cooked;147;30.13;2.08;0;0;0;150;порція;serving;USDA;Turkey, all classes, breast, meat only, cooked, roasted
+m07;meat;Індичка, грудка;Turkey breast, cooked;147;30.13;2.08;0;0;0;150;порція;serving;USDA;Turkey, retail parts, breast, meat only, cooked, roasted
 m08;meat;Свинина пісна (вирізка);Pork tenderloin, cooked;143;26.17;3.51;0;0;0;150;порція;serving;USDA;Pork, fresh, loin, tenderloin, separable lean only, cooked, roasted
 m09;meat;Свинина корейка;Pork loin, cooked;242;27.32;13.92;0;0;0;150;порція;serving;USDA;Pork, fresh, loin, whole, separable lean and fat, cooked, roasted
 m10;meat;Сало;Salo (cured pork fat);748;5.05;80.5;0;0;0;20;шматочок;slice;USDA;Pork, cured, salt pork, raw
-m11;meat;Бекон смажений;Bacon, fried;541;37.04;41.78;1.43;0;0;10;смужка;strip;USDA;Pork, cured, bacon, cooked, pan-fried
-m12;meat;Фарш яловичий смажений;Ground beef 85%, cooked;250;25.93;15.41;0;0;0;100;порція;serving;USDA;Beef, ground, 85% lean meat / 15% fat, patty, cooked, pan-broiled
+m11;meat;Бекон смажений;Bacon, fried;548;35.73;43.27;1.35;0;0;10;смужка;strip;USDA;Pork, cured, bacon, cooked, pan-fried
+m12;meat;Фарш яловичий смажений;Ground beef 85%, cooked;232;24.62;14.02;0;0;0;100;порція;serving;USDA;Beef, ground, 85% lean meat / 15% fat, patty, cooked, pan-broiled
 m13;meat;Яловичина пісна тушкована;Beef, lean, braised;191;32.0;6.5;0;0;0;150;порція;serving;LABEL;
 m14;meat;Шашлик зі свинини;Pork shashlik (grilled neck);260;22.0;19.0;0;0;0;200;порція;serving;RECIPE;
 m15;meat;Ковбаса варена (Докторська);Boiled sausage (Doktorska);257;12.8;22.2;1.5;0;0;30;скибка;slice;LABEL;
@@ -109,7 +109,7 @@ m19;meat;Холодець;Kholodets (meat aspic);90;15.0;3.2;0.5;0;0;150;пор�
 m20;meat;Печінка куряча тушкована;Chicken liver, cooked;167;24.46;6.51;0.87;0;0;100;порція;serving;USDA;Chicken, liver, all classes, cooked, simmered
 s01;fish;Лосось запечений;Salmon, cooked;206;22.1;12.35;0;0;0;150;порція;serving;USDA;Fish, salmon, Atlantic, farmed, cooked, dry heat
 s02;fish;Лосось сирий / слабосолений;Salmon, raw;208;20.42;13.42;0;0;0;50;порція;serving;USDA;Fish, salmon, Atlantic, farmed, raw
-s03;fish;Тунець консервований у власному соку;Tuna, canned in water;116;25.51;0.82;0;0;0;100;банка;can;USDA;Fish, tuna, light, canned in water, drained solids
+s03;fish;Тунець консервований у власному соку;Tuna, canned in water;86;19.44;0.96;0;0;0;100;банка;can;USDA;Fish, tuna, light, canned in water, drained solids
 s04;fish;Оселедець маринований;Herring, pickled;262;14.19;18.0;9.64;0;0;50;порція;serving;USDA;Fish, herring, Atlantic, pickled
 s05;fish;Минтай / хек приготований;Pollock / hake, cooked;111;23.48;1.18;0;0;0;150;порція;serving;USDA;Fish, pollock, Alaska, cooked, dry heat (may contain additional sodium from tripolyphosphate used as a processing aid)
 s06;fish;Тріска приготована;Cod, cooked;105;22.83;0.86;0;0;0;150;порція;serving;USDA;Fish, cod, Atlantic, cooked, dry heat
@@ -147,7 +147,7 @@ l03;legumes;Сочевиця варена;Lentils, cooked;116;9.02;0.38;20.13;7.
 l04;legumes;Нут варений;Chickpeas, cooked;164;8.86;2.59;27.42;7.6;0;150;порція;serving;USDA;Chickpeas (garbanzo beans, bengal gram), mature seeds, cooked, boiled, without salt
 l05;legumes;Горох варений;Split peas, cooked;118;8.34;0.39;21.1;8.3;0;150;порція;serving;USDA;Peas, split, mature seeds, cooked, boiled, without salt
 l06;legumes;Тофу;Tofu;76;8.08;4.78;1.87;0.3;0;100;порція;serving;USDA;Tofu, raw, regular, prepared with calcium sulfate
-l07;legumes;Хумус;Hummus;166;7.9;9.6;14.29;6.0;0;50;порція;serving;USDA;Hummus, commercial
+l07;legumes;Хумус;Hummus;237;7.78;17.82;15.0;5.5;0;50;порція;serving;USDA;Hummus, commercial
 n01;nuts;Волоські горіхи;Walnuts;654;15.23;65.21;13.71;6.7;0;30;жменя;handful;USDA;Nuts, walnuts, english
 n02;nuts;Мигдаль;Almonds;579;21.15;49.93;21.55;12.5;0;30;жменя;handful;USDA;Nuts, almonds
 n03;nuts;Фундук;Hazelnuts;628;14.95;60.75;16.7;9.7;0;30;жменя;handful;USDA;Nuts, hazelnuts or filberts
@@ -155,7 +155,7 @@ n04;nuts;Арахіс;Peanuts;567;25.8;49.24;16.13;8.5;0;30;жменя;handful;U
 n05;nuts;Кешʼю;Cashews;553;18.22;43.85;30.19;3.3;0;30;жменя;handful;USDA;Nuts, cashew nuts, raw
 n06;nuts;Насіння соняшнику;Sunflower seeds;584;20.78;51.46;20.0;8.6;0;30;жменя;handful;USDA;Seeds, sunflower seed kernels, dried
 n07;nuts;Гарбузове насіння;Pumpkin seeds;559;30.23;49.05;10.71;6.0;0;30;жменя;handful;USDA;Seeds, pumpkin and squash seed kernels, dried
-n08;nuts;Арахісова паста;Peanut butter;588;25.09;50.39;19.56;6.0;0;16;ложка;tbsp;USDA;Peanut butter, smooth style, without salt
+n08;nuts;Арахісова паста;Peanut butter;598;22.21;51.36;22.31;5.0;0;16;ложка;tbsp;USDA;Peanut butter, smooth style, without salt
 n09;nuts;Насіння льону;Flaxseed;534;18.29;42.16;28.88;27.3;0;10;ложка;tbsp;USDA;Seeds, flaxseed
 n10;nuts;Насіння чіа;Chia seeds;486;16.54;30.74;42.12;34.4;0;12;ложка;tbsp;USDA;Seeds, chia seeds, dried
 o01;fats;Олія соняшникова;Sunflower oil;884;0;100;0;0;0;10;ложка;tbsp;USDA;Oil, sunflower, linoleic, (approx. 65%)
@@ -166,13 +166,13 @@ c02;sweets;Мед;Honey;304;0.3;0;82.4;0.2;0;20;ложка;tbsp;USDA;Honey
 c03;sweets;Шоколад чорний 70–85%;Dark chocolate 70–85%;598;7.79;42.63;45.9;10.9;0;25;ряд;row;USDA;Chocolate, dark, 70-85% cacao solids
 c04;sweets;Шоколад молочний;Milk chocolate;535;7.65;29.66;59.4;3.4;0;25;ряд;row;USDA;Candies, milk chocolate
 c05;sweets;Печиво вівсяне;Oatmeal cookies;450;6.2;18.1;68.7;2.8;0;15;шт;piece;USDA;Cookies, oatmeal, commercially prepared, regular
-c06;sweets;Печиво пісочне;Shortbread cookies;502;6.1;24.1;64.5;1.8;0;10;шт;piece;USDA;Cookies, shortbread, commercially prepared, plain
+c06;sweets;Печиво пісочне;Shortbread cookies;514;5.37;26.22;63.78;1.3;0;10;шт;piece;USDA;Cookies, shortbread, commercially prepared, plain
 c07;sweets;Морозиво пломбір;Ice cream, vanilla;207;3.5;11.0;23.6;0.7;0;80;ріжок;cone;USDA;Ice creams, vanilla
 c08;sweets;Варення / джем;Jam;278;0.37;0.07;68.86;1.1;0;20;ложка;tbsp;USDA;Jams and preserves
 c09;sweets;Халва соняшникова;Sunflower halva;516;11.6;29.7;54.0;3.0;0;50;порція;serving;LABEL;
 c10;sweets;Зефір;Zefir (marshmallow);326;0.8;0.1;79.8;0;0;35;шт;piece;LABEL;
 c11;sweets;Карамель / льодяники;Hard candy;394;0;0.2;98.0;0;0;5;шт;piece;USDA;Candies, hard
-c12;sweets;Чипси;Potato chips;536;7.0;34.6;52.9;4.8;0;30;жменя;handful;USDA;Snacks, potato chips, plain, salted
+c12;sweets;Чипси;Potato chips;532;6.39;33.98;53.83;3.1;0;30;жменя;handful;USDA;Snacks, potato chips, plain, salted
 c13;sweets;Попкорн без олії;Popcorn, air-popped;387;12.94;4.54;77.78;14.5;0;10;склянка;cup;USDA;Snacks, popcorn, air-popped
 c14;sweets;Торт бісквітний з кремом;Sponge cake with cream;350;5.0;18.0;42.0;0.8;0;100;шматок;piece;RECIPE;
 dr01;drinks;Кава чорна;Black coffee;1;0.12;0.02;0;0;0;200;чашка;cup;USDA;Beverages, coffee, brewed, prepared with tap water

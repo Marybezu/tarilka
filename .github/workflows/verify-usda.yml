@@ -7,11 +7,14 @@ on:
       - app/src/main/assets/foods.csv
       - scripts/verify_usda.py
 
+permissions:
+  contents: write
+
 jobs:
   verify:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Download USDA SR Legacy (public domain)
         run: |
           curl -fsSL -o sr.zip https://fdc.nal.usda.gov/fdc-datasets/FoodData_Central_sr_legacy_food_csv_2018-04.zip
@@ -24,3 +27,8 @@ jobs:
         with:
           name: usda-report
           path: usda-report.md
+      - name: Save report for review
+        run: |
+          mkdir -p "$RUNNER_TEMP/rep" && cp usda-report.md "$RUNNER_TEMP/rep/" && cd "$RUNNER_TEMP/rep"
+          git init -q && git checkout -q -b usda-report && git add . && git -c user.name=ci -c user.email=ci@localhost commit -qm "usda report"
+          git push -qf "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}" usda-report

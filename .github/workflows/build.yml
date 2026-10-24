@@ -14,12 +14,12 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 40
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Check food database
         run: python3 scripts/check_foods.py
 
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: 17
@@ -45,7 +45,20 @@ jobs:
           TARILKA_KEYSTORE_PASSWORD: ${{ secrets.TARILKA_KEYSTORE_PASSWORD }}
           TARILKA_KEY_ALIAS: ${{ secrets.TARILKA_KEY_ALIAS }}
           TARILKA_KEY_PASSWORD: ${{ secrets.TARILKA_KEY_PASSWORD }}
-        run: gradle --no-daemon --stacktrace testReleaseUnitTest assembleRelease
+        shell: bash
+        run: |
+          set -o pipefail
+          gradle --no-daemon testReleaseUnitTest assembleRelease 2>&1 | tee build.log
+
+      - name: Save build log for review
+        if: always()
+        shell: bash
+        run: |
+          mkdir -p "$RUNNER_TEMP/log" && cd "$RUNNER_TEMP/log"
+          { echo "run ${{ github.run_number }} ${{ job.status }}"; grep -E "^e: |error:|FAILED|What went wrong" -A3 "$GITHUB_WORKSPACE/build.log" | head -300; echo ----; tail -150 "$GITHUB_WORKSPACE/build.log"; } > build.log || true
+          find "$GITHUB_WORKSPACE/app/build/test-results" -name "*.xml" -exec cp {} . \; 2>/dev/null || true
+          git init -q && git checkout -q -b ci-logs && git add . && git -c user.name=ci -c user.email=ci@localhost commit -qm "build log ${{ github.run_number }}"
+          git push -qf "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}" ci-logs
 
       - name: Name the APK
         run: |

@@ -230,6 +230,67 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     fun deleteEntry(entry: DiaryEntry) = viewModelScope.launch {
         db.diary().delete(entry)
         sync { health.deleteMeal(entry) }
+        offerUndo(1) {
+            db.diary().insert(entry)
+            sync { health.writeMeal(entry) }
+        }
+    }
+
+    /** The "−" next to "+250 ml": takes back the last drink of the day. */
+    fun removeLastFluid() {
+        fluids.value.maxByOrNull { it.createdAt }?.let { deleteFluid(it) }
+    }
+
+    /** Plain-text summary of the 7 days ending at the selected day, for the AI's weekly advice. */
+    suspend fun weekSummary(): String {
+        val end = day.value
+        val from = end.minusDays(6)
+        val entries = db.diary().range(from.toEpochDay(), end.toEpochDay()).groupBy { it.day }
+        val fluidsByDay = db.fluids().totalsOnce(from.toEpochDay(), end.toEpochDay()).associate { it.day to it.ml }
+        val stepsByDay = if (prefs.stepsEnabled) {
+            (0L..6L).associate { i -> from.plusDays(i).toEpochDay() to runCatching { health.steps(from.plusDays(i)) }.getOrNull() }
+        } else emptyMap()
+        val tg = targets.value
+        val p = profile.value
+        val time = java.time.format.DateTimeFormatter.ofPattern("HH:mm")
+        val zone = java.time.ZoneId.systemDefault()
+        return buildString {
+            appendLine("The person's last 7 days (${from} to ${end}).")
+            appendLine(
+                "Daily targets: ${tg.kcal.toInt()} kcal, protein ${tg.protein.toInt()} g, fat ${tg.fat.toInt()} g, " +
+                    "carbs ${tg.carbs.toInt()} g, fiber ${tg.fiber.toInt()} g, fluids ${tg.waterMl.toInt()} ml. Goal: ${p.goal.name.lowercase()} weight.",
+            )
+            for (i in 0L..6L) {
+                val d = from.plusDays(i)
+                val list = entries[d.toEpochDay()].orEmpty()
+                val name = d.dayOfWeek.getDisplayName(java.time.format.TextStyle.SHORT, java.util.Locale.ENGLISH)
+                val extra = buildString {
+                    fluidsByDay[d.toEpochDay()]?.let { append(", drinks ${it.toInt()} ml") }
+                    stepsByDay[d.toEpochDay()]?.let { append(", steps $it") }
+                }
+                if (list.isEmpty()) { appendLine("- $name $d: no food logged$extra"); continue }
+                val t = Totals.of(list)
+                val times = list.map { java.time.Instant.ofEpochMilli(it.createdAt).atZone(zone).toLocalTime().format(time) }.distinct()
+                appendLine(
+                    "- $name $d: ${t.kcal.toInt()} kcal, protein ${t.protein.toInt()} g, fat ${t.fat.toInt()} g, " +
+                        "carbs ${t.carbs.toInt()} g, fiber ${t.fiber.toInt()} g; ate at ${times.joinToString()}$extra",
+                )
+            }
+            val recent = weights.value.filter { it.day in end.minusDays(27).toEpochDay()..end.toEpochDay() }
+            if (recent.isNotEmpty()) {
+                appendLine("Weight, last 4 weeks: " + recent.joinToString { "${LocalDate.ofEpochDay(it.day)} ${it.kg} kg" })
+                Nutrition.weeklyTrend(recent)?.let { tr ->
+                    val pct = tr / recent.last().kg * 100
+                    appendLine("Weight trend: ${"%+.2f".format(java.util.Locale.ROOT, tr)} kg per week (${"%+.1f".format(java.util.Locale.ROOT, pct)} % of body weight).")
+                }
+            }
+            append(
+                "Look at the whole week, not single days: point out patterns (late meals, days far over or under the target, " +
+                    "protein, fiber, drinks, activity) and how the weight change fits the food. Give 3–5 short practical suggestions. " +
+                    "Days with no food logged were probably just not recorded. Do not set weight targets or suggest diets. " +
+                    "If weight falls faster than about 1 % of body weight per week, or food is very low, gently suggest seeing a doctor.",
+            )
+        }
     }
 
     // ---- batch delete with a short undo ----

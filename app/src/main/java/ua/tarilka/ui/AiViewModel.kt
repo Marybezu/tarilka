@@ -166,16 +166,31 @@ class AiViewModel(app: Application) : AndroidViewModel(app) {
 
     // ---- advice ----
 
-    fun requestAdvice(summary: String, ukrainian: Boolean) = viewModelScope.launch {
-        _adviceLoading.value = true
-        _advice.value = runCatching {
+    private val _weekAdvice = MutableStateFlow<String?>(null)
+    val weekAdvice: StateFlow<String?> = _weekAdvice.asStateFlow()
+    private val _weekLoading = MutableStateFlow(false)
+    val weekLoading: StateFlow<Boolean> = _weekLoading.asStateFlow()
+
+    fun requestAdvice(summary: String, ukrainian: Boolean) = ask(summary, ukrainian, _advice, _adviceLoading)
+
+    /** The summary is built by the caller (it needs the diary), so it is passed as a function. */
+    fun requestWeekAdvice(summary: suspend () -> String, ukrainian: Boolean) = viewModelScope.launch {
+        _weekLoading.value = true
+        ask(summary(), ukrainian, _weekAdvice, _weekLoading)
+    }
+
+    fun clearWeekAdvice() { _weekAdvice.value = null }
+
+    private fun ask(summary: String, ukrainian: Boolean, out: MutableStateFlow<String?>, loading: MutableStateFlow<Boolean>) = viewModelScope.launch {
+        loading.value = true
+        out.value = runCatching {
             var text = gemma.advice(summary, ukrainian)
             // The small model sometimes slips into Russian or another alphabet: ask once more, then show nothing.
             val lang = ua.tarilka.data.Lang
             if (!lang.isClean(text, ukrainian)) text = gemma.advice(summary, ukrainian)
             if (lang.isClean(text, ukrainian)) text else null
         }.getOrElse { "⚠ ${it.message}" }
-        _adviceLoading.value = false
+        loading.value = false
     }
 
     fun clearAdvice() { _advice.value = null }

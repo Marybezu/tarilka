@@ -90,6 +90,9 @@ interface DiaryDao {
     @Delete
     suspend fun deleteMany(entries: List<DiaryEntry>)
 
+    @Query("SELECT * FROM diary WHERE day BETWEEN :from AND :to ORDER BY day, createdAt")
+    suspend fun range(from: Long, to: Long): List<DiaryEntry>
+
     @Delete
     suspend fun delete(entry: DiaryEntry)
 }
@@ -152,6 +155,9 @@ interface FluidDao {
 
     @Query("SELECT day, SUM(ml) AS ml FROM fluids WHERE day BETWEEN :from AND :to GROUP BY day")
     fun totals(from: Long, to: Long): Flow<List<DayFluid>>
+
+    @Query("SELECT day, SUM(ml) AS ml FROM fluids WHERE day BETWEEN :from AND :to GROUP BY day")
+    suspend fun totalsOnce(from: Long, to: Long): List<DayFluid>
 }
 
 @Dao

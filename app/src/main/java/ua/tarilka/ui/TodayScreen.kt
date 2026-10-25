@@ -287,23 +287,23 @@ fun TodayScreen(
         androidx.compose.material3.AlertDialog(
             onDismissRequest = { weightDialog = false },
             title = { Text(stringResource(R.string.weight_today)) },
-            text = { Field(stringResource(R.string.kg), text, { text = it }) },
+            text = {
+                Column {
+                    Field(stringResource(R.string.kg), text, { text = it })
+                    weightOnDay?.let { w ->
+                        TextButton(onClick = { vm.deleteWeight(w); weightDialog = false }) {
+                            Text(stringResource(R.string.delete_record), color = MaterialTheme.colorScheme.error)
+                        }
+                    }
+                }
+            },
             confirmButton = {
                 TextButton(
                     enabled = text.toNumber()?.let { it in 25.0..350.0 } == true,
                     onClick = { text.toNumber()?.let { vm.saveWeight(it, day) }; weightDialog = false },
                 ) { Text(stringResource(R.string.save)) }
             },
-            dismissButton = {
-                Row {
-                    weightOnDay?.let { w ->
-                        TextButton(onClick = { vm.deleteWeight(w); weightDialog = false }) {
-                            Text(stringResource(R.string.delete), color = MaterialTheme.colorScheme.error)
-                        }
-                    }
-                    TextButton(onClick = { weightDialog = false }) { Text(stringResource(R.string.cancel)) }
-                }
-            },
+            dismissButton = { TextButton(onClick = { weightDialog = false }) { Text(stringResource(R.string.cancel)) } },
         )
     }
 
@@ -603,11 +603,12 @@ private fun SleepDialog(
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 androidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    listOf(4.0, 5.0, 6.0, 6.5, 7.0, 7.5, 8.0, 9.0, 10.0).forEach { h ->
+                    // 3.5 stands for "under 4 hours".
+                    listOf(3.5, 4.0, 5.0, 6.0, 6.5, 7.0, 7.5, 8.0, 9.0, 10.0).forEach { h ->
                         androidx.compose.material3.FilterChip(
                             selected = hours == h,
                             onClick = { hours = h },
-                            label = { Text(if (h % 1.0 == 0.0) h.toInt().toString() else h.f1()) },
+                            label = { Text(if (h < 4) "<4" else if (h % 1.0 == 0.0) h.toInt().toString() else h.f1(), maxLines = 1) },
                         )
                     }
                 }
@@ -617,20 +618,17 @@ private fun SleepDialog(
                         androidx.compose.material3.FilterChip(
                             selected = quality == i,
                             onClick = { quality = if (quality == i) null else i },
-                            label = { Text(stringResource(res)) },
+                            label = { Text(stringResource(res), maxLines = 1) },
                         )
                     }
+                }
+                // Delete sits here, not next to Cancel/Save: three buttons don't fit in one row.
+                if (initial != null && !initial.fromHc) {
+                    TextButton(onClick = onDelete) { Text(stringResource(R.string.delete_record), color = MaterialTheme.colorScheme.error) }
                 }
             }
         },
         confirmButton = { TextButton(enabled = hours != null, onClick = { onSave(hours!!, quality) }) { Text(stringResource(R.string.save)) } },
-        dismissButton = {
-            Row {
-                if (initial != null && !initial.fromHc) {
-                    TextButton(onClick = onDelete) { Text(stringResource(R.string.delete), color = MaterialTheme.colorScheme.error) }
-                }
-                TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) }
-            }
-        },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) } },
     )
 }

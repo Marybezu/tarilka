@@ -38,6 +38,8 @@ data class CycleInfo(
     val ovulation: Long?,
     /** Ongoing period (started, not ended, within 10 days). */
     val inPeriod: Boolean,
+    /** The next start comes from the usual length the person gave, not from recorded cycles yet. */
+    val fromTypical: Boolean = false,
     /** Doctor flags. */
     val tooShortOrLong: Boolean,
     val longBleeding: Boolean,
@@ -51,14 +53,21 @@ data class CycleInfo(
     companion object {
         const val MAX_GAP = 60
 
-        fun of(periods: List<PeriodEntry>, days: List<PeriodDay>, today: Long): CycleInfo {
+        fun of(periods: List<PeriodEntry>, days: List<PeriodDay>, today: Long, typical: Int? = null): CycleInfo {
             val sorted = periods.sortedBy { it.start }
             val lengths = sorted.zipWithNext { a, b -> (b.start - a.start).toInt() }.filter { it in 10..MAX_GAP }
             val recent = lengths.takeLast(6)
             val avg = recent.sorted().let { if (it.isEmpty()) null else it[it.size / 2] }
             val irregular = recent.size >= 3 && recent.max() - recent.min() > 9
             val last = sorted.lastOrNull()
-            val next = if (avg != null && last != null) last.start + avg else null
+            // Until two starts are recorded, the length given at setup is the best guess.
+            val usual = typical?.takeIf { it in 15..60 }
+            val next = when {
+                last == null -> null
+                avg != null -> last.start + avg
+                usual != null -> last.start + usual
+                else -> null
+            }
             val byDay = days.associateBy { it.day }
             fun periodDays(p: PeriodEntry) = (p.start..(p.end ?: minOf(p.start + 9, today))).mapNotNull { byDay[it] }
             val lastTwo = sorted.takeLast(2)
@@ -68,7 +77,8 @@ data class CycleInfo(
                 avgLength = avg,
                 irregular = irregular,
                 nextStart = next,
-                ovulation = if (next != null && !irregular) next - 14 else null,
+                ovulation = if (avg != null && next != null && !irregular) next - 14 else null,
+                fromTypical = avg == null && next != null,
                 inPeriod = last != null && last.end == null && today - last.start in 0..9,
                 tooShortOrLong = recent.size >= 2 && avg != null && (avg < 21 || avg > 35),
                 // Only from a marked end: an unmarked one is more likely forgotten than long.

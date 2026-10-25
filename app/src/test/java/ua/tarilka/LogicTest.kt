@@ -225,5 +225,10 @@ class LogicTest {
         // A marked 9-day period is worth a doctor's look; an unmarked end is not.
         assertTrue(ua.tarilka.data.CycleInfo.of(listOf(p(0, 8)), emptyList(), 20).longBleeding)
         assertTrue(!ua.tarilka.data.CycleInfo.of(listOf(p(0)), emptyList(), 9).longBleeding)
+        // One start plus the usual length from setup: a date, but no ovulation guess yet.
+        val first = ua.tarilka.data.CycleInfo.of(listOf(p(100, 104)), emptyList(), 110, typical = 29)
+        assertEquals(129L, first.nextStart)
+        assertTrue(first.fromTypical)
+        assertEquals(null, first.ovulation)
     }
 }

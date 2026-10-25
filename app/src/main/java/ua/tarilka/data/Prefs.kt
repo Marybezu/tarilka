@@ -71,6 +71,11 @@ class Prefs(context: Context) {
     val cycleEnabled: StateFlow<Boolean> = _cycleEnabled.asStateFlow()
     fun setCycleEnabled(on: Boolean) { sp.edit().putBoolean("cycleEnabled", on).apply(); _cycleEnabled.value = on }
 
+    private val _cycleTypical = MutableStateFlow(sp.getInt("cycleTypical", -1))
+    /** The usual cycle length the person gave at setup (days), or -1; used until 2 starts are recorded. */
+    val cycleTypical: StateFlow<Int> = _cycleTypical.asStateFlow()
+    fun setCycleTypical(v: Int) { sp.edit().putInt("cycleTypical", v).apply(); _cycleTypical.value = v }
+
     /** Remind this many days before the expected start (1–3), or -1 = off. */
     var cycleRemindDays: Int
         get() = sp.getInt("cycleRemindDays", -1)
@@ -205,7 +210,7 @@ class Prefs(context: Context) {
         _profile.value = Profile()
         _missing.value = emptyMap()
     }
-    private val STEP_KEYS = listOf("stepLog", "stepDay", "stepBase", "stepLast", "cycleNext")
+    private val STEP_KEYS = listOf("stepLog", "stepDay", "stepBase", "stepLast", "cycleNext", "cycleTypical")
     private val PROFILE_KEYS = listOf("sex", "age", "height", "weight", "activity", "goal", "customKcal", "profileSet")
 
     private val _profile = MutableStateFlow(loadProfile())

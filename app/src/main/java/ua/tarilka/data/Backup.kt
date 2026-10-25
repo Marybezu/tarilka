@@ -138,7 +138,7 @@ object Backup {
             })
             .put("weights", JSONArray().apply {
                 db.weights().allOnce().forEach {
-                    put(JSONObject().put("day", LocalDate.ofEpochDay(it.day).toString()).put("kg", it.kg))
+                    put(JSONObject().put("day", LocalDate.ofEpochDay(it.day).toString()).put("kg", it.kg).put("minutes", it.minutes ?: JSONObject.NULL))
                 }
             })
         return root.toString(1)
@@ -293,7 +293,7 @@ object Backup {
             o.optJSONArray("weights")?.let { arr ->
                 for (i in 0 until arr.length()) {
                     val e = arr.getJSONObject(i)
-                    db.weights().upsert(WeightEntry(LocalDate.parse(e.getString("day")).toEpochDay(), e.getDouble("kg")))
+                    db.weights().upsert(WeightEntry(LocalDate.parse(e.getString("day")).toEpochDay(), e.getDouble("kg"), e.optInt("minutes", -1).takeIf { it in 0..1439 }))
                 }
             }
         }

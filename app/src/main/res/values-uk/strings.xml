@@ -439,7 +439,7 @@
     <string name="cycle_avg">Середня тривалість циклу: %1$d дн. (записаних циклів: %2$d)</string>
     <string name="cycle_next">Наступний: приблизно %1$s</string>
     <string name="cycle_ovulation">Орієнтовна овуляція: %2$s, можливе вікно з %1$s</string>
-    <string name="cycle_need_two">Прогноз зʼявиться після двох позначених початків.</string>
+    <string name="cycle_need_two">Точніший прогноз і орієнтовна овуляція зʼявляться після двох позначених початків. Доти дата рахується за звичною тривалістю, яку ви вказали.</string>
     <string name="cycle_irregular">Тривалість циклів помітно різна, тому овуляцію не показуємо: календарний розрахунок тут ненадійний.</string>
     <string name="cycle_disclaimer">Дати приблизні. Це не метод контрацепції і не спосіб точно спланувати вагітність.</string>
     <string name="cycle_flow">Рясність</string>
@@ -472,4 +472,17 @@
     <string name="meal_time">Час: %1$s ✎</string>
     <string name="meal_times_title">Враховувати час їжі</string>
     <string name="meal_times_hint">Під час додавання можна вказати й виправити час прийому їжі. На ньому побудована плашка «пізня їжа» і поради ШІ про ритм харчування. Якщо вимкнути, час не показується й не враховується.</string>
+    <string name="weight_hint">Для порівняння найточніше зважуватися в один і той самий час, краще вранці до їжі.</string>
+    <string name="sleep_felt_poor">спалося погано</string>
+    <string name="sleep_felt_ok">спалося нормально</string>
+    <string name="sleep_felt_good">спалося добре</string>
+    <string name="cycle_not_set">Цикл: вкажіть останню менструацію</string>
+    <string name="cycle_set">Вказати</string>
+    <string name="cycle_setup_title">Цикл: початкові дані</string>
+    <string name="cycle_setup_last">Коли почалася остання менструація?</string>
+    <string name="cycle_setup_period">Скільки днів зазвичай триває?</string>
+    <string name="cycle_setup_cycle">Звична тривалість циклу (днів)</string>
+    <string name="cycle_setup_hint">Це лише для першого прогнозу. Далі застосунок рахує за вашими позначками «Почалися».</string>
+    <string name="choose_date">Вибрати дату</string>
+    <string name="dont_know">Не знаю</string>
 </resources>

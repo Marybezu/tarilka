@@ -98,6 +98,8 @@ fun TodayScreen(
     val mealTimesOn by vm.mealTimes.collectAsState()
     val cycle by vm.cycle.collectAsState()
     var cycleDialog by remember { mutableStateOf(false) }
+    var cycleSetup by remember { mutableStateOf(false) }
+    val periodsKnown = vm.periods.collectAsState().value.isNotEmpty()
     var stepsDialog by remember { mutableStateOf(false) }
     val stepsGoal by vm.stepsGoal.collectAsState()
     var weightDialog by remember { mutableStateOf(false) }
@@ -187,6 +189,7 @@ fun TodayScreen(
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
                         "⚖️ " + (weight?.let { "${it.f1()} ${stringResource(R.string.kg)}" } ?: "—") +
+                            (weightOnDay?.minutes?.let { " · %02d:%02d".format(it / 60, it % 60) } ?: "") +
                             (trend?.let { "  ·  " + stringResource(R.string.trend_week, (if (it > 0) "+" else "") + it.f1()) } ?: ""),
                         style = MaterialTheme.typography.bodyMedium.merge(Numbers),
                         modifier = Modifier.weight(1f),
@@ -201,9 +204,10 @@ fun TodayScreen(
                     if (nearPeriod) {
                         Text(stringResource(R.string.cycle_weight_note), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
-                    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.clickable { cycleDialog = true }) {
+                    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.clickable { if (periodsKnown) cycleDialog = true else cycleSetup = true }) {
                         Text(
                             "🌸 " + when {
+                                !periodsKnown -> stringResource(R.string.cycle_not_set)
                                 c.late(t) -> stringResource(R.string.cycle_late, shortDate(c.nextStart!!))
                                 cd != null -> stringResource(R.string.cycle_day, cd) + (c.nextStart?.let { " · " + stringResource(R.string.cycle_next_short, shortDate(it)) } ?: "")
                                 else -> stringResource(R.string.cycle_title) + " —"
@@ -211,7 +215,9 @@ fun TodayScreen(
                             style = MaterialTheme.typography.bodyMedium,
                             modifier = Modifier.weight(1f),
                         )
-                        if (c.inPeriod) {
+                        if (!periodsKnown) {
+                            TextButton(onClick = { cycleSetup = true }) { Text(stringResource(R.string.cycle_set)) }
+                        } else if (c.inPeriod) {
                             TextButton(onClick = { vm.periodEnded(day) }) { Text(stringResource(R.string.cycle_ended)) }
                         } else {
                             TextButton(onClick = { vm.periodStarted(day) }) { Text(stringResource(R.string.cycle_started)) }
@@ -246,13 +252,16 @@ fun TodayScreen(
                 }
                 if (sleepOn) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
+                        // Hours and how it felt are separate things: "4 h, felt okay" reads fine, "4 h · okay" did not.
+                        val s = sleep
                         Text(
-                            "😴 " + (sleep?.let { s ->
-                                stringResource(R.string.sleep_line, s.hours.f1()) +
-                                    (s.quality?.let { SLEEP_QUALITY.getOrNull(it) }?.let { " · " + stringResource(it) } ?: "") +
-                                    (if (s.fromHc) " · Health Connect" else "")
+                            "😴 " + (s?.let {
+                                stringResource(R.string.sleep_line, if (it.hours < 4) "<4" else if (it.hours % 1.0 == 0.0) it.hours.toInt().toString() else it.hours.f1()) +
+                                    (it.quality?.let { q -> SLEEP_FELT.getOrNull(q) }?.let { r -> ", " + stringResource(r) } ?: "") +
+                                    (if (it.fromHc) " · Health Connect" else "")
                             } ?: stringResource(R.string.sleep_title) + " —"),
                             style = MaterialTheme.typography.bodyMedium.merge(Numbers),
+                            color = if (s != null && s.hours < 6) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.onSurface,
                             modifier = Modifier.weight(1f),
                         )
                         TextButton(onClick = { sleepDialog = true }) { Text(stringResource(R.string.record)) }
@@ -353,12 +362,20 @@ fun TodayScreen(
 
     if (weightDialog) {
         var text by remember { mutableStateOf(weightOnDay?.kg?.f1() ?: "") }
+        var wTime by remember {
+            mutableStateOf(
+                weightOnDay?.minutes?.let { java.time.LocalTime.of(it / 60, it % 60) }
+                    ?: if (day == LocalDate.now()) java.time.LocalTime.now().withSecond(0).withNano(0) else java.time.LocalTime.of(8, 0),
+            )
+        }
         androidx.compose.material3.AlertDialog(
             onDismissRequest = { weightDialog = false },
             title = { Text(stringResource(R.string.weight_today)) },
             text = {
                 Column {
                     Field(stringResource(R.string.kg), text, { text = it })
+                    TimeRow(wTime) { wTime = it }
+                    Text(stringResource(R.string.weight_hint), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     weightOnDay?.let { w ->
                         TextButton(onClick = { vm.deleteWeight(w); weightDialog = false }) {
                             Text(stringResource(R.string.delete_record), color = MaterialTheme.colorScheme.error)
@@ -369,7 +386,7 @@ fun TodayScreen(
             confirmButton = {
                 TextButton(
                     enabled = text.toNumber()?.let { it in 25.0..350.0 } == true,
-                    onClick = { text.toNumber()?.let { vm.saveWeight(it, day) }; weightDialog = false },
+                    onClick = { text.toNumber()?.let { vm.saveWeight(it, day, wTime) }; weightDialog = false },
                 ) { Text(stringResource(R.string.save)) }
             },
             dismissButton = { TextButton(onClick = { weightDialog = false }) { Text(stringResource(R.string.cancel)) } },
@@ -379,6 +396,7 @@ fun TodayScreen(
     if (stepsDialog) StepsDialog(vm) { stepsDialog = false }
 
     if (cycleDialog) CycleDialog(vm) { cycleDialog = false }
+    if (cycleSetup) CycleSetupDialog(vm) { cycleSetup = false }
 
     if (bowelDialog) {
         BowelDialog(
@@ -680,6 +698,7 @@ private fun adviceSummary(
 }
 
 private val SLEEP_QUALITY = listOf(R.string.sleep_poor, R.string.sleep_ok, R.string.sleep_good)
+private val SLEEP_FELT = listOf(R.string.sleep_felt_poor, R.string.sleep_felt_ok, R.string.sleep_felt_good)
 
 /** Hours slept last night in two taps; quality is optional. */
 @OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)

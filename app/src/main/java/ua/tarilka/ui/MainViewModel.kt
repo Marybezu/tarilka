@@ -199,8 +199,8 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         local + hc.filter { h -> local.none { kotlin.math.abs(it.start - h.start) <= 3 } }
     }
 
-    val cycle: StateFlow<ua.tarilka.data.CycleInfo?> = combine(prefs.cycleEnabled, allPeriods, db.cycle().days(), today) { on, periods, days, t ->
-        if (!on) null else ua.tarilka.data.CycleInfo.of(periods, days, t.toEpochDay())
+    val cycle: StateFlow<ua.tarilka.data.CycleInfo?> = combine(prefs.cycleEnabled, allPeriods, db.cycle().days(), today, prefs.cycleTypical) { on, periods, days, t, typical ->
+        if (!on) null else ua.tarilka.data.CycleInfo.of(periods, days, t.toEpochDay(), typical.takeIf { it > 0 })
     }.onEach { info ->
         // Reminders read the expected date from preferences (they run without the app open).
         val next = info?.nextStart ?: -1
@@ -218,6 +218,16 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
     val periods: StateFlow<List<ua.tarilka.data.PeriodEntry>> = allPeriods
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+
+    val cycleTypical: StateFlow<Int> = prefs.cycleTypical
+
+    /** First setup: the last period (start and usual length in days) and the usual cycle length (-1 = don't know). */
+    fun setupCycle(start: LocalDate, periodDays: Int, cycleDays: Int) = viewModelScope.launch {
+        prefs.setCycleTypical(cycleDays)
+        val end = start.plusDays(periodDays - 1L)
+        // A period that is still going on stays open: "Ended" can be tapped later.
+        db.cycle().upsert(ua.tarilka.data.PeriodEntry(start.toEpochDay(), end.toEpochDay().takeIf { !end.isAfter(LocalDate.now()) }))
+    }
 
     fun periodStarted(d: LocalDate) = viewModelScope.launch { db.cycle().upsert(ua.tarilka.data.PeriodEntry(d.toEpochDay())) }
 
@@ -764,10 +774,10 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     fun deleteFood(food: Food) = viewModelScope.launch { if (food.isCustom) db.foods().delete(food) }
     fun toggleFavorite(food: Food) = viewModelScope.launch { db.foods().update(food.copy(favorite = !food.favorite)) }
 
-    fun saveWeight(kg: Double, date: LocalDate = LocalDate.now()) = viewModelScope.launch {
-        val w = WeightEntry(date.toEpochDay(), kg)
+    fun saveWeight(kg: Double, date: LocalDate = LocalDate.now(), time: LocalTime? = null) = viewModelScope.launch {
+        val w = WeightEntry(date.toEpochDay(), kg, time?.let { it.hour * 60 + it.minute })
         db.weights().upsert(w)
-        sync { health.writeWeight(w) }
+        sync { health.deleteWeight(w); health.writeWeight(w) }
     }
 
     fun deleteWeight(w: WeightEntry) = viewModelScope.launch {

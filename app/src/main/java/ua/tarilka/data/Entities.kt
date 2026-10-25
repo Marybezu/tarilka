@@ -83,6 +83,8 @@ data class DiaryEntry(
 data class WeightEntry(
     @PrimaryKey val day: Long,
     val kg: Double,
+    /** Time of weighing, minutes after midnight (optional). */
+    val minutes: Int? = null,
 )
 
 /** Water and other drinks without calories. */

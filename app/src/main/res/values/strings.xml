@@ -439,7 +439,7 @@
     <string name="cycle_avg">Average cycle length: %1$d days (recorded cycles: %2$d)</string>
     <string name="cycle_next">Next: around %1$s</string>
     <string name="cycle_ovulation">Estimated ovulation: %2$s, possible window from %1$s</string>
-    <string name="cycle_need_two">The estimate appears after two marked starts.</string>
+    <string name="cycle_need_two">A better estimate and the ovulation estimate appear after two marked starts. Until then the date uses the usual length you gave.</string>
     <string name="cycle_irregular">Cycle lengths differ noticeably, so ovulation is not shown: a calendar estimate is unreliable here.</string>
     <string name="cycle_disclaimer">Dates are approximate. This is not contraception and not a way to plan a pregnancy precisely.</string>
     <string name="cycle_flow">Flow</string>
@@ -472,4 +472,17 @@
     <string name="meal_time">Time: %1$s ✎</string>
     <string name="meal_times_title">Track meal times</string>
     <string name="meal_times_hint">When adding food you can set and correct the time of the meal. The late-eating badge and the AI\'s advice on meal rhythm use it. When off, time is neither shown nor used.</string>
+    <string name="weight_hint">To compare, weigh yourself at the same time each day, ideally in the morning before eating.</string>
+    <string name="sleep_felt_poor">slept poorly</string>
+    <string name="sleep_felt_ok">slept okay</string>
+    <string name="sleep_felt_good">slept well</string>
+    <string name="cycle_not_set">Cycle: enter your last period</string>
+    <string name="cycle_set">Enter</string>
+    <string name="cycle_setup_title">Cycle: starting data</string>
+    <string name="cycle_setup_last">When did your last period start?</string>
+    <string name="cycle_setup_period">How many days does it usually last?</string>
+    <string name="cycle_setup_cycle">Usual cycle length (days)</string>
+    <string name="cycle_setup_hint">Only for the first estimate. After that the app counts from your Started marks.</string>
+    <string name="choose_date">Choose a date</string>
+    <string name="dont_know">Don\'t know</string>
 </resources>

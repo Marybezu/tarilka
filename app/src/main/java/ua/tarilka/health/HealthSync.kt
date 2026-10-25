@@ -206,7 +206,8 @@ class HealthSync(private val context: Context) {
         if (!canWrite()) return
         val zone = ZoneId.systemDefault()
         val day = LocalDate.ofEpochDay(w.day)
-        val t = if (day == LocalDate.now()) Instant.now() else day.atTime(8, 0).atZone(zone).toInstant()
+        val t = w.minutes?.let { day.atTime(it / 60, it % 60).atZone(zone).toInstant() }
+            ?: if (day == LocalDate.now()) Instant.now() else day.atTime(8, 0).atZone(zone).toInstant()
         runCatching {
             c.insertRecords(
                 listOf(WeightRecord(t, zone.rules.getOffset(t), Mass.kilograms(w.kg), Metadata.manualEntry(clientRecordId = "weight-${w.day}"))),

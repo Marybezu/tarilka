@@ -59,7 +59,7 @@ fun CycleDialog(vm: MainViewModel, onDismiss: () -> Unit) {
                 c.avgLength?.let { Text(stringResource(R.string.cycle_avg, it, c.lengths.size), style = MaterialTheme.typography.bodyMedium) }
                 c.nextStart?.let { Text(stringResource(R.string.cycle_next, shortDate(it)), style = MaterialTheme.typography.bodyMedium) }
                 c.ovulation?.let { Text(stringResource(R.string.cycle_ovulation, shortDate(it - 5), shortDate(it)), style = MaterialTheme.typography.bodyMedium) }
-                if (c.nextStart == null) Text(stringResource(R.string.cycle_need_two), style = MaterialTheme.typography.bodySmall)
+                if (c.nextStart == null || c.fromTypical) Text(stringResource(R.string.cycle_need_two), style = MaterialTheme.typography.bodySmall)
                 if (c.irregular) Text(stringResource(R.string.cycle_irregular), style = MaterialTheme.typography.bodySmall)
                 Text(stringResource(R.string.cycle_disclaimer), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
 
@@ -112,5 +112,45 @@ fun CycleDialog(vm: MainViewModel, onDismiss: () -> Unit) {
             }
         },
         confirmButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.close)) } },
+    )
+}
+
+/** First setup: when the last period started, how long it usually lasts, and the usual cycle length. */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+fun CycleSetupDialog(vm: MainViewModel, onDismiss: () -> Unit) {
+    val context = LocalContext.current
+    var start by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf<LocalDate?>(null) }
+    var periodLen by androidx.compose.runtime.remember { androidx.compose.runtime.mutableIntStateOf(5) }
+    var cycleLen by androidx.compose.runtime.remember { androidx.compose.runtime.mutableIntStateOf(vm.cycleTypical.value) }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.cycle_setup_title)) },
+        text = {
+            Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(stringResource(R.string.cycle_setup_last), style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
+                androidx.compose.material3.OutlinedButton(onClick = {
+                    val d = start ?: LocalDate.now()
+                    android.app.DatePickerDialog(context, { _, y, m, dd -> start = LocalDate.of(y, m + 1, dd) }, d.year, d.monthValue - 1, d.dayOfMonth)
+                        .apply { datePicker.maxDate = System.currentTimeMillis() }.show()
+                }) { Text(start?.let { shortDate(it.toEpochDay()) } ?: stringResource(R.string.choose_date)) }
+                Text(stringResource(R.string.cycle_setup_period), style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    (3..7).forEach { n -> FilterChip(selected = periodLen == n, onClick = { periodLen = n }, label = { Text("$n") }) }
+                }
+                Text(stringResource(R.string.cycle_setup_cycle), style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    FilterChip(selected = cycleLen <= 0, onClick = { cycleLen = -1 }, label = { Text(stringResource(R.string.dont_know)) })
+                    listOf(24, 26, 28, 30, 32, 35).forEach { n -> FilterChip(selected = cycleLen == n, onClick = { cycleLen = n }, label = { Text("$n") }) }
+                }
+                Text(stringResource(R.string.cycle_setup_hint), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        },
+        confirmButton = {
+            TextButton(enabled = start != null, onClick = { vm.setupCycle(start!!, periodLen, cycleLen); onDismiss() }) {
+                Text(stringResource(R.string.save))
+            }
+        },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) } },
     )
 }

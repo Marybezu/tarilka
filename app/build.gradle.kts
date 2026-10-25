@@ -8,7 +8,6 @@ plugins {
 }
 
 val ciVersionCode = System.getenv("VERSION_CODE")?.toIntOrNull() ?: 1
-val keystorePath: String? = System.getenv("TARILKA_KEYSTORE")
 
 android {
     namespace = "ua.tarilka"
@@ -22,21 +21,10 @@ android {
         versionName = "0.1.$ciVersionCode"
     }
 
-    signingConfigs {
-        if (keystorePath != null && file(keystorePath).exists()) {
-            create("release") {
-                storeFile = file(keystorePath)
-                storePassword = System.getenv("TARILKA_KEYSTORE_PASSWORD")
-                keyAlias = System.getenv("TARILKA_KEY_ALIAS")
-                keyPassword = System.getenv("TARILKA_KEY_PASSWORD")
-            }
-        }
-    }
-
     buildTypes {
         release {
             isMinifyEnabled = false
-            signingConfig = signingConfigs.findByName("release") ?: signingConfigs.getByName("debug")
+            // Built unsigned: CI signs it in a separate step with the Android SDK's apksigner.
         }
     }
 

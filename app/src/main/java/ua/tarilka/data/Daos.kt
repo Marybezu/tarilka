@@ -278,6 +278,39 @@ interface WorkoutDao {
     suspend fun deleteAll()
 }
 
+@Dao
+interface CycleDao {
+    @Query("SELECT * FROM periods ORDER BY start")
+    fun periods(): Flow<List<PeriodEntry>>
+
+    @Query("SELECT * FROM periods ORDER BY start")
+    suspend fun periodsOnce(): List<PeriodEntry>
+
+    @Query("SELECT * FROM period_days ORDER BY day")
+    fun days(): Flow<List<PeriodDay>>
+
+    @Query("SELECT * FROM period_days ORDER BY day")
+    suspend fun daysOnce(): List<PeriodDay>
+
+    @Upsert
+    suspend fun upsert(p: PeriodEntry)
+
+    @Upsert
+    suspend fun upsertDay(d: PeriodDay)
+
+    @Query("DELETE FROM periods WHERE start = :start")
+    suspend fun delete(start: Long)
+
+    @Query("DELETE FROM period_days WHERE day BETWEEN :from AND :to")
+    suspend fun deleteDays(from: Long, to: Long)
+
+    @Query("DELETE FROM periods")
+    suspend fun deleteAll()
+
+    @Query("DELETE FROM period_days")
+    suspend fun deleteAllDays()
+}
+
 object FluidRules {
     val ALCOHOL = listOf("dr06", "dr07", "dr08", "dr09", "dr23", "dr24", "dr25")
     val MILK_DRINKS = listOf(

@@ -206,4 +206,24 @@ class LogicTest {
         assertEquals(1.0, h.strengthPerWeek, 0.01)
         assertEquals(ua.tarilka.data.Habits.Level.OK, h.activityLevel)
     }
+
+    @Test
+    fun cycleIsHonest() {
+        fun p(start: Long, end: Long? = null) = ua.tarilka.data.PeriodEntry(start, end)
+        // Starts 28 and 30 days apart; then a forgotten month (70 days) that must not count as a cycle.
+        val c = ua.tarilka.data.CycleInfo.of(listOf(p(0, 4), p(28, 32), p(58, 62), p(128)), emptyList(), today = 135)
+        assertEquals(listOf(28, 30), c.lengths)
+        assertEquals(30, c.avgLength)
+        assertEquals(158L, c.nextStart)
+        assertEquals(144L, c.ovulation)
+        assertEquals(8, c.cycleDay(135))
+        assertTrue(!c.seeDoctor)
+        // Lengths 22, 36, 25: irregular, so no ovulation estimate.
+        val irr = ua.tarilka.data.CycleInfo.of(listOf(p(0), p(22), p(58), p(83)), emptyList(), today = 90)
+        assertTrue(irr.irregular)
+        assertEquals(null, irr.ovulation)
+        // A marked 9-day period is worth a doctor's look; an unmarked end is not.
+        assertTrue(ua.tarilka.data.CycleInfo.of(listOf(p(0, 8)), emptyList(), 20).longBleeding)
+        assertTrue(!ua.tarilka.data.CycleInfo.of(listOf(p(0)), emptyList(), 9).longBleeding)
+    }
 }

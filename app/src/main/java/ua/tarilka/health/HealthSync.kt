@@ -108,6 +108,26 @@ class HealthSync(private val context: Context) {
         }
     }
 
+    /** Menstruation periods another app wrote to Health Connect (start and end day); empty without access. */
+    suspend fun periods(from: LocalDate): List<ua.tarilka.data.PeriodEntry> {
+        val c = client ?: return emptyList()
+        if (READ_PERIODS !in granted()) return emptyList()
+        val zone = ZoneId.systemDefault()
+        return runCatching {
+            c.readRecords(
+                androidx.health.connect.client.request.ReadRecordsRequest(
+                    androidx.health.connect.client.records.MenstruationPeriodRecord::class,
+                    TimeRangeFilter.between(from.atStartOfDay(zone).toInstant(), Instant.now()), pageSize = 500,
+                ),
+            ).records.map {
+                ua.tarilka.data.PeriodEntry(
+                    it.startTime.atZone(zone).toLocalDate().toEpochDay(),
+                    it.endTime.minusSeconds(1).atZone(zone).toLocalDate().toEpochDay(),
+                )
+            }
+        }.getOrDefault(emptyList())
+    }
+
     /** Steps per calendar day in one request; empty without access. */
     suspend fun stepsByDay(from: LocalDate, to: LocalDate): Map<Long, Long> {
         val c = client ?: return emptyMap()
@@ -207,6 +227,7 @@ class HealthSync(private val context: Context) {
     companion object {
         val READ_STEPS = HealthPermission.getReadPermission(StepsRecord::class)
         val READ_SLEEP = HealthPermission.getReadPermission(SleepSessionRecord::class)
+        val READ_PERIODS = HealthPermission.getReadPermission(androidx.health.connect.client.records.MenstruationPeriodRecord::class)
         val WRITE = setOf(
             HealthPermission.getWritePermission(NutritionRecord::class),
             HealthPermission.getWritePermission(HydrationRecord::class),

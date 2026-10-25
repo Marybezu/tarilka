@@ -6,8 +6,8 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 
 @Database(
-    entities = [Food::class, DiaryEntry::class, WeightEntry::class, FluidEntry::class, DayNote::class, SleepEntry::class, BowelEntry::class, WorkoutEntry::class],
-    version = 4,
+    entities = [Food::class, DiaryEntry::class, WeightEntry::class, FluidEntry::class, DayNote::class, SleepEntry::class, BowelEntry::class, WorkoutEntry::class, PeriodEntry::class, PeriodDay::class],
+    version = 5,
     exportSchema = true,
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -19,12 +19,21 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun sleep(): SleepDao
     abstract fun bowel(): BowelDao
     abstract fun workouts(): WorkoutDao
+    abstract fun cycle(): CycleDao
 
     companion object {
         fun create(context: Context): AppDatabase =
             Room.databaseBuilder(context, AppDatabase::class.java, "tarilka.db")
-                .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
+                .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5)
                 .build()
+
+        /** Menstrual cycle (optional). Existing data is kept. */
+        private val MIGRATION_4_5 = object : androidx.room.migration.Migration(4, 5) {
+            override fun migrate(db: androidx.sqlite.db.SupportSQLiteDatabase) {
+                db.execSQL("CREATE TABLE IF NOT EXISTS periods (start INTEGER NOT NULL, end_day INTEGER, PRIMARY KEY(start))")
+                db.execSQL("CREATE TABLE IF NOT EXISTS period_days (day INTEGER NOT NULL, flow INTEGER, pain INTEGER, PRIMARY KEY(day))")
+            }
+        }
 
         /** Bowel movements and workouts (both optional). Existing data is kept. */
         private val MIGRATION_3_4 = object : androidx.room.migration.Migration(3, 4) {

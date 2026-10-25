@@ -34,6 +34,9 @@ object Reminders {
     const val WEEKLY = 30
     /** Not a notification: a silent reading of the step sensor just before midnight. */
     const val STEPS = 40
+    /** Cycle: a few days before the expected start, and "did it start?" two days after it. */
+    const val CYCLE_BEFORE = 50
+    const val CYCLE_LATE = 51
     private val STEPS_TIME = LocalTime.of(23, 55)
     private val WATER_TIMES = listOf(LocalTime.of(12, 0), LocalTime.of(16, 0), LocalTime.of(19, 0))
     private val WEEKLY_TIME = LocalTime.of(19, 0)
@@ -70,6 +73,10 @@ object Reminders {
         // The sensor counts since the phone was switched on; a nightly reading splits it into days,
         // so morning steps are not lost when the app is opened later. Not needed with Health Connect.
         set(STEPS, if (prefs.stepsEnabled && (context.applicationContext as TarilkaApp).stepSensor.present) next(STEPS_TIME) else null)
+        val cycleNext = prefs.cycleNext.takeIf { prefs.cycleEnabled.value && it > 0 }
+        fun once(at: LocalDateTime?) = at?.takeIf { it.isAfter(now) }
+        set(CYCLE_BEFORE, cycleNext?.takeIf { prefs.cycleRemindDays > 0 }?.let { once(LocalDate.ofEpochDay(it - prefs.cycleRemindDays).atTime(9, 0)) })
+        set(CYCLE_LATE, cycleNext?.takeIf { prefs.cycleLateRemind }?.let { once(LocalDate.ofEpochDay(it + 2).atTime(10, 0)) })
         set(WEEKLY, if (prefs.weeklyReminder) {
             var d = next(WEEKLY_TIME)
             while (d.dayOfWeek != DayOfWeek.SUNDAY) d = d.plusDays(1)
@@ -104,6 +111,16 @@ object Reminders {
             }
             SLEEP -> context.getString(R.string.remind_sleep)
             WEEKLY -> context.getString(R.string.remind_weekly)
+            CYCLE_BEFORE -> {
+                val left = app.prefs.cycleNext - today
+                if (left !in 1..3) return
+                context.getString(R.string.remind_cycle_soon, left.toInt())
+            }
+            CYCLE_LATE -> {
+                // Still the same expected date: no new start was marked since.
+                if (app.prefs.cycleNext <= 0 || today < app.prefs.cycleNext + 2) return
+                context.getString(R.string.remind_cycle_late)
+            }
             STEPS -> {
                 app.stepSensor.today()?.let { app.prefs.logSteps(today, it) }
                 return

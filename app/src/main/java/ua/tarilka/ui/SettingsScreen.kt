@@ -333,6 +333,28 @@ private fun RemindersSection() {
                 fun set(v: java.time.LocalTime?) { prefs.sleepReminder = v; sleep = v; apply() }
                 if (on) whenAllowed { set(java.time.LocalTime.of(22, 30)) } else set(null)
             }
+            // Cycle reminders: shown only when cycle tracking is on.
+            if (prefs.cycleEnabled.collectAsState().value) {
+                var before by remember { mutableStateOf(prefs.cycleRemindDays) }
+                var late by remember { mutableStateOf(prefs.cycleLateRemind) }
+                Text(stringResource(R.string.remind_cycle_title), style = MaterialTheme.typography.bodyLarge)
+                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    listOf(-1, 1, 2, 3).forEach { n ->
+                        FilterChip(
+                            selected = before == n,
+                            onClick = {
+                                fun set() { prefs.cycleRemindDays = n; before = n; apply() }
+                                if (n > 0) whenAllowed(::set) else set()
+                            },
+                            label = { Text(if (n < 0) stringResource(R.string.off) else stringResource(R.string.days_before, n)) },
+                        )
+                    }
+                }
+                SwitchRow(stringResource(R.string.remind_cycle_late_title), stringResource(R.string.remind_cycle_late_hint), late) { on ->
+                    fun set(v: Boolean) { prefs.cycleLateRemind = v; late = v; apply() }
+                    if (on) whenAllowed { set(true) } else set(false)
+                }
+            }
             SwitchRow(stringResource(R.string.remind_weekly_title), stringResource(R.string.remind_weekly_hint), weekly) { on ->
                 fun set(v: Boolean) { prefs.weeklyReminder = v; weekly = v; apply() }
                 if (on) whenAllowed { set(true) } else set(false)
@@ -374,6 +396,15 @@ private fun SelfSection(vm: MainViewModel) {
             SwitchRow(stringResource(R.string.reasons_title), stringResource(R.string.reasons_hint), reasonsOn) { vm.setReasonsEnabled(it) }
             val workoutsOn by vm.workoutsEnabled.collectAsState()
             SwitchRow(stringResource(R.string.workouts_title), stringResource(R.string.workouts_hint), workoutsOn) { vm.setWorkoutsEnabled(it) }
+            val cycleOn by vm.cycleEnabled.collectAsState()
+            val cycleLauncher = rememberLauncherForActivityResult(
+                androidx.health.connect.client.PermissionController.createRequestPermissionResultContract(),
+            ) { vm.refreshCycle() }
+            SwitchRow(stringResource(R.string.cycle_title), stringResource(R.string.cycle_hint), cycleOn) { on ->
+                vm.setCycleEnabled(on)
+                // Optional: read periods another app wrote to Health Connect.
+                if (on && vm.healthAvailable) cycleLauncher.launch(setOf(ua.tarilka.health.HealthSync.READ_PERIODS))
+            }
             val bowelOn by vm.bowelEnabled.collectAsState()
             SwitchRow(stringResource(R.string.bowel_short), stringResource(R.string.bowel_hint), bowelOn) { vm.setBowelEnabled(it) }
         }
@@ -498,6 +529,10 @@ private fun DataSection(vm: MainViewModel) {
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(stringResource(R.string.password_hint), style = MaterialTheme.typography.bodySmall)
+                    // Cycle data is especially personal: say so where the choice is made.
+                    if (vm.cycleEnabled.collectAsState().value) {
+                        Text(stringResource(R.string.password_cycle), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.tertiary)
+                    }
                     PasswordField(stringResource(R.string.password), password) { password = it }
                     if (password.isNotEmpty()) PasswordField(stringResource(R.string.password_repeat), repeat) { repeat = it }
                 }

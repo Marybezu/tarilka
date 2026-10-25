@@ -427,4 +427,46 @@
         <item>moderate</item>
         <item>vigorous</item>
     </string-array>
+    <string name="off">Off</string>
+    <string name="days_before">%1$d d before</string>
+    <string name="cycle_title">Cycle</string>
+    <string name="cycle_hint">A row on Today: cycle day and the approximate next start. Started is one tap; flow and pain are optional. Explains weight and appetite changes. If another app writes your cycle to Health Connect, Tarilka can read it (with your permission).</string>
+    <string name="cycle_day">Cycle day %1$d</string>
+    <string name="cycle_next_short">next ~%1$s</string>
+    <string name="cycle_late">Expected ~%1$s. Has it started? You can mark a past date too</string>
+    <string name="cycle_started">Started</string>
+    <string name="cycle_ended">Ended</string>
+    <string name="cycle_avg">Average cycle length: %1$d days (recorded cycles: %2$d)</string>
+    <string name="cycle_next">Next: around %1$s</string>
+    <string name="cycle_ovulation">Estimated ovulation: %2$s, possible window from %1$s</string>
+    <string name="cycle_need_two">The estimate appears after two marked starts.</string>
+    <string name="cycle_irregular">Cycle lengths differ noticeably, so ovulation is not shown: a calendar estimate is unreliable here.</string>
+    <string name="cycle_disclaimer">Dates are approximate. This is not contraception and not a way to plan a pregnancy precisely.</string>
+    <string name="cycle_flow">Flow</string>
+    <string name="cycle_pain">Pain</string>
+    <string name="cycle_mark_start">Mark a start on another date</string>
+    <string name="cycle_mark_end">Mark an end on another date</string>
+    <string name="cycle_tips">In the days before a period, appetite and sweet cravings often rise and weight can be 0.5–2 kg higher from water; that is normal. What helps: regular meals and complex carbs, less salt, coffee and alcohol, movement and sleep.</string>
+    <string name="cycle_when_doctor">See a doctor if cycles are shorter than 21 or longer than 35 days, a period lasts over 7 days, is very painful or heavy, or something changes sharply.</string>
+    <string name="cycle_doctor">Worth seeing a gynaecologist: %1$s There is often a simple explanation and good treatment.</string>
+    <string name="cycle_flag_length">cycle length outside 21–35 days.</string>
+    <string name="cycle_flag_long">periods lasting over 7 days.</string>
+    <string name="cycle_flag_heavy">heavy periods or strong pain two cycles in a row.</string>
+    <string name="cycle_weight_note">Before and in the first days of a period, weight is often 0.5–2 kg higher for a while from water.</string>
+    <string name="remind_cycle_title">Cycle: remind before the expected start</string>
+    <string name="remind_cycle_late_title">If not marked</string>
+    <string name="remind_cycle_late_hint">2 days after the expected date, if no start was marked.</string>
+    <string name="remind_cycle_soon">Your cycle may start in the coming days (in %1$d d).</string>
+    <string name="remind_cycle_late">Has your cycle started? Mark it in Tarilka, a past date is fine.</string>
+    <string name="password_cycle">The backup will include cycle data. A password is recommended.</string>
+    <string-array name="cycle_flows">
+        <item>light</item>
+        <item>medium</item>
+        <item>heavy</item>
+    </string-array>
+    <string-array name="cycle_pains">
+        <item>none</item>
+        <item>moderate</item>
+        <item>strong</item>
+    </string-array>
 </resources>

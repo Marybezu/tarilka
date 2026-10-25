@@ -95,6 +95,8 @@ fun TodayScreen(
     val workouts by vm.workouts.collectAsState()
     var workoutDialog by remember { mutableStateOf(false) }
     val activityHint by vm.activityHint.collectAsState()
+    val cycle by vm.cycle.collectAsState()
+    var cycleDialog by remember { mutableStateOf(false) }
     var stepsDialog by remember { mutableStateOf(false) }
     val stepsGoal by vm.stepsGoal.collectAsState()
     var weightDialog by remember { mutableStateOf(false) }
@@ -189,6 +191,31 @@ fun TodayScreen(
                         modifier = Modifier.weight(1f),
                     )
                     TextButton(onClick = { weightDialog = true }) { Text(stringResource(R.string.weight_record)) }
+                }
+                cycle?.let { c ->
+                    val t = day.toEpochDay()
+                    // Water weight goes up before and in the first days of a period: say so next to the weight.
+                    val cd = c.cycleDay(t)
+                    val nearPeriod = c.inPeriod && (cd ?: 99) <= 3 || c.nextStart?.let { it - t in 0..7 } == true
+                    if (nearPeriod) {
+                        Text(stringResource(R.string.cycle_weight_note), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.clickable { cycleDialog = true }) {
+                        Text(
+                            "🌸 " + when {
+                                c.late(t) -> stringResource(R.string.cycle_late, shortDate(c.nextStart!!))
+                                cd != null -> stringResource(R.string.cycle_day, cd) + (c.nextStart?.let { " · " + stringResource(R.string.cycle_next_short, shortDate(it)) } ?: "")
+                                else -> stringResource(R.string.cycle_title) + " —"
+                            },
+                            style = MaterialTheme.typography.bodyMedium,
+                            modifier = Modifier.weight(1f),
+                        )
+                        if (c.inPeriod) {
+                            TextButton(onClick = { vm.periodEnded(day) }) { Text(stringResource(R.string.cycle_ended)) }
+                        } else {
+                            TextButton(onClick = { vm.periodStarted(day) }) { Text(stringResource(R.string.cycle_started)) }
+                        }
+                    }
                 }
                 if (workoutsOn) {
                     val types = androidx.compose.ui.res.stringArrayResource(R.array.workout_types)
@@ -349,6 +376,8 @@ fun TodayScreen(
     }
 
     if (stepsDialog) StepsDialog(vm) { stepsDialog = false }
+
+    if (cycleDialog) CycleDialog(vm) { cycleDialog = false }
 
     if (bowelDialog) {
         BowelDialog(

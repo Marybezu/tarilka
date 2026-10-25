@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.FlowPreview
@@ -175,6 +176,64 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         if (!prefs.sleepEnabled.value) return emptyMap()
         val hc = runCatching { health.sleepByDay(from, to) }.getOrDefault(emptyMap())
         return hc + db.sleep().range(from.toEpochDay(), to.toEpochDay()).associate { it.day to it.hours }
+    }
+
+    // ---- menstrual cycle (optional) ----
+
+    val cycleEnabled: StateFlow<Boolean> = prefs.cycleEnabled
+    fun setCycleEnabled(on: Boolean) { prefs.setCycleEnabled(on); refreshCycle() }
+
+    /** Periods another app wrote to Health Connect (read only, never stored here). */
+    private val hcPeriods = MutableStateFlow<List<ua.tarilka.data.PeriodEntry>>(emptyList())
+
+    init {
+        refreshCycle()
+    }
+
+    fun refreshCycle() = viewModelScope.launch {
+        hcPeriods.value = if (prefs.cycleEnabled.value) runCatching { health.periods(LocalDate.now().minusDays(400)) }.getOrDefault(emptyList()) else emptyList()
+    }
+
+    /** Typed-in periods win; a Health Connect period within 3 days of one is the same period. */
+    private val allPeriods = combine(db.cycle().periods(), hcPeriods) { local, hc ->
+        local + hc.filter { h -> local.none { kotlin.math.abs(it.start - h.start) <= 3 } }
+    }
+
+    val cycle: StateFlow<ua.tarilka.data.CycleInfo?> = combine(prefs.cycleEnabled, allPeriods, db.cycle().days(), today) { on, periods, days, t ->
+        if (!on) null else ua.tarilka.data.CycleInfo.of(periods, days, t.toEpochDay())
+    }.onEach { info ->
+        // Reminders read the expected date from preferences (they run without the app open).
+        val next = info?.nextStart ?: -1
+        if (next != prefs.cycleNext) {
+            prefs.cycleNext = next
+            val app = getApplication<Application>()
+            runCatching {
+                ua.tarilka.notify.Reminders.schedule(app, only = ua.tarilka.notify.Reminders.CYCLE_BEFORE)
+                ua.tarilka.notify.Reminders.schedule(app, only = ua.tarilka.notify.Reminders.CYCLE_LATE)
+            }
+        }
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    val periodDays: StateFlow<List<ua.tarilka.data.PeriodDay>> = db.cycle().days()
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+    val periods: StateFlow<List<ua.tarilka.data.PeriodEntry>> = allPeriods
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+
+    fun periodStarted(d: LocalDate) = viewModelScope.launch { db.cycle().upsert(ua.tarilka.data.PeriodEntry(d.toEpochDay())) }
+
+    /** Marks the end of the latest period that started on or before [d] (copied here if it came from Health Connect). */
+    fun periodEnded(d: LocalDate) = viewModelScope.launch {
+        val p = periods.value.filter { it.start <= d.toEpochDay() }.maxByOrNull { it.start } ?: return@launch
+        db.cycle().upsert(p.copy(end = d.toEpochDay()))
+    }
+
+    fun deletePeriod(start: Long) = viewModelScope.launch {
+        db.cycle().delete(start)
+        db.cycle().deleteDays(start, start + 10)
+    }
+
+    fun setPeriodDay(d: LocalDate, flow: Int?, pain: Int?) = viewModelScope.launch {
+        db.cycle().upsertDay(ua.tarilka.data.PeriodDay(d.toEpochDay(), flow, pain))
     }
 
     // ---- bowel movements and workouts (both optional) ----
@@ -470,6 +529,8 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         db.sleep().deleteAll()
         db.bowel().deleteAll()
         db.workouts().deleteAll()
+        db.cycle().deleteAll()
+        db.cycle().deleteAllDays()
         if (everything) {
             db.foods().deleteCustom()
             db.foods().setFavorites(emptyList())
@@ -614,6 +675,21 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
                     "${h.activeMinPerWeek.toInt()} min, strength ${"%.1f".format(java.util.Locale.ROOT, h.strengthPerWeek)} days a week",
                     "${hp.activeMinPerWeek.toInt()} min, strength ${"%.1f".format(java.util.Locale.ROOT, hp.strengthPerWeek)} days",
                 )
+            }
+            // Cycle: starts in the period and how eating looked in the week before each start.
+            if (prefs.cycleEnabled.value) {
+                val starts = periods.value.map { it.start }.filter { it in from.toEpochDay()..end.toEpochDay() }
+                if (starts.isNotEmpty()) {
+                    val before = starts.flatMap { s -> (s - 7 until s).toList() }.toSet()
+                    val byDay = cur.groupBy { it.day }.mapValues { (_, l) -> l.sumOf { it.kcal } }
+                    val pre = byDay.filterKeys { it in before }.values
+                    val other = byDay.filterKeys { it !in before }.values
+                    appendLine(
+                        "Menstruation started on: " + starts.joinToString { LocalDate.ofEpochDay(it).toString() } +
+                            (if (pre.isNotEmpty() && other.isNotEmpty()) "; average kcal in the 7 days before: ${pre.average().r()}, other days: ${other.average().r()}" else "") +
+                            ". Higher appetite and up to 1–2 kg of water weight before menstruation are normal; mention it kindly if it fits.",
+                    )
+                }
             }
             if (h.reasonMeals > 0) {
                 val why = h.notHunger.entries.sortedByDescending { it.value }.joinToString { "${ua.tarilka.data.Reasons.EN.getOrElse(it.key) { "other" }} ${it.value}" }

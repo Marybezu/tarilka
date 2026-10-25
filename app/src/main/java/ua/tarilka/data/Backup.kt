@@ -126,6 +126,16 @@ object Backup {
                     )
                 }
             })
+            .put("periods", JSONArray().apply {
+                db.cycle().periodsOnce().forEach {
+                    put(JSONObject().put("start", LocalDate.ofEpochDay(it.start).toString()).put("end", it.end?.let { e -> LocalDate.ofEpochDay(e).toString() } ?: JSONObject.NULL))
+                }
+            })
+            .put("periodDays", JSONArray().apply {
+                db.cycle().daysOnce().forEach {
+                    put(JSONObject().put("day", LocalDate.ofEpochDay(it.day).toString()).put("flow", it.flow ?: JSONObject.NULL).put("pain", it.pain ?: JSONObject.NULL))
+                }
+            })
             .put("weights", JSONArray().apply {
                 db.weights().allOnce().forEach {
                     put(JSONObject().put("day", LocalDate.ofEpochDay(it.day).toString()).put("kg", it.kg))
@@ -160,6 +170,8 @@ object Backup {
             db.sleep().deleteAll()
             db.bowel().deleteAll()
             db.workouts().deleteAll()
+            db.cycle().deleteAll()
+            db.cycle().deleteAllDays()
 
             val idMap = mutableMapOf<Long, Long>()
             o.optJSONArray("customFoods")?.let { arr ->
@@ -261,6 +273,22 @@ object Backup {
                         createdAt = e.optLong("createdAt", System.currentTimeMillis()),
                     )
                 })
+            }
+            o.optJSONArray("periods")?.let { arr ->
+                for (i in 0 until arr.length()) {
+                    val e = arr.getJSONObject(i)
+                    db.cycle().upsert(
+                        PeriodEntry(LocalDate.parse(e.getString("start")).toEpochDay(), if (e.isNull("end")) null else LocalDate.parse(e.getString("end")).toEpochDay()),
+                    )
+                }
+            }
+            o.optJSONArray("periodDays")?.let { arr ->
+                for (i in 0 until arr.length()) {
+                    val e = arr.getJSONObject(i)
+                    db.cycle().upsertDay(
+                        PeriodDay(LocalDate.parse(e.getString("day")).toEpochDay(), e.optInt("flow", -1).takeIf { it in 0..2 }, e.optInt("pain", -1).takeIf { it in 0..2 }),
+                    )
+                }
             }
             o.optJSONArray("weights")?.let { arr ->
                 for (i in 0 until arr.length()) {

@@ -62,6 +62,23 @@ class Prefs(context: Context) {
     val workoutsEnabled: StateFlow<Boolean> = _workoutsEnabled.asStateFlow()
     fun setWorkoutsEnabled(on: Boolean) { sp.edit().putBoolean("workoutsEnabled", on).apply(); _workoutsEnabled.value = on }
 
+    private val _cycleEnabled = MutableStateFlow(sp.getBoolean("cycleEnabled", false))
+    val cycleEnabled: StateFlow<Boolean> = _cycleEnabled.asStateFlow()
+    fun setCycleEnabled(on: Boolean) { sp.edit().putBoolean("cycleEnabled", on).apply(); _cycleEnabled.value = on }
+
+    /** Remind this many days before the expected start (1–3), or -1 = off. */
+    var cycleRemindDays: Int
+        get() = sp.getInt("cycleRemindDays", -1)
+        set(v) = sp.edit().putInt("cycleRemindDays", v).apply()
+    /** Ask "did it start?" when the expected day passed by 2 days. */
+    var cycleLateRemind: Boolean
+        get() = sp.getBoolean("cycleLateRemind", false)
+        set(v) = sp.edit().putBoolean("cycleLateRemind", v).apply()
+    /** Expected next start (epoch day) for the reminders, or -1; kept up to date by the app. */
+    var cycleNext: Long
+        get() = sp.getLong("cycleNext", -1)
+        set(v) = sp.edit().putLong("cycleNext", v).apply()
+
     /** When the "update your activity level?" hint was last dismissed (epoch day). */
     var activityHintDismissed: Long
         get() = sp.getLong("activityHintDismissed", 0)
@@ -183,7 +200,7 @@ class Prefs(context: Context) {
         _profile.value = Profile()
         _missing.value = emptyMap()
     }
-    private val STEP_KEYS = listOf("stepLog", "stepDay", "stepBase", "stepLast")
+    private val STEP_KEYS = listOf("stepLog", "stepDay", "stepBase", "stepLast", "cycleNext")
     private val PROFILE_KEYS = listOf("sex", "age", "height", "weight", "activity", "goal", "customKcal", "profileSet")
 
     private val _profile = MutableStateFlow(loadProfile())

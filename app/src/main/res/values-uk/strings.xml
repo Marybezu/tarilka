@@ -427,4 +427,46 @@
         <item>помірно</item>
         <item>інтенсивно</item>
     </string-array>
+    <string name="off">Вимк.</string>
+    <string name="days_before">за %1$d дн.</string>
+    <string name="cycle_title">Цикл</string>
+    <string name="cycle_hint">Рядок на екрані «Сьогодні»: день циклу й приблизна дата наступного. Позначка «Почалися» — один дотик; рясність і біль — за бажанням. Пояснює коливання ваги й апетиту. Якщо інший застосунок записує цикл у Health Connect, Тарілка може його прочитати (за вашим дозволом).</string>
+    <string name="cycle_day">День циклу %1$d</string>
+    <string name="cycle_next_short">наступний ~%1$s</string>
+    <string name="cycle_late">Очікувався ~%1$s. Почалося? Можна позначити й минулою датою</string>
+    <string name="cycle_started">Почалися</string>
+    <string name="cycle_ended">Закінчилися</string>
+    <string name="cycle_avg">Середня тривалість циклу: %1$d дн. (записаних циклів: %2$d)</string>
+    <string name="cycle_next">Наступний: приблизно %1$s</string>
+    <string name="cycle_ovulation">Орієнтовна овуляція: %2$s, можливе вікно з %1$s</string>
+    <string name="cycle_need_two">Прогноз зʼявиться після двох позначених початків.</string>
+    <string name="cycle_irregular">Тривалість циклів помітно різна, тому овуляцію не показуємо: календарний розрахунок тут ненадійний.</string>
+    <string name="cycle_disclaimer">Дати приблизні. Це не метод контрацепції і не спосіб точно спланувати вагітність.</string>
+    <string name="cycle_flow">Рясність</string>
+    <string name="cycle_pain">Біль</string>
+    <string name="cycle_mark_start">Позначити початок іншою датою</string>
+    <string name="cycle_mark_end">Позначити кінець іншою датою</string>
+    <string name="cycle_tips">У дні перед менструацією апетит і тяга до солодкого часто зростають, а вага може бути на 0,5–2 кг більшою через воду — це нормально. Допомагає: регулярне харчування й складні вуглеводи, менше солі, кави й алкоголю, рух і сон.</string>
+    <string name="cycle_when_doctor">До лікаря варто звернутися, якщо цикл коротший за 21 або довший за 35 днів, менструація триває понад 7 днів, дуже болісна чи рясна, або є різкі зміни.</string>
+    <string name="cycle_doctor">Варто показатися гінекологу: %1$s Це часто має просте пояснення й добре лікується.</string>
+    <string name="cycle_flag_length">тривалість циклу поза межами 21–35 днів.</string>
+    <string name="cycle_flag_long">менструація триває понад 7 днів.</string>
+    <string name="cycle_flag_heavy">рясні менструації або сильний біль два цикли поспіль.</string>
+    <string name="cycle_weight_note">Перед менструацією й у перші її дні вага часто тимчасово більша на 0,5–2 кг через воду.</string>
+    <string name="remind_cycle_title">Цикл: нагадати до очікуваного початку</string>
+    <string name="remind_cycle_late_title">Якщо не позначено</string>
+    <string name="remind_cycle_late_hint">Через 2 дні після очікуваної дати, якщо початок не позначено.</string>
+    <string name="remind_cycle_soon">Найближчими днями (через %1$d дн.) можливий початок циклу.</string>
+    <string name="remind_cycle_late">Цикл почався? Позначте в Тарілці, можна й минулою датою.</string>
+    <string name="password_cycle">У копії будуть дані про цикл. Радимо поставити пароль.</string>
+    <string-array name="cycle_flows">
+        <item>легкі</item>
+        <item>середні</item>
+        <item>рясні</item>
+    </string-array>
+    <string-array name="cycle_pains">
+        <item>немає</item>
+        <item>помірний</item>
+        <item>сильний</item>
+    </string-array>
 </resources>

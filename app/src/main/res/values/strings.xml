@@ -118,9 +118,9 @@
     <string name="your_targets">Daily targets</string>
     <string name="targets_text">%1$s kcal · protein %2$s g · fat %3$s g · carbs %4$s g · fiber %5$s g. Calculated with the Mifflin–St Jeor formula; the app never suggests eating below your basal metabolism.</string>
 
-    <string name="ai_title">On-device AI (Gemma 4)</string>
+    <string name="ai_title">On-device AI</string>
     <string name="ai_explain">Recognizes food on photos and gives advice. Runs entirely on the phone. The model is about 2.6 GB and is only needed for photos and AI advice; everything else works without it.</string>
-    <string name="ai_ready">Model ready: %1$s (%2$d MB)</string>
+    <string name="ai_ready">Model ready (%1$d MB)</string>
     <string name="ai_import">Choose a model file…</string>
     <string name="ai_importing">Copying the model…</string>
     <string name="ai_failed">Failed: %1$s</string>
@@ -186,8 +186,8 @@
     <string name="import_confirm">The file has %1$d food entries, %2$d drinks, %3$d weigh-ins and %4$d own foods. Your current diary, drinks, weight and own foods will be replaced.</string>
     <string name="import_replace">Replace</string>
     <string name="import_done">Restored: %1$d food entries, %2$d weigh-ins.</string>
-    <string name="ai_steps">1. Open the model page and download %1$s in your browser (about 2.6 GB, Wi-Fi recommended).\n2. Come back and choose the downloaded file. The app has no internet access, so this is the only way in.</string>
-    <string name="ai_open_page">Open model page</string>
+    <string name="ai_steps">1. Tap Download model: your browser downloads %1$s (about 2.6 GB, Wi-Fi recommended). It is Google\'s Gemma 4 E2B and works on any phone.\n2. Come back and tap Choose model file. The app has no internet access, so this is the only way in.</string>
+    <string name="ai_open_page">Model page</string>
     <string name="ai_delete_original">Delete the downloaded file after copying</string>
     <string name="ai_original_deleted">The downloaded file was deleted to free up space.</string>
     <string name="ai_original_kept">The downloaded file could not be deleted from there; you can delete it in Files.</string>
@@ -218,7 +218,7 @@
     <string name="steps_from_sensor">phone sensor, since first opened today</string>
     <string name="portion_typical">Typical weight of one serving or piece. If you know the exact weight, type it in.</string>
     <string name="missing_title">Not found in the database</string>
-    <string name="missing_hint">What you searched for, or what the AI saw in a photo, that isn\'t in the database (times in brackets). Kept only on this phone. Copy the list so these foods can be added in future versions.</string>
+    <string name="missing_hint">Foods you searched for, or the AI saw in a photo, that are not in the database (times in brackets). Kept only on this phone. You can add any of them yourself: Foods → New food. To get them into the database for everyone, copy the list and send it to the app\'s authors.</string>
     <string name="copy_list">Copy list</string>
     <string name="missing_empty">Empty for now. Searches in Add, or foods the AI saw in a photo, that are not in the database will appear here.</string>
     <string name="more">More</string>
@@ -280,4 +280,5 @@
     <string name="habit_sleep_info">Average sleep. Adults are advised 7–9 hours. With less sleep, appetite and sweet cravings go up. A regular bedtime, fewer screens in the evening and coffee before noon help.</string>
     <string name="habit_reasons">💭 Not from hunger: %1$d of %2$d</string>
     <string name="habit_reasons_info">How often you ate for another reason than hunger (of the times you answered "Why I eat"). Most often: %1$s. Eating for company or pleasure now and then is normal. When the urge is not hunger, name what you feel and wait 10–15 minutes: a short walk, a call, a glass of water. The wave usually passes. Regular meals during the day help too. "Hard to stop": %2$d time(s). If this happens often, talk to a doctor or a psychologist: it is common and help works.</string>
+    <string name="ai_download">Download model</string>
 </resources>

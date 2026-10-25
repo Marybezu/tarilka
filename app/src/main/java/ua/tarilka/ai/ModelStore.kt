@@ -95,6 +95,7 @@ class ModelStore(private val context: Context) {
     companion object {
         const val E2B_PAGE = "https://huggingface.co/litert-community/gemma-4-E2B-it-litert-lm"
         const val E2B_FILE = "gemma-4-E2B-it.litertlm"
+        const val E2B_DOWNLOAD = "$E2B_PAGE/resolve/main/$E2B_FILE?download=true"
         private const val MODEL_DIR = "models"
         private const val MB = 1024L * 1024L
         private const val MIN_SIZE = 100L * MB

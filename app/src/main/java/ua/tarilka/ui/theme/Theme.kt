@@ -12,6 +12,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.sp
 
 private val Light = lightColorScheme(
     primary = Color(0xFF2F6B4F),
@@ -85,6 +86,9 @@ private val Type = Typography().run {
         titleLarge = titleLarge.copy(fontWeight = FontWeight.SemiBold),
         titleMedium = titleMedium.copy(fontWeight = FontWeight.SemiBold),
         labelLarge = labelLarge.copy(fontWeight = FontWeight.Medium),
+        // A bit larger than Material defaults: hints and small print stay readable.
+        bodyMedium = bodyMedium.copy(fontSize = 15.sp, lineHeight = 22.sp),
+        bodySmall = bodySmall.copy(fontSize = 14.sp, lineHeight = 20.sp),
     )
 }
 

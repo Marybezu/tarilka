@@ -488,6 +488,13 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
                     )
                 }
             }
+            // The person's own notes say what numbers cannot (mood, illness, a party); they stay on the phone.
+            val notes = db.notes().allOnce().filter { it.day in from.toEpochDay()..end.toEpochDay() }
+            if (notes.isNotEmpty()) {
+                val each = if (period == Period.WEEK) 300 else 120
+                appendLine("The person's day notes (take them into account):")
+                notes.takeLast(if (period == Period.WEEK) 7 else 20).forEach { appendLine("- ${LocalDate.ofEpochDay(it.day)}: ${it.text.take(each).replace('\n', ' ')}") }
+            }
             appendLine("Techniques you may suggest (pick 1–2 that fit what you see, explain simply):")
             Habits.TECHNIQUES.forEach { appendLine("- $it") }
             append(

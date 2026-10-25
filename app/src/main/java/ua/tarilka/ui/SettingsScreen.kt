@@ -161,7 +161,7 @@ private fun ModelSection(ai: AiViewModel) {
     val note by ai.importNote.collectAsState()
     val context = androidx.compose.ui.platform.LocalContext.current
     var confirmDelete by remember { mutableStateOf(false) }
-    var deleteOriginal by remember { mutableStateOf(true) }
+    var deleteOriginal by remember { mutableStateOf(false) }
     val picker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         if (uri != null) ai.import(uri, deleteOriginal)
     }
@@ -177,7 +177,7 @@ private fun ModelSection(ai: AiViewModel) {
                     Text(stringResource(R.string.ai_importing), style = MaterialTheme.typography.bodySmall)
                 }
                 s is ModelStore.State.Ready -> {
-                    Text(stringResource(R.string.ai_ready, s.file.name, s.sizeMb), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.primary)
+                    Text(stringResource(R.string.ai_ready, s.sizeMb), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.primary)
                     if (confirmDelete) {
                         Row {
                             TextButton(onClick = { ai.deleteModel(); confirmDelete = false }) {
@@ -194,14 +194,13 @@ private fun ModelSection(ai: AiViewModel) {
                         Text(stringResource(R.string.ai_failed, s.reason), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
                     }
                     Text(stringResource(R.string.ai_steps, ModelStore.E2B_FILE), style = MaterialTheme.typography.bodySmall)
-                    Button(onClick = {
-                        runCatching {
-                            context.startActivity(
-                                android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(ModelStore.E2B_PAGE + "/tree/main")),
-                            )
-                        }
-                    }) { Text(stringResource(R.string.ai_open_page)) }
+                    fun open(url: String) = runCatching {
+                        context.startActivity(android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(url)))
+                    }
+                    // A direct link to the one file that fits: the page lists many chip-specific variants.
+                    Button(onClick = { open(ModelStore.E2B_DOWNLOAD) }) { Text(stringResource(R.string.ai_download)) }
                     OutlinedButton(onClick = { picker.launch(arrayOf("*/*")) }) { Text(stringResource(R.string.ai_import)) }
+                    TextButton(onClick = { open(ModelStore.E2B_PAGE) }) { Text(stringResource(R.string.ai_open_page)) }
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier.clickable { deleteOriginal = !deleteOriginal },

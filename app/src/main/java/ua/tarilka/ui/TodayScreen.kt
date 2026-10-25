@@ -596,7 +596,7 @@ private fun SleepDialog(
                     }
                 }
                 Text(stringResource(R.string.sleep_quality), style = MaterialTheme.typography.bodyMedium)
-                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                androidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     SLEEP_QUALITY.forEachIndexed { i, res ->
                         androidx.compose.material3.FilterChip(
                             selected = quality == i,

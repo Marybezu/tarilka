@@ -89,7 +89,39 @@ class HealthSync(private val context: Context) {
         return records.groupBy { r ->
             val local = r.endTime.atZone(zone)
             (if (local.hour >= 18) local.toLocalDate().plusDays(1) else local.toLocalDate()).toEpochDay()
-        }.mapValues { (_, list) -> list.sumOf { java.time.Duration.between(it.startTime, it.endTime).toMinutes() } / 60.0 }
+        }.mapValues { (_, list) ->
+            // A watch and a phone app may both record the same night: merge overlaps before adding up.
+            var total = 0L
+            var curStart: Instant? = null
+            var curEnd: Instant? = null
+            for (r in list.sortedBy { it.startTime }) {
+                if (curEnd == null || r.startTime.isAfter(curEnd)) {
+                    if (curStart != null) total += java.time.Duration.between(curStart, curEnd).toMinutes()
+                    curStart = r.startTime
+                    curEnd = r.endTime
+                } else if (r.endTime.isAfter(curEnd)) {
+                    curEnd = r.endTime
+                }
+            }
+            if (curStart != null) total += java.time.Duration.between(curStart, curEnd).toMinutes()
+            total / 60.0
+        }
+    }
+
+    /** Steps per calendar day in one request; empty without access. */
+    suspend fun stepsByDay(from: LocalDate, to: LocalDate): Map<Long, Long> {
+        val c = client ?: return emptyMap()
+        if (!canReadSteps()) return emptyMap()
+        val end = minOf(to.plusDays(1).atStartOfDay(), java.time.LocalDateTime.now())
+        return runCatching {
+            c.aggregateGroupByPeriod(
+                androidx.health.connect.client.request.AggregateGroupByPeriodRequest(
+                    setOf(StepsRecord.COUNT_TOTAL),
+                    TimeRangeFilter.between(from.atStartOfDay(), end),
+                    java.time.Period.ofDays(1),
+                ),
+            ).associate { it.startTime.toLocalDate().toEpochDay() to (it.result[StepsRecord.COUNT_TOTAL] ?: 0L) }
+        }.getOrDefault(emptyMap())
     }
 
     suspend fun writeMeal(e: DiaryEntry) {

@@ -94,7 +94,7 @@ fun HabitChips(h: Habits, modifier: Modifier = Modifier, sex: ua.tarilka.data.Se
             )
         }
         if (h.reasonMeals > 0) {
-            val top = h.notHunger.maxByOrNull { it.value }?.let { stringResource(REASON_NAMES[it.key]) } ?: "—"
+            val top = h.notHunger.maxByOrNull { it.value }?.let { REASON_NAMES.getOrNull(it.key) }?.let { stringResource(it) } ?: "—"
             Habit(
                 stringResource(R.string.habit_reasons, h.notHungerTotal, h.reasonMeals), h.reasonsLevel,
                 h.trend({ if (it.reasonMeals > 0) it.notHungerTotal * 100.0 / it.reasonMeals else null }, 15.0),
@@ -106,7 +106,7 @@ fun HabitChips(h: Habits, modifier: Modifier = Modifier, sex: ua.tarilka.data.Se
         if (h.alcoholPerWeek > 0) {
             val noticed = buildList {
                 if (h.alcoholPerWeek > 7) add(stringResource(R.string.alcohol_many))
-                if (h.alcoholDays * 7.0 / h.periodDays >= 4) add(stringResource(R.string.alcohol_often))
+                if (h.perWeek(h.alcoholDays) >= 4) add(stringResource(R.string.alcohol_often))
                 if (h.heavyDrinkDays > 0) add(stringResource(R.string.alcohol_heavy, h.heavyDrinkDays))
             }.joinToString("\n").ifEmpty { null }
             Habit(
@@ -120,7 +120,7 @@ fun HabitChips(h: Habits, modifier: Modifier = Modifier, sex: ua.tarilka.data.Se
         if (h.fastFoodDays > 0) {
             Habit(
                 stringResource(R.string.habit_fastfood, h.fastFoodDays), h.fastFoodLevel,
-                h.trend({ it.fastFoodDays * 7.0 / it.periodDays }, 1.0), p?.let { stringResource(R.string.days_n, it.fastFoodDays) },
+                h.trend({ it.perWeek(it.fastFoodDays) }, 1.0), p?.let { stringResource(R.string.days_n, it.fastFoodDays) },
                 stringResource(R.string.habit_fastfood_info), null, stringResource(R.string.fastfood_tips),
             )
         }

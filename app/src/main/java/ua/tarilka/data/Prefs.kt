@@ -144,10 +144,11 @@ class Prefs(context: Context) {
 
     /** Forget the profile and the not-found list; app settings stay. */
     fun clearPersonal() {
-        sp.edit().apply { PROFILE_KEYS.forEach { remove(it) } }.remove("missing").apply()
+        sp.edit().apply { (PROFILE_KEYS + STEP_KEYS).forEach { remove(it) } }.remove("missing").apply()
         _profile.value = Profile()
         _missing.value = emptyMap()
     }
+    private val STEP_KEYS = listOf("stepLog", "stepDay", "stepBase", "stepLast")
     private val PROFILE_KEYS = listOf("sex", "age", "height", "weight", "activity", "goal", "customKcal", "profileSet")
 
     private val _profile = MutableStateFlow(loadProfile())

@@ -229,9 +229,9 @@
     <string name="clear_done">Data deleted.</string>
     <string name="clear_diary">Clear diary</string>
     <string name="clear_all">Delete all personal data</string>
-    <string name="clear_diary_text">All food, fluid, weight and note records will be deleted. Your foods, recipes, profile and the AI model stay. This cannot be undone.</string>
-    <string name="clear_all_text">The diary, your foods and recipes, favorites, profile and the Not found list will be deleted. Only the AI model, language and theme stay. This cannot be undone.</string>
-    <string name="clear_hc">Also delete Tarilka\'s records from Health Connect</string>
+    <string name="clear_diary_text">All food, fluid, weight, sleep, note and Why I eat records will be deleted. Your foods, recipes, profile and the AI model stay. This cannot be undone.</string>
+    <string name="clear_all_text">The diary (food, fluids, weight, sleep, notes, Why I eat), your foods and recipes, favorites, profile, step history and the Not found list will be deleted. The AI model and settings (language, theme, reminders) stay. This cannot be undone.</string>
+    <string name="clear_hc">Also delete the records Tarilka wrote to Health Connect</string>
     <string name="export_first">Make a backup first</string>
     <string name="copy">Copy</string>
     <string name="summaries_link">Summaries for the week, month, year</string>

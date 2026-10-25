@@ -193,13 +193,14 @@ object Backup {
                         else -> null
                     }
                     DiaryEntry(
-                        day = LocalDate.parse(e.getString("day")).toEpochDay(), meal = e.getInt("meal"),
+                        day = LocalDate.parse(e.getString("day")).toEpochDay(), meal = e.getInt("meal").coerceIn(0, 3),
                         foodId = foodId, nameUk = e.getString("nameUk"), nameEn = e.getString("nameEn"),
                         grams = e.getDouble("grams"), kcal = e.getDouble("kcal"), protein = e.getDouble("protein"),
                         fat = e.getDouble("fat"), carbs = e.getDouble("carbs"), fiber = e.optDouble("fiber", 0.0),
                         fromAi = e.optBoolean("fromAi"), createdAt = e.optLong("createdAt", System.currentTimeMillis()),
-                        reason = if (e.has("reason")) e.getInt("reason") else null,
-                        hunger = if (e.has("hunger")) e.getInt("hunger") else null,
+                        // Values out of range (an edited file, a newer version) are dropped, never shown.
+                        reason = e.optInt("reason", -1).takeIf { it in Reasons.ALL },
+                        hunger = e.optInt("hunger", -1).takeIf { it in 1..5 },
                         hardToStop = e.optBoolean("hardToStop"),
                     )
                 })
@@ -222,7 +223,7 @@ object Backup {
                 for (i in 0 until arr.length()) {
                     val e = arr.getJSONObject(i)
                     db.sleep().upsert(
-                        SleepEntry(LocalDate.parse(e.getString("day")).toEpochDay(), e.getDouble("hours"), if (e.isNull("quality")) null else e.getInt("quality")),
+                        SleepEntry(LocalDate.parse(e.getString("day")).toEpochDay(), e.getDouble("hours"), e.optInt("quality", -1).takeIf { it in 0..2 }),
                     )
                 }
             }

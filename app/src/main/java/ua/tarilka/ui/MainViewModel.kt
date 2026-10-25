@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -116,13 +117,13 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     val tips: StateFlow<List<Tip>> = combine(
         combine(totals, targets, entries) { t, tg, e -> Triple(t, tg, e.size) },
         combine(day, profile, weeklyTrend, latestWeight) { d, p, tr, w -> listOf(d, p, tr, w) },
-        combine(fluidMl, steps) { f, st -> f to st },
-    ) { (t, tg, n), rest, (fluid, st) ->
+        combine(fluidMl, steps, prefs.stepsGoal) { f, st, goal -> Triple(f, st, goal) },
+    ) { (t, tg, n), rest, (fluid, st, goal) ->
         val d = rest[0] as LocalDate
         val now = LocalTime.now().hour
         val finished = d.isBefore(LocalDate.now()) || now >= 21
         val afternoon = d == LocalDate.now() && now >= 15
-        Tips.forDay(t, tg, n, finished, rest[1] as Profile, rest[2] as Double?, rest[3] as Double?, fluid, afternoon, st, prefs.stepsGoal.value)
+        Tips.forDay(t, tg, n, finished, rest[1] as Profile, rest[2] as Double?, rest[3] as Double?, fluid, afternoon, st, goal)
     }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     init {
@@ -144,7 +145,9 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
 
     fun refreshSleep() = viewModelScope.launch {
         val d = day.value
-        hcSleep.value = if (prefs.sleepEnabled.value) runCatching { health.sleepByDay(d.minusDays(6), d) }.getOrDefault(emptyMap()) else emptyMap()
+        val map = if (prefs.sleepEnabled.value) runCatching { health.sleepByDay(d.minusDays(6), d) }.getOrDefault(emptyMap()) else emptyMap()
+        // Another day may have been opened meanwhile: never show its neighbour's data.
+        if (d == day.value) hcSleep.value = map
     }
 
     data class SleepShown(val hours: Double, val quality: Int?, val fromHc: Boolean)
@@ -196,23 +199,26 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         val fromHc = runCatching { health.steps(d) }.getOrNull()
         val fromSensor = if (d == LocalDate.now()) runCatching { stepSensor.today() }.getOrNull() else null
         val useHc = fromHc != null && (fromHc > 0 || fromSensor == null)
+        if (!useHc && fromSensor != null) prefs.logSteps(d.toEpochDay(), fromSensor)
+        if (d != day.value) return@launch // another day was opened while reading
         _steps.value = if (useHc) fromHc else fromSensor
         stepsFromHc.value = useHc
-        if (!useHc && fromSensor != null) prefs.logSteps(d.toEpochDay(), fromSensor)
     }
 
     val stepsGoal: StateFlow<Int> = prefs.stepsGoal
     fun setStepsGoal(v: Int) = prefs.setStepsGoal(v)
 
-    /** Steps per day for the last [days] days ending at the selected day: Health Connect, else the sensor log. */
+    /** Steps per day: Health Connect (one grouped request), else what the phone's sensor logged. */
+    private suspend fun stepsByDay(from: LocalDate, to: LocalDate): Map<Long, Long> =
+        prefs.loggedSteps().filterKeys { it in from.toEpochDay()..to.toEpochDay() } +
+            runCatching { health.stepsByDay(from, to) }.getOrDefault(emptyMap()).filterValues { it > 0 }
+
+    /** Steps per day for the last [days] days ending at the selected day. */
     suspend fun stepsHistory(days: Int): List<Pair<LocalDate, Long?>> {
         val end = day.value
-        val log = prefs.loggedSteps()
-        val hc = runCatching { health.canReadSteps() }.getOrDefault(false)
-        return (days - 1 downTo 0).map { i ->
-            val d = end.minusDays(i.toLong())
-            d to ((if (hc) runCatching { health.steps(d) }.getOrNull() else null) ?: log[d.toEpochDay()])
-        }
+        val from = end.minusDays(days - 1L)
+        val map = stepsByDay(from, end)
+        return (0 until days).map { i -> from.plusDays(i.toLong()).let { it to map[it.toEpochDay()] } }
     }
 
     fun setStepsEnabled(on: Boolean) {
@@ -240,6 +246,10 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     fun deleteFluid(e: FluidEntry) = viewModelScope.launch {
         db.fluids().delete(e)
         sync { health.deleteFluid(e) }
+        offerUndo(1) {
+            db.fluids().insert(e)
+            sync { health.writeFluid(e) }
+        }
     }
 
     /** Entries for past days get a midday time so they land on the right day in Health Connect. */
@@ -335,21 +345,30 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     // ---- batch delete with a short undo ----
 
     private var undoAction: (suspend () -> Unit)? = null
-    /** How many items the last batch delete removed; the UI offers "Undo" while this is set. */
-    val undoCount = MutableStateFlow<Int?>(null)
+    private var undoSeq = 0L
+    /**
+     * (event number, items that Undo would bring back). A new number for every delete, so two
+     * deletes of one item each still show the bar again; deletes in quick succession add up.
+     */
+    val undoEvent = MutableStateFlow<Pair<Long, Int>?>(null)
 
     private fun offerUndo(count: Int, restore: suspend () -> Unit) {
-        undoAction = restore
-        undoCount.value = count
+        val earlier = undoAction
+        undoAction = if (earlier == null) restore else ({ earlier(); restore() })
+        undoEvent.value = ++undoSeq to count + (if (earlier != null) undoEvent.value?.second ?: 0 else 0)
     }
 
     fun undo() = viewModelScope.launch {
-        undoAction?.invoke()
+        val action = undoAction
         undoAction = null
-        undoCount.value = null
+        undoEvent.value = null
+        action?.invoke()
     }
 
-    fun undoShown() { undoCount.value = null }
+    fun undoShown() {
+        undoAction = null
+        undoEvent.value = null
+    }
 
     fun deleteMeal(meal: Int) = viewModelScope.launch {
         val list = entries.value.filter { it.meal == meal }
@@ -390,7 +409,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
             java.io.File(getApplication<Application>().cacheDir, "photos").deleteRecursively()
         }
         undoAction = null
-        undoCount.value = null
+        undoEvent.value = null
         if (alsoHealthConnect) tapp.scope.launch { runCatching { health.deleteAllOwn() } }
         dataMessage.value = getApplication<Application>().getString(ua.tarilka.R.string.clear_done)
     }
@@ -442,15 +461,21 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         val sleepAll = sleepRange(prevFrom, end)
         val h = Habits.of(cur, foods, period.days, sleep = sleepAll.filterKeys { it >= from.toEpochDay() })
         val hp = Habits.of(prev, foods, period.days, sleep = sleepAll.filterKeys { it < from.toEpochDay() })
-        val fluidsByDay = db.fluids().totalsOnce(prevFrom.toEpochDay(), end.toEpochDay()).associate { it.day to it.ml }
+        // Water entries plus drinks logged as food, as on the Today screen.
+        val fluidsByDay = (
+            db.fluids().totalsOnce(prevFrom.toEpochDay(), end.toEpochDay()) +
+                db.fluids().drinksFromDiaryRange(prevFrom.toEpochDay(), end.toEpochDay(), ua.tarilka.data.FluidRules.ALCOHOL, ua.tarilka.data.FluidRules.MILK_DRINKS).first()
+            ).groupBy { it.day }.mapValues { (_, l) -> l.sumOf { it.ml } }
         val tg = targets.value
         val time = java.time.format.DateTimeFormatter.ofPattern("HH:mm")
         val zone = java.time.ZoneId.systemDefault()
         fun Double.r() = toInt()
         fun avgFluid(a: LocalDate, b: LocalDate) =
             fluidsByDay.filterKeys { it in a.toEpochDay()..b.toEpochDay() }.values.let { if (it.isEmpty()) null else it.average().r() }
-        val steps = if (prefs.stepsEnabled) health.steps(from, end) else null
-        val prevSteps = if (prefs.stepsEnabled) health.steps(prevFrom, from.minusDays(1)) else null
+        // Average over days that have steps (Health Connect only goes back about 30 days before access was given).
+        val stepsByDay = if (prefs.stepsEnabled) stepsByDay(prevFrom, end) else emptyMap()
+        fun stepsAvg(a: LocalDate, b: LocalDate) = stepsByDay.filterKeys { it in a.toEpochDay()..b.toEpochDay() }.values.filter { it > 0 }
+            .let { if (it.isEmpty()) null else "${it.average().toLong()} (over ${it.size} days with data)" }
         val periodName = period.name.lowercase()
         return buildString {
             appendLine("Summary of the person's last $periodName ($from to $end), compared with the $periodName before.")
@@ -502,14 +527,14 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
                 line("Average sleep", h.sleepAvg?.let { "%.1f h".format(java.util.Locale.ROOT, it) } ?: "not recorded", hp.sleepAvg?.let { "%.1f h".format(java.util.Locale.ROOT, it) } ?: "not recorded")
             }
             if (h.reasonMeals > 0) {
-                val why = h.notHunger.entries.sortedByDescending { it.value }.joinToString { "${ua.tarilka.data.Reasons.EN[it.key]} ${it.value}" }
+                val why = h.notHunger.entries.sortedByDescending { it.value }.joinToString { "${ua.tarilka.data.Reasons.EN.getOrElse(it.key) { "other" }} ${it.value}" }
                 appendLine(
                     "Why the person ate (answered for ${h.reasonMeals} meals): not from hunger ${h.notHungerTotal} times" +
                         (if (why.isNotEmpty()) " ($why)" else "") + "; hard to stop ${h.hardToStop} times.",
                 )
             }
             line("Average drinks (water etc.) on days with any", avgFluid(from, end)?.let { "$it ml" } ?: "none logged", avgFluid(prevFrom, from.minusDays(1))?.let { "$it ml" } ?: "none")
-            if (steps != null) line("Average steps a day", "${steps / n}", prevSteps?.let { "${it / n}" } ?: "no data")
+            stepsAvg(from, end)?.let { line("Average steps a day", it, stepsAvg(prevFrom, from.minusDays(1)) ?: "no data") }
             val recent = weights.value.filter { it.day in minOf(prevFrom, end.minusDays(27)).toEpochDay()..end.toEpochDay() }
             if (recent.isNotEmpty()) {
                 if (period != Period.YEAR) appendLine("Weight: " + recent.takeLast(20).joinToString { "${LocalDate.ofEpochDay(it.day)} ${it.kg} kg" })

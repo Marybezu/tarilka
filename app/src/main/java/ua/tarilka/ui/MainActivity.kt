@@ -182,10 +182,10 @@ private fun Tabs(vm: MainViewModel, ai: AiViewModel, tab: Int, onTab: (Int) -> U
         ReasonDialog(onSave = vm::setReason, onSkip = vm::skipReason)
     }
     val snackbar = remember { androidx.compose.material3.SnackbarHostState() }
-    val undoCount by vm.undoCount.collectAsState()
-    val deletedText = undoCount?.let { stringResource(R.string.deleted_n, it) }
+    val undoEvent by vm.undoEvent.collectAsState()
+    val deletedText = undoEvent?.let { stringResource(R.string.deleted_n, it.second) }
     val undoText = stringResource(R.string.undo)
-    LaunchedEffect(undoCount) {
+    LaunchedEffect(undoEvent) {
         if (deletedText == null) return@LaunchedEffect
         val r = snackbar.showSnackbar(deletedText, actionLabel = undoText, duration = androidx.compose.material3.SnackbarDuration.Short)
         if (r == androidx.compose.material3.SnackbarResult.ActionPerformed) vm.undo() else vm.undoShown()

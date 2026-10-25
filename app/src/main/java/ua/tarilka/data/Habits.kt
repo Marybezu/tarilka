@@ -57,15 +57,22 @@ data class Habits(
      * There is no safe amount (WHO 2023), so any alcohol is amber. Orange: more than 7 drinks a week,
      * alcohol on 4 or more days a week, or any day with 6 or more drinks.
      */
+    /**
+     * Days a weekly rate is based on: the logged days (at least a week, at most the period).
+     * A year with 30 logged days must not dilute 14 drinks a week into 1.
+     */
+    val span: Int get() = maxOf(days, 7).coerceAtMost(periodDays)
+    fun perWeek(count: Int) = count * 7.0 / span
+
     val alcoholLevel get() = when {
         alcoholPerWeek == 0.0 -> Level.GOOD
-        alcoholPerWeek > 7 || alcoholDays * 7.0 / periodDays >= 4 || heavyDrinkDays > 0 -> Level.WATCH
+        alcoholPerWeek > 7 || perWeek(alcoholDays) >= 4 || heavyDrinkDays > 0 -> Level.WATCH
         else -> Level.OK
     }
-    val fastFoodLevel get() = level(fastFoodDays == 0, fastFoodDays * 7.0 / periodDays <= 1)
+    val fastFoodLevel get() = level(fastFoodDays == 0, perWeek(fastFoodDays) <= 1)
     val sleepLevel get() = sleepAvg?.let { level(it >= 7, it >= 6) } ?: Level.OK
     /** Hard-to-stop episodes twice a week or more are worth attention; eating for other reasons now and then is normal. */
-    val reasonsLevel get() = if (hardToStop * 7.0 / periodDays >= 2) Level.WATCH else level(notHungerTotal == 0 && hardToStop == 0, true)
+    val reasonsLevel get() = if (perWeek(hardToStop) >= 2) Level.WATCH else level(notHungerTotal == 0 && hardToStop == 0, true)
 
     /** Hours of sleep, % of calories, drinks a week…: compare with the period before. +1 more, −1 less, 0 about the same or unknown. */
     fun trend(value: (Habits) -> Double?, minDiff: Double): Int {
@@ -110,7 +117,10 @@ data class Habits(
             "Tell someone close about your goal; it makes it easier to keep.",
         )
 
-        fun isSweet(f: Food) = f.category == "sweets" || f.code in SUGARY_DRINKS
+        /** In the sweets category but without (much) sugar: chips, popcorn, pretzels, cocoa, unsweetened muesli, protein bars. */
+        val NOT_SUGARY = setOf("c12", "c13", "c19", "c31", "c32", "c34", "c43", "c44")
+
+        fun isSweet(f: Food) = (f.category == "sweets" && f.code !in NOT_SUGARY) || f.code in SUGARY_DRINKS
         fun isVegFruit(f: Food) = (f.category == "veg" || f.category == "fruit") && f.code !in STARCHY
 
         fun of(
@@ -130,9 +140,9 @@ data class Habits(
             fun alcoholG(e: DiaryEntry) = food(e)?.code?.let(ALCOHOL_G::get)?.let { it * e.grams / 100 } ?: 0.0
             val alcohol = entries.sumOf(::alcoholG) / 10
             val alcoholByDay = byDay.values.map { list -> list.sumOf(::alcoholG) }
-            // One answer covers everything added at once; count it once per meal of a day.
+            // One answer covers everything added at once (same answer, added within two minutes).
             val meals = entries.filter { it.reason != null || it.hunger != null || it.hardToStop }
-                .groupBy { it.day to it.meal }.values.map { it.first() }
+                .groupBy { listOf(it.day, it.meal, it.reason, it.hunger, it.hardToStop, it.createdAt / 120_000) }.values.map { it.first() }
             fun pct(part: Double) = if (kcal > 0) part / kcal * 100 else 0.0
             fun perDay(total: Double) = if (days > 0) total / days else 0.0
             return Habits(
@@ -145,7 +155,7 @@ data class Habits(
                 sweetFreeDays = byDay.values.count { list -> list.none(::sweet) },
                 vegFruitG = perDay(entries.filter { food(it)?.let(::isVegFruit) == true }.sumOf { it.grams }),
                 latePct = pct(late),
-                alcoholPerWeek = alcohol * 7 / periodDays,
+                alcoholPerWeek = alcohol * 7 / maxOf(days, 7).coerceAtMost(periodDays),
                 fastFoodDays = byDay.values.count { list -> list.any { food(it)?.category == "fastfood" } },
                 sleepAvg = sleep.values.takeIf { it.isNotEmpty() }?.average(),
                 reasonMeals = meals.size,

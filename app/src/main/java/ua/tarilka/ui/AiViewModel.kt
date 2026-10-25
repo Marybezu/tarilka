@@ -177,12 +177,31 @@ class AiViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     /** The text for the model is built by the caller (it needs the diary), so it is passed as a function. */
-    fun requestSummary(text: suspend () -> String, ukrainian: Boolean) = viewModelScope.launch {
-        _summaryLoading.value = true
-        ask(text(), ukrainian, _summary, _summaryLoading, 600)
+    private var summaryJob: kotlinx.coroutines.Job? = null
+
+    fun requestSummary(text: suspend () -> String, ukrainian: Boolean) {
+        summaryJob?.cancel()
+        summaryJob = viewModelScope.launch {
+            _summaryLoading.value = true
+            try {
+                val prompt = runCatching { text() }.getOrElse {
+                    if (it is kotlinx.coroutines.CancellationException) throw it
+                    _summary.value = "⚠ ${it.message}"
+                    return@launch
+                }
+                ask(prompt, ukrainian, _summary, _summaryLoading, 600)
+            } finally {
+                _summaryLoading.value = false
+            }
+        }
     }
 
-    fun clearSummary() { _summary.value = null }
+    /** Also stops a summary still being written, so it can't land under another period. */
+    fun clearSummary() {
+        summaryJob?.cancel()
+        _summary.value = null
+        _summaryLoading.value = false
+    }
 
     private suspend fun ask(summary: String, ukrainian: Boolean, out: MutableStateFlow<String?>, loading: MutableStateFlow<Boolean>, maxTokens: Int) {
         loading.value = true
@@ -192,7 +211,7 @@ class AiViewModel(app: Application) : AndroidViewModel(app) {
             val lang = ua.tarilka.data.Lang
             if (!lang.isClean(text, ukrainian)) text = gemma.advice(summary, ukrainian, maxTokens)
             if (lang.isClean(text, ukrainian)) text else null
-        }.getOrElse { "⚠ ${it.message}" }
+        }.getOrElse { if (it is kotlinx.coroutines.CancellationException) throw it else "⚠ ${it.message}" }
         loading.value = false
     }
 

@@ -40,18 +40,28 @@ object Reminders {
     private const val CHANNEL = "reminders"
     private const val EXTRA_KIND = "kind"
 
-    /** Cancels everything and sets the next alarm for each reminder that is on. Call after any change. */
-    fun schedule(context: Context) {
+    /**
+     * Sets the next alarm for each reminder that is on.
+     * [only] = null: all of them (after a settings change, a restart or a clock change);
+     * a kind: just that one (after it fired). [missedOnly]: on app start, only alarms that should
+     * already have fired, so a reminder Doze is still holding back is not pushed to tomorrow.
+     */
+    fun schedule(context: Context, only: Int? = null, missedOnly: Boolean = false) {
+        val sp = context.getSharedPreferences("tarilka_alarms", Context.MODE_PRIVATE)
         val prefs = (context.applicationContext as TarilkaApp).prefs
         val am = context.getSystemService(AlarmManager::class.java) ?: return
         val now = LocalDateTime.now()
+        val nowMs = System.currentTimeMillis()
         fun set(kind: Int, at: LocalDateTime?) {
+            if (only != null && kind != only) return
+            if (missedOnly && at != null && sp.getLong("at$kind", 0) > nowMs - 30 * 60_000) return
             val pi = pending(context, kind)
             am.cancel(pi)
-            if (at == null) return
+            if (at == null) { sp.edit().remove("at$kind").apply(); return }
             val ms = at.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
             // Inexact on purpose: no special permission, and a few minutes either way do not matter.
             am.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, ms, pi)
+            sp.edit().putLong("at$kind", ms).apply()
         }
         fun next(t: LocalTime) = now.toLocalDate().atTime(t).let { if (it.isAfter(now)) it else it.plusDays(1) }
         for (meal in 0..2) set(MEAL_0 + meal, prefs.mealReminder(meal)?.let(::next))
@@ -116,12 +126,12 @@ object Reminders {
         )
         // What the lock screen shows: nothing about food or drinks.
         val public = NotificationCompat.Builder(context, CHANNEL)
-            .setSmallIcon(R.drawable.ic_launcher_foreground)
+            .setSmallIcon(R.drawable.ic_notification)
             .setContentTitle(context.getString(R.string.app_name))
             .setContentText(context.getString(R.string.remind_public))
             .build()
         val n = NotificationCompat.Builder(context, CHANNEL)
-            .setSmallIcon(R.drawable.ic_launcher_foreground)
+            .setSmallIcon(R.drawable.ic_notification)
             .setContentTitle(context.getString(R.string.app_name))
             .setContentText(text)
             .setStyle(NotificationCompat.BigTextStyle().bigText(text))
@@ -142,8 +152,12 @@ class ReminderReceiver : BroadcastReceiver() {
         val done = goAsync()
         app.scope.launch {
             try {
-                if (kind >= 0) runCatching { Reminders.fire(context, kind) }
-                Reminders.schedule(context)
+                if (kind >= 0) {
+                    runCatching { Reminders.fire(context, kind) }
+                    Reminders.schedule(context, only = kind)
+                } else {
+                    Reminders.schedule(context) // restart, update or clock change
+                }
             } finally {
                 done.finish()
             }

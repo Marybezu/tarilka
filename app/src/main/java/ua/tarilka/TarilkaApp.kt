@@ -53,6 +53,6 @@ class TarilkaApp : Application() {
             FoodSeeder.seedIfNeeded(this@TarilkaApp, db, prefs)
         }
         // Alarms can be lost (force stop, clock change); setting them again is cheap.
-        runCatching { ua.tarilka.notify.Reminders.schedule(this) }
+        runCatching { ua.tarilka.notify.Reminders.schedule(this, missedOnly = true) }
     }
 }

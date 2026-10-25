@@ -419,7 +419,6 @@ private fun DataSection(vm: MainViewModel) {
     var password by remember { mutableStateOf("") }
     /** null = no dialog, false = clear the diary, true = delete all personal data */
     var clearing by remember { mutableStateOf<Boolean?>(null) }
-    val healthSync by vm.healthSync.collectAsState()
     val exportJson = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { uri ->
         // The password is kept in the view model: after rotation the UI state is new,
         // and an empty password here must never silently mean "save unencrypted".
@@ -467,7 +466,8 @@ private fun DataSection(vm: MainViewModel) {
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(stringResource(if (everything) R.string.clear_all_text else R.string.clear_diary_text), style = MaterialTheme.typography.bodyMedium)
-                    if (healthSync) {
+                    // Offered even if sync is off now: records written earlier may still be there.
+                    if (vm.healthAvailable) {
                         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.clickable { alsoHc = !alsoHc }) {
                             androidx.compose.material3.Checkbox(checked = alsoHc, onCheckedChange = { alsoHc = it })
                             Text(stringResource(R.string.clear_hc), style = MaterialTheme.typography.bodyMedium)
@@ -477,7 +477,7 @@ private fun DataSection(vm: MainViewModel) {
                 }
             },
             confirmButton = {
-                TextButton(onClick = { vm.clearData(everything, alsoHc && healthSync); clearing = null }) {
+                TextButton(onClick = { vm.clearData(everything, alsoHc && vm.healthAvailable); clearing = null }) {
                     Text(stringResource(R.string.delete), color = MaterialTheme.colorScheme.error)
                 }
             },

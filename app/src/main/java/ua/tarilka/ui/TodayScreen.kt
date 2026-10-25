@@ -188,7 +188,7 @@ fun TodayScreen(
                         Text(
                             "😴 " + (sleep?.let { s ->
                                 stringResource(R.string.sleep_line, s.hours.f1()) +
-                                    (s.quality?.let { " · " + stringResource(SLEEP_QUALITY[it]) } ?: "") +
+                                    (s.quality?.let { SLEEP_QUALITY.getOrNull(it) }?.let { " · " + stringResource(it) } ?: "") +
                                     (if (s.fromHc) " · Health Connect" else "")
                             } ?: stringResource(R.string.sleep_title) + " —"),
                             style = MaterialTheme.typography.bodyMedium.merge(Numbers),
@@ -441,9 +441,11 @@ private fun MealSection(
     ) {
         entries.forEach { e -> androidx.compose.runtime.key(e.id) {
             // Swipe left to delete; "Undo" appears at the bottom.
+            // The state keeps its first callback; read the entry as it is now (grams or answers may have changed).
+            val current by androidx.compose.runtime.rememberUpdatedState(e)
             val swipe = androidx.compose.material3.rememberSwipeToDismissBoxState(
                 confirmValueChange = { v ->
-                    if (v == androidx.compose.material3.SwipeToDismissBoxValue.EndToStart) { onDelete(e); true } else false
+                    if (v == androidx.compose.material3.SwipeToDismissBoxValue.EndToStart) { onDelete(current); true } else false
                 },
             )
             androidx.compose.material3.SwipeToDismissBox(

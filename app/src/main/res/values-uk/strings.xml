@@ -88,7 +88,7 @@
     <string name="source_ai">Оцінка ШІ</string>
     <string name="source_custom">Ваш продукт</string>
 
-    <string name="weight_today">Вага сьогодні</string>
+    <string name="weight_today">Вага за цей день</string>
     <string name="weight_saved_today">Сьогодні збережено: %1$s кг. Нове значення замінить його.</string>
     <string name="weight_chart">Графік</string>
     <string name="days_n">%1$d дн.</string>

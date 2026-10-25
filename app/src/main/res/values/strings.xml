@@ -88,7 +88,7 @@
     <string name="source_ai">AI estimate</string>
     <string name="source_custom">Your food</string>
 
-    <string name="weight_today">Today\'s weight</string>
+    <string name="weight_today">Weight for this day</string>
     <string name="weight_saved_today">Saved today: %1$s kg. Saving again replaces it.</string>
     <string name="weight_chart">Chart</string>
     <string name="days_n">%1$d days</string>

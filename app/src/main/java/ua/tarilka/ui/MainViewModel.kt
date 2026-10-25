@@ -65,6 +65,10 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     val weightForDay: StateFlow<Double?> = combine(weights, day) { list, d -> list.lastOrNull { it.day <= d.toEpochDay() }?.kg }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
+    /** The weight recorded exactly on the selected day, if any (for editing or deleting it). */
+    val weightOnDay: StateFlow<WeightEntry?> = combine(weights, day) { list, d -> list.firstOrNull { it.day == d.toEpochDay() } }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
     val latestWeight: StateFlow<Double?> =
         weights.map { it.lastOrNull()?.kg }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 

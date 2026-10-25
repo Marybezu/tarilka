@@ -81,6 +81,7 @@ fun TodayScreen(
     val steps by vm.steps.collectAsState()
     val stepsEnabled by vm.stepsEnabled.collectAsState()
     val weight by vm.weightForDay.collectAsState()
+    val weightOnDay by vm.weightOnDay.collectAsState()
     val stepsFromHc by vm.stepsFromHc.collectAsState()
     val trend by vm.weeklyTrend.collectAsState()
     val habits by vm.weekHabits.collectAsState()
@@ -280,7 +281,7 @@ fun TodayScreen(
     }
 
     if (weightDialog) {
-        var text by remember { mutableStateOf("") }
+        var text by remember { mutableStateOf(weightOnDay?.kg?.f1() ?: "") }
         androidx.compose.material3.AlertDialog(
             onDismissRequest = { weightDialog = false },
             title = { Text(stringResource(R.string.weight_today)) },
@@ -291,7 +292,16 @@ fun TodayScreen(
                     onClick = { text.toNumber()?.let { vm.saveWeight(it, day) }; weightDialog = false },
                 ) { Text(stringResource(R.string.save)) }
             },
-            dismissButton = { TextButton(onClick = { weightDialog = false }) { Text(stringResource(R.string.cancel)) } },
+            dismissButton = {
+                Row {
+                    weightOnDay?.let { w ->
+                        TextButton(onClick = { vm.deleteWeight(w); weightDialog = false }) {
+                            Text(stringResource(R.string.delete), color = MaterialTheme.colorScheme.error)
+                        }
+                    }
+                    TextButton(onClick = { weightDialog = false }) { Text(stringResource(R.string.cancel)) }
+                }
+            },
         )
     }
 

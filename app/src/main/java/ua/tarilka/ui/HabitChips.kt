@@ -31,85 +31,118 @@ import ua.tarilka.data.Habits.Level
  * Colored badges for eating patterns: green = going well, amber = so-so, orange = worth attention.
  * Never red: these are hints, not grades. Tap a badge for what it means and what helps.
  */
+/** What a badge opens: what it is, what was noticed, the trend, what helps, and when to get help. */
+private class HabitInfo(val title: String, val parts: List<String>, val audit: Boolean = false)
+
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun HabitChips(h: Habits, modifier: Modifier = Modifier, sex: ua.tarilka.data.Sex = ua.tarilka.data.Sex.FEMALE) {
-    var info by remember { mutableStateOf<Pair<String, String>?>(null) }
-    var alcoholInfo by remember { mutableStateOf(false) }
+    var info by remember { mutableStateOf<HabitInfo?>(null) }
     var audit by remember { mutableStateOf(false) }
-    FlowRow(modifier, horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-        val veg = stringResource(R.string.habit_veg, h.vegFruitG.f0())
-        val vegInfo = stringResource(R.string.habit_veg_info)
-        Badge(veg, h.vegLevel) { info = veg to vegInfo }
+    val p = h.prev?.takeIf { it.days >= 2 }
 
-        val sweets = stringResource(R.string.habit_sweets, h.sweetFreeDays, h.days)
-        val sweetsInfo = stringResource(R.string.habit_sweets_info, h.sweetsPct.f0())
-        Badge(sweets, h.sweetsLevel) { info = sweets to sweetsInfo }
-
-        val late = if (h.latePct < 1) stringResource(R.string.habit_late_none) else stringResource(R.string.habit_late, h.latePct.f0())
-        val lateInfo = stringResource(R.string.habit_late_info)
-        Badge(late, h.lateLevel) { info = late to lateInfo }
-
-        h.sleepAvg?.let { hrs ->
-            val sl = stringResource(R.string.habit_sleep, hrs.f1())
-            val slInfo = stringResource(R.string.habit_sleep_info)
-            Badge(sl, h.sleepLevel) { info = sl to slInfo }
+    /** One badge: label with a trend arrow, and its dialog. */
+    @Composable
+    fun Habit(
+        label: String,
+        level: Level,
+        trend: Int,
+        prevText: String?,
+        intro: String,
+        noticed: String?,
+        tips: String,
+        help: String? = null,
+        withAudit: Boolean = false,
+    ) {
+        val trendLine = when {
+            prevText == null -> null
+            trend > 0 -> stringResource(R.string.trend_up, prevText)
+            trend < 0 -> stringResource(R.string.trend_down, prevText)
+            else -> stringResource(R.string.trend_same, prevText)
         }
-        if (h.reasonMeals > 0) {
-            val rs = stringResource(R.string.habit_reasons, h.notHungerTotal, h.reasonMeals)
-            val top = h.notHunger.maxByOrNull { it.value }?.let { stringResource(REASON_NAMES[it.key]) }
-            val rsInfo = stringResource(R.string.habit_reasons_info, top ?: "—", h.hardToStop)
-            Badge(rs, h.reasonsLevel) { info = rs to rsInfo }
-        }
-        if (h.alcoholPerWeek > 0) {
-            Badge(stringResource(R.string.habit_alcohol, h.alcoholPerWeek.f1(), h.alcoholDays), h.alcoholLevel) { alcoholInfo = true }
-        }
-        if (h.fastFoodDays > 0) {
-            val ff = stringResource(R.string.habit_fastfood, h.fastFoodDays)
-            val ffInfo = stringResource(R.string.habit_fastfood_info)
-            Badge(ff, h.fastFoodLevel) { info = ff to ffInfo }
+        val arrow = when (trend) { 1 -> " ↑"; -1 -> " ↓"; else -> "" }
+        Badge(label + arrow, level) {
+            info = HabitInfo(label, listOfNotNull(intro, noticed, trendLine, tips, help), withAudit)
         }
     }
-    if (alcoholInfo) {
-        val weeks = h.periodDays / 7.0
-        val text = buildList {
-            add(stringResource(R.string.habit_alcohol_info))
-            if (h.alcoholPerWeek > 7) add(stringResource(R.string.alcohol_many))
-            if (h.alcoholDays / weeks >= 4) add(stringResource(R.string.alcohol_often))
-            if (h.heavyDrinkDays > 0) add(stringResource(R.string.alcohol_heavy, h.heavyDrinkDays))
-            h.alcoholPrevPerWeek?.let { prev ->
-                when {
-                    prev == 0.0 -> {}
-                    h.alcoholPerWeek < prev * 0.9 -> add(stringResource(R.string.alcohol_trend_down, prev.f1()))
-                    h.alcoholPerWeek > prev * 1.1 -> add(stringResource(R.string.alcohol_trend_up, prev.f1()))
-                }
-            }
-            add(stringResource(R.string.alcohol_tips))
-            if (h.heavyDrinkDays > 0 || h.alcoholLevel == Level.WATCH) add(stringResource(R.string.alcohol_help))
-        }.joinToString("\n\n")
+
+    FlowRow(modifier, horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        Habit(
+            stringResource(R.string.habit_veg, h.vegFruitG.f0()), h.vegLevel,
+            h.trend({ it.vegFruitG }, 50.0), p?.let { "${it.vegFruitG.f0()} ${stringResource(R.string.unit_g)}" },
+            stringResource(R.string.habit_veg_info), stringResource(R.string.veg_noticed, h.vegGoodDays, h.days),
+            stringResource(R.string.veg_tips),
+        )
+        Habit(
+            stringResource(R.string.habit_sweets, h.sweetFreeDays, h.days), h.sweetsLevel,
+            h.trend({ it.sweetsPct }, 2.0), p?.let { "${it.sweetsPct.f0()}%" },
+            stringResource(R.string.habit_sweets_info), stringResource(R.string.sweets_noticed, h.sweetsPct.f0()),
+            stringResource(R.string.sweets_tips),
+        )
+        Habit(
+            if (h.latePct < 1) stringResource(R.string.habit_late_none) else stringResource(R.string.habit_late, h.latePct.f0()), h.lateLevel,
+            h.trend({ it.latePct }, 5.0), p?.let { "${it.latePct.f0()}%" },
+            stringResource(R.string.habit_late_info), stringResource(R.string.late_noticed, h.lateDays, h.days),
+            stringResource(R.string.late_tips), if (h.lateLevel == Level.WATCH) stringResource(R.string.eating_help) else null,
+        )
+        h.sleepAvg?.let { hrs ->
+            Habit(
+                stringResource(R.string.habit_sleep, hrs.f1()), h.sleepLevel,
+                h.trend({ it.sleepAvg }, 0.3), p?.sleepAvg?.let { "${it.f1()} ${stringResource(R.string.unit_h)}" },
+                stringResource(R.string.habit_sleep_info), stringResource(R.string.sleep_noticed, h.shortNights, h.sleepNights),
+                stringResource(R.string.sleep_tips), if (h.sleepLevel == Level.WATCH) stringResource(R.string.sleep_help) else null,
+            )
+        }
+        if (h.reasonMeals > 0) {
+            val top = h.notHunger.maxByOrNull { it.value }?.let { stringResource(REASON_NAMES[it.key]) } ?: "—"
+            Habit(
+                stringResource(R.string.habit_reasons, h.notHungerTotal, h.reasonMeals), h.reasonsLevel,
+                h.trend({ if (it.reasonMeals > 0) it.notHungerTotal * 100.0 / it.reasonMeals else null }, 15.0),
+                p?.takeIf { it.reasonMeals > 0 }?.let { "${it.notHungerTotal} / ${it.reasonMeals}" },
+                stringResource(R.string.habit_reasons_info), stringResource(R.string.reasons_noticed, top, h.hardToStop),
+                stringResource(R.string.reasons_tips), if (h.hardToStop > 0) stringResource(R.string.eating_help) else null,
+            )
+        }
+        if (h.alcoholPerWeek > 0) {
+            val noticed = buildList {
+                if (h.alcoholPerWeek > 7) add(stringResource(R.string.alcohol_many))
+                if (h.alcoholDays * 7.0 / h.periodDays >= 4) add(stringResource(R.string.alcohol_often))
+                if (h.heavyDrinkDays > 0) add(stringResource(R.string.alcohol_heavy, h.heavyDrinkDays))
+            }.joinToString("\n").ifEmpty { null }
+            Habit(
+                stringResource(R.string.habit_alcohol, h.alcoholPerWeek.f1(), h.alcoholDays), h.alcoholLevel,
+                h.trend({ it.alcoholPerWeek }, 1.0), p?.let { stringResource(R.string.per_week, it.alcoholPerWeek.f1()) },
+                stringResource(R.string.habit_alcohol_info), noticed,
+                stringResource(R.string.alcohol_tips), if (h.alcoholLevel == Level.WATCH) stringResource(R.string.alcohol_help) else null,
+                withAudit = true,
+            )
+        }
+        if (h.fastFoodDays > 0) {
+            Habit(
+                stringResource(R.string.habit_fastfood, h.fastFoodDays), h.fastFoodLevel,
+                h.trend({ it.fastFoodDays * 7.0 / it.periodDays }, 1.0), p?.let { stringResource(R.string.days_n, it.fastFoodDays) },
+                stringResource(R.string.habit_fastfood_info), null, stringResource(R.string.fastfood_tips),
+            )
+        }
+    }
+    info?.let { i ->
         AlertDialog(
-            onDismissRequest = { alcoholInfo = false },
-            title = { Text(stringResource(R.string.habit_alcohol, h.alcoholPerWeek.f1(), h.alcoholDays)) },
+            onDismissRequest = { info = null },
+            title = { Text(i.title) },
             text = {
                 Text(
-                    text,
+                    i.parts.joinToString("\n\n"),
                     style = MaterialTheme.typography.bodyMedium,
                     modifier = Modifier.verticalScroll(androidx.compose.foundation.rememberScrollState()),
                 )
             },
-            confirmButton = { TextButton(onClick = { alcoholInfo = false }) { Text(stringResource(R.string.close)) } },
-            dismissButton = { TextButton(onClick = { alcoholInfo = false; audit = true }) { Text(stringResource(R.string.audit_button)) } },
+            confirmButton = { TextButton(onClick = { info = null }) { Text(stringResource(R.string.close)) } },
+            dismissButton = if (i.audit) {
+                { TextButton(onClick = { info = null; audit = true }) { Text(stringResource(R.string.audit_button)) } }
+            } else null,
         )
     }
     if (audit) AuditCDialog(sex) { audit = false }
-    info?.let { (title, text) ->
-        AlertDialog(
-            onDismissRequest = { info = null },
-            title = { Text(title) },
-            text = { Text(text, style = MaterialTheme.typography.bodyMedium) },
-            confirmButton = { TextButton(onClick = { info = null }) { Text(stringResource(R.string.close)) } },
-        )
-    }
 }
 
 @Composable

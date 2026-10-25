@@ -411,7 +411,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         val sleepMap = if (sleepOn) hc + manual.associate { it.day to it.hours } else emptyMap()
         val (cur, prev) = list.partition { it.day > day.value.minusDays(7).toEpochDay() }
         Habits.of(cur, foods, 7, sleep = sleepMap)
-            .copy(alcoholPrevPerWeek = Habits.of(prev, foods, 7).alcoholPerWeek)
+            .copy(prev = Habits.of(prev, foods, 7))
             .takeIf { it.days >= 2 }
     }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
@@ -424,8 +424,9 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         val foods = foodsById.value.ifEmpty { db.foods().allOnce().associateBy { it.id } }
         val (cur, prev) = db.diary().range(from.minusDays(period.days.toLong()).toEpochDay(), end.toEpochDay())
             .partition { it.day >= from.toEpochDay() }
-        return Habits.of(cur, foods, period.days, sleep = sleepRange(from, end))
-            .copy(alcoholPrevPerWeek = Habits.of(prev, foods, period.days).alcoholPerWeek)
+        val sleep = sleepRange(from.minusDays(period.days.toLong()), end)
+        return Habits.of(cur, foods, period.days, sleep = sleep.filterKeys { it >= from.toEpochDay() })
+            .copy(prev = Habits.of(prev, foods, period.days, sleep = sleep.filterKeys { it < from.toEpochDay() }))
     }
 
     /** Plain-text summary of a period ending today, compared with the period before, for the AI. */

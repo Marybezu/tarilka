@@ -243,16 +243,16 @@
     <string name="summaries_few">Not enough entries yet: at least 2 days are needed.</string>
     <string name="ai_summary">AI summary</string>
     <string name="habit_veg">🥦 Vegetables and fruit: %1$s g/day</string>
-    <string name="habit_veg_info">Average vegetables and fruit a day (potatoes not counted). The WHO recommends at least 400 g. Easiest: vegetables with every main meal and fruit as a snack.</string>
+    <string name="habit_veg_info">Average vegetables and fruit a day (potatoes not counted). The WHO recommends at least 400 g.</string>
     <string name="habit_sweets">🍬 Without sweets: %1$d of %2$d days</string>
-    <string name="habit_sweets_info">Sweets, pastries and sugary drinks (juice included) gave %1$s%% of calories. The WHO recommends under 10%%, ideally under 5%%. Don\'t ban sweets: plan a portion, keep them out of sight, swap sugary drinks for water.</string>
+    <string name="habit_sweets_info">Sweets, pastries and sugary drinks (juice included). The WHO recommends they give under 10% of calories, ideally under 5%.</string>
     <string name="habit_late">🌙 After 22:00: %1$s%% of calories</string>
     <string name="habit_late_none">🌙 Nothing after 22:00</string>
-    <string name="habit_late_info">Share of calories logged after 22:00. A quarter of the day or more is worth attention. What helps most: regular meals during the day (no gaps over 4 hours), protein at dinner and a planned evening snack. The time of logging is used, so a dinner logged late counts too.</string>
+    <string name="habit_late_info">Share of calories logged after 22:00. The time of logging is used, so a dinner logged late counts too.</string>
     <string name="habit_alcohol">🍷 Alcohol: %1$s drinks/week · %2$d days</string>
     <string name="habit_alcohol_info">A standard drink has 10 g of alcohol: about 250 ml of beer, 100 ml of wine or 30 ml of spirits. There is no safe amount of alcohol (WHO), so less is better.</string>
     <string name="habit_fastfood">🍔 Fast food: %1$d days</string>
-    <string name="habit_fastfood_info">Days with fast food: pizza, burgers, shawarma and so on. Now and then is fine. If often, keep a simple quick home option at hand.</string>
+    <string name="habit_fastfood_info">Days with fast food: pizza, burgers, shawarma and so on. Now and then is fine.</string>
     <string name="ai_unknown">AI sees: “%1$s”</string>
     <string name="record">Record</string>
     <string name="skip">Skip</string>
@@ -277,15 +277,13 @@
     <string name="hunger_scale">Hunger before eating: 1 none, 5 very strong</string>
     <string name="hard_to_stop">It was hard to stop</string>
     <string name="habit_sleep">😴 Sleep: %1$s h</string>
-    <string name="habit_sleep_info">Average sleep. Adults are advised 7–9 hours. With less sleep, appetite and sweet cravings go up. A regular bedtime, fewer screens in the evening and coffee before noon help.</string>
+    <string name="habit_sleep_info">Average sleep. Adults are advised 7–9 hours. With less sleep, appetite and sweet cravings go up.</string>
     <string name="habit_reasons">💭 Not from hunger: %1$d of %2$d</string>
-    <string name="habit_reasons_info">How often you ate for another reason than hunger (of the times you answered "Why I eat"). Most often: %1$s. Eating for company or pleasure now and then is normal. When the urge is not hunger, name what you feel and wait 10–15 minutes: a short walk, a call, a glass of water. The wave usually passes. Regular meals during the day help too. "Hard to stop": %2$d time(s). If this happens often, talk to a doctor or a psychologist: it is common and help works.</string>
+    <string name="habit_reasons_info">How often you ate for another reason than hunger (of the times you answered Why I eat). Eating for company or pleasure now and then is normal.</string>
     <string name="ai_download">Download model</string>
     <string name="alcohol_many">Noticed: more than 7 drinks a week.</string>
     <string name="alcohol_often">Noticed: alcohol on 4 or more days a week.</string>
     <string name="alcohol_heavy">Noticed days with 6 or more drinks: %1$d. That much at once is especially harmful.</string>
-    <string name="alcohol_trend_down">Less than in the period before (it was %1$s drinks/week). Good progress!</string>
-    <string name="alcohol_trend_up">More than in the period before (it was %1$s drinks/week).</string>
     <string name="alcohol_tips">What helps:\n• decide in advance how much and on which days, and write it down;\n• at least 2–3 alcohol-free days a week;\n• drink slowly, alternate with a glass of water, not on an empty stomach;\n• smaller glasses, alcohol-free beer or wine, sparkling water with lemon;\n• notice what pushes you (stress, company, evenings) and plan something else for then;\n• tell someone close about your goal.</string>
     <string name="alcohol_help">If heavy days keep coming back or cutting down alone does not work, help from a doctor, a psychologist or a support line is a normal and effective step.</string>
     <string name="audit_button">Check yourself (AUDIT-C)</string>
@@ -330,4 +328,22 @@
         <item>Weekly</item>
         <item>Daily or almost</item>
     </string-array>
+    <string name="unit_h">h</string>
+    <string name="per_week">%1$s drinks/week</string>
+    <string name="trend_up">Trend: more than in the period before (it was %1$s).</string>
+    <string name="trend_down">Trend: less than in the period before (it was %1$s).</string>
+    <string name="trend_same">Trend: about the same as in the period before (%1$s).</string>
+    <string name="veg_noticed">Days with 400 g or more: %1$d of %2$d.</string>
+    <string name="veg_tips">What helps:\n• half the plate vegetables;\n• vegetables with every main meal;\n• fruit as a snack;\n• frozen vegetables are just as good and always at hand.</string>
+    <string name="sweets_noticed">Sweets gave %1$s%% of calories.</string>
+    <string name="sweets_tips">What helps:\n• plan a portion instead of a total ban;\n• keep sweets out of sight, buy smaller packs;\n• swap sugary drinks and juice for water or tea;\n• when you crave sweets after a meal: fruit, yogurt or a 10-minute pause.</string>
+    <string name="late_noticed">Days with a quarter of calories or more after 22:00: %1$d of %2$d.</string>
+    <string name="late_tips">What helps:\n• regular meals during the day, no gaps over 4 hours: the most effective;\n• protein at dinner;\n• a planned evening snack instead of a spontaneous one;\n• the kitchen closes at a set time, then tea or water.</string>
+    <string name="eating_help">If this goes on for weeks or it is hard to stop, talk to a doctor or a psychologist: it is common, and help (such as cognitive behavioural therapy) really works.</string>
+    <string name="sleep_noticed">Nights under 6 hours: %1$d of %2$d recorded.</string>
+    <string name="sleep_tips">What helps (from cognitive behavioural therapy for insomnia):\n• get up at the same time every day, weekends too;\n• go to bed when sleepy, not because it is time;\n• the bed is for sleep only, no phone;\n• coffee before noon, fewer screens and less light an hour before bed;\n• if you can\'t sleep for 20 minutes, get up and do something calm.</string>
+    <string name="sleep_help">If poor sleep lasts several weeks and affects your days, see a doctor: insomnia is very treatable, including without medication.</string>
+    <string name="reasons_noticed">Most often: %1$s. Hard to stop: %2$d.</string>
+    <string name="reasons_tips">What helps:\n• before eating, name what you feel: hunger, tiredness, sadness, boredom, stress?\n• a 10–15 minute pause: a walk, a call, a glass of water; the wave usually passes;\n• regular meals during the day, no strict restriction;\n• after a slip, no guilt: one evening does not cancel the week.</string>
+    <string name="fastfood_tips">What helps:\n• keep a simple quick home option at hand;\n• when eating out, a smaller portion and no sugary drink;\n• add vegetables or a salad.</string>
 </resources>

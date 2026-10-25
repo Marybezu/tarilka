@@ -15,14 +15,18 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 
 private val Light = lightColorScheme(
-    primary = Color(0xFF2F6B4F),
+    tertiary = Color(0xFF9A5F1C),
+    onTertiary = Color(0xFFFFFFFF),
+    tertiaryContainer = Color(0xFFF7E0C2),
+    onTertiaryContainer = Color(0xFF3A2200),
+    primary = Color(0xFF4B7A5C),
     onPrimary = Color(0xFFFFFFFF),
-    primaryContainer = Color(0xFFCFE8D9),
-    onPrimaryContainer = Color(0xFF0B2E1E),
-    secondary = Color(0xFF9A5F1C),
+    primaryContainer = Color(0xFFD2E6D6),
+    onPrimaryContainer = Color(0xFF0F2D1A),
+    secondary = Color(0xFF5B6B60),
     onSecondary = Color(0xFFFFFFFF),
-    secondaryContainer = Color(0xFFF7E0C2),
-    onSecondaryContainer = Color(0xFF3A2200),
+    secondaryContainer = Color(0xFFDDE7DE),
+    onSecondaryContainer = Color(0xFF18241C),
     background = Color(0xFFFBF8F2),
     onBackground = Color(0xFF1D1C19),
     surface = Color(0xFFFBF8F2),
@@ -40,14 +44,18 @@ private val Light = lightColorScheme(
 )
 
 private val Dark = darkColorScheme(
-    primary = Color(0xFF9DD3B5),
-    onPrimary = Color(0xFF00381F),
-    primaryContainer = Color(0xFF175036),
-    onPrimaryContainer = Color(0xFFCFE8D9),
-    secondary = Color(0xFFF0BD7A),
-    onSecondary = Color(0xFF462A00),
-    secondaryContainer = Color(0xFF5C3C12),
-    onSecondaryContainer = Color(0xFFF7E0C2),
+    tertiary = Color(0xFFF0BD7A),
+    onTertiary = Color(0xFF462A00),
+    tertiaryContainer = Color(0xFF5C3C12),
+    onTertiaryContainer = Color(0xFFF7E0C2),
+    primary = Color(0xFFA8CFB3),
+    onPrimary = Color(0xFF123821),
+    primaryContainer = Color(0xFF2F5240),
+    onPrimaryContainer = Color(0xFFD2E6D6),
+    secondary = Color(0xFFBACBBE),
+    onSecondary = Color(0xFF253329),
+    secondaryContainer = Color(0xFF3B4A40),
+    onSecondaryContainer = Color(0xFFDDE7DE),
     background = Color(0xFF141815),
     onBackground = Color(0xFFE3E3DE),
     surface = Color(0xFF141815),
@@ -70,11 +78,11 @@ data class MacroColors(val protein: Color, val fat: Color, val carbs: Color, val
 
 private val LightMacros = MacroColors(
     protein = Color(0xFFB8483D), fat = Color(0xFFC98A16), carbs = Color(0xFF3F6FA3),
-    fiber = Color(0xFF5B8A3A), kcal = Color(0xFF2F6B4F),
+    fiber = Color(0xFF5B8A3A), kcal = Color(0xFF4B7A5C),
 )
 private val DarkMacros = MacroColors(
     protein = Color(0xFFF0A196), fat = Color(0xFFF2C46B), carbs = Color(0xFF9CC0EA),
-    fiber = Color(0xFFADD48C), kcal = Color(0xFF9DD3B5),
+    fiber = Color(0xFFADD48C), kcal = Color(0xFFA8CFB3),
 )
 
 val LocalMacroColors = staticCompositionLocalOf { LightMacros }

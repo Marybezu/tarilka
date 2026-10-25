@@ -234,7 +234,7 @@ private fun ReviewCard(i: Int, item: ReviewItem, ai: AiViewModel, onReplace: (In
                     else -> stringResource(R.string.from_db, sourceLabel(item.food!!.source))
                 }
                 val conf = if (item.detected.confidence == "low") " · " + stringResource(R.string.low_confidence) else ""
-                Text(sub + conf, style = MaterialTheme.typography.bodySmall, color = if (item.isEstimate) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(sub + conf, style = MaterialTheme.typography.bodySmall, color = if (item.isEstimate) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.onSurfaceVariant)
             }
             Text(item.kcal.f0(), style = MaterialTheme.typography.titleMedium.merge(Numbers))
         }

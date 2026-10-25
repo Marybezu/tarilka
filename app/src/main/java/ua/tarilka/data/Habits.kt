@@ -37,8 +37,15 @@ data class Habits(
     val alcoholDays: Int = 0,
     /** Days with 6 or more standard drinks (WHO: heavy episodic drinking, 60 g of alcohol). */
     val heavyDrinkDays: Int = 0,
-    /** The same figure for the period before, for the trend; set by the caller. */
-    val alcoholPrevPerWeek: Double? = null,
+    /** Days with 400 g or more of vegetables and fruit. */
+    val vegGoodDays: Int = 0,
+    /** Days with a quarter or more of calories after 22:00. */
+    val lateDays: Int = 0,
+    val sleepNights: Int = 0,
+    /** Nights under 6 hours. */
+    val shortNights: Int = 0,
+    /** The period before, for trend arrows; set by the caller. */
+    val prev: Habits? = null,
 ) {
     val notHungerTotal: Int get() = notHunger.values.sum()
     enum class Level { GOOD, OK, WATCH }
@@ -59,6 +66,14 @@ data class Habits(
     val sleepLevel get() = sleepAvg?.let { level(it >= 7, it >= 6) } ?: Level.OK
     /** Hard-to-stop episodes twice a week or more are worth attention; eating for other reasons now and then is normal. */
     val reasonsLevel get() = if (hardToStop * 7.0 / periodDays >= 2) Level.WATCH else level(notHungerTotal == 0 && hardToStop == 0, true)
+
+    /** Hours of sleep, % of calories, drinks a week…: compare with the period before. +1 more, −1 less, 0 about the same or unknown. */
+    fun trend(value: (Habits) -> Double?, minDiff: Double): Int {
+        val p = prev?.takeIf { it.days >= 2 } ?: return 0
+        val a = value(this) ?: return 0
+        val b = value(p) ?: return 0
+        return if (a - b >= minDiff) 1 else if (b - a >= minDiff) -1 else 0
+    }
 
     private fun level(good: Boolean, ok: Boolean) = if (good) Level.GOOD else if (ok) Level.OK else Level.WATCH
 
@@ -110,10 +125,8 @@ data class Habits(
             val byDay = entries.groupBy { it.day }
             val days = byDay.size
             val kcal = entries.sumOf { it.kcal }
-            val late = entries.filter {
-                val h = Instant.ofEpochMilli(it.createdAt).atZone(zone).hour
-                h >= 22 || h < 4
-            }.sumOf { it.kcal }
+            fun isLate(e: DiaryEntry) = Instant.ofEpochMilli(e.createdAt).atZone(zone).hour.let { it >= 22 || it < 4 }
+            val late = entries.filter(::isLate).sumOf { it.kcal }
             fun alcoholG(e: DiaryEntry) = food(e)?.code?.let(ALCOHOL_G::get)?.let { it * e.grams / 100 } ?: 0.0
             val alcohol = entries.sumOf(::alcoholG) / 10
             val alcoholByDay = byDay.values.map { list -> list.sumOf(::alcoholG) }
@@ -140,6 +153,13 @@ data class Habits(
                 hardToStop = meals.count { it.hardToStop },
                 alcoholDays = alcoholByDay.count { it > 0 },
                 heavyDrinkDays = alcoholByDay.count { it >= 60 },
+                vegGoodDays = byDay.values.count { list -> list.filter { food(it)?.let(::isVegFruit) == true }.sumOf { it.grams } >= 400 },
+                lateDays = byDay.values.count { list ->
+                    val k = list.sumOf { it.kcal }
+                    k > 0 && list.filter(::isLate).sumOf { it.kcal } >= k / 4
+                },
+                sleepNights = sleep.size,
+                shortNights = sleep.values.count { it < 6 },
             )
         }
     }

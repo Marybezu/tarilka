@@ -393,7 +393,7 @@ private fun DayHeader(day: LocalDate, onPrev: () -> Unit, onNext: () -> Unit, on
 private fun TipRow(tip: Tip) {
     val color = when (tip.kind) {
         Tip.Kind.GOOD -> MaterialTheme.colorScheme.primary
-        Tip.Kind.WARN -> MaterialTheme.colorScheme.secondary
+        Tip.Kind.WARN -> MaterialTheme.colorScheme.tertiary
         Tip.Kind.INFO -> MaterialTheme.colorScheme.onSurfaceVariant
     }
     Row {
@@ -508,7 +508,7 @@ private fun MealSection(
 private fun WeekBars(day: LocalDate, week: List<ua.tarilka.data.DayTotal>, target: Double) {
     val byDay = week.associateBy { it.day }
     val color = LocalMacroColors.current.kcal
-    val over = MaterialTheme.colorScheme.secondary
+    val over = MaterialTheme.colorScheme.tertiary
     val track = MaterialTheme.colorScheme.surfaceVariant
     val max = maxOf(target * 1.3, week.maxOfOrNull { it.kcal } ?: 0.0)
     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {

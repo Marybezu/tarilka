@@ -93,7 +93,7 @@ fun Section(
 fun CalorieRing(eaten: Double, target: Double, size: Dp = 132.dp) {
     val track = MaterialTheme.colorScheme.surfaceVariant
     val fill = LocalMacroColors.current.kcal
-    val over = MaterialTheme.colorScheme.secondary
+    val over = MaterialTheme.colorScheme.tertiary
     val frac = if (target > 0) (eaten / target).toFloat() else 0f
     Box(contentAlignment = Alignment.Center, modifier = Modifier.size(size)) {
         Canvas(Modifier.size(size)) {

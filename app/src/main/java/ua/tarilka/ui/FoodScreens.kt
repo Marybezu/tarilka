@@ -90,7 +90,7 @@ fun FoodRow(food: Food, onClick: () -> Unit, onFavorite: (() -> Unit)? = null) {
                 Icon(
                     if (food.favorite) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
                     stringResource(R.string.favorite),
-                    tint = if (food.favorite) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.outline,
+                    tint = if (food.favorite) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.outline,
                 )
             }
         }

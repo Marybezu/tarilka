@@ -188,16 +188,7 @@ Look closely: tell cheese from meat or fish, olives from grapes, carrots from to
 Use short common names, e.g. "boiled egg", "avocado", "sweet corn", "toast", "scrambled eggs", "hash browns",
 "spinach, cooked", "mushrooms", "halloumi, grilled", "olives", "pita bread", "cucumber", "carrots", "buckwheat, cooked", "borscht".
 Answer with ONLY JSON: {"items":[{"name":"boiled egg","grams":100,"confidence":"high"}]}
-confidence is "high", "medium" or "low". If there is no food, answer {"items":[]}."""Look at this photo of a meal. List every distinct food or dish you can see.
-For each one estimate the edible weight in grams. Use the plate (a dinner plate is about 26 cm wide), bowls, cutlery and hands for scale.
-Be specific and look closely: tell cheese from meat or fish (e.g. "halloumi, grilled"), olives from grapes, sauces from yogurt.
-Use simple, common names, e.g. "halloumi, grilled", "olives", "pita bread", "boiled egg", "cucumber", "cherry tomatoes",
-"tzatziki", "buckwheat, cooked", "chicken breast, cooked", "borscht", "rye bread".
-name_uk must be in Ukrainian, never Russian (Ukrainian uses і, ї, є, ґ and never ы, э, ъ, ё).
-Also give your best estimate of nutrients per 100 g.
-Answer with ONLY JSON, no other text, in this exact form:
-{"items":[{"name_en":"...","name_uk":"... (in Ukrainian)","grams":150,"kcal_per_100g":120,"protein_per_100g":5,"fat_per_100g":3,"carbs_per_100g":18,"confidence":"high"}]}
-confidence is "high", "medium" or "low". If there is no food in the photo answer {"items":[]} ."""
+confidence is "high", "medium" or "low". If there is no food, answer {"items":[]}."""
 
         private const val SYSTEM_ADVICE_UK =
             "Ти доброзичливий помічник з харчування. Відповідай лише українською мовою, без жодного російського слова, коротко: 2–4 пункти, кожен одним реченням. " +

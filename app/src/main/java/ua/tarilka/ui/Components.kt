@@ -204,8 +204,15 @@ fun GramsDialog(
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         val unit = food.portionName() ?: stringResource(R.string.portion)
                         val g = stringResource(R.string.unit_g)
-                        AssistChip(onClick = { text = portion.f0() }, label = { Text("1 $unit (${portion.f0()} $g)") })
-                        AssistChip(onClick = { text = (portion * 2).f0() }, label = { Text("2 × (${(portion * 2).f0()} $g)") })
+                        AssistChip(onClick = { text = portion.f0() }, label = { Text("≈ 1 $unit (${portion.f0()} $g)") })
+                        AssistChip(onClick = { text = (portion * 2).f0() }, label = { Text("≈ 2 (${(portion * 2).f0()} $g)") })
+                    }
+                    Text(
+                        stringResource(R.string.portion_typical),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    Row {
                     }
                 }
                 if (food != null && grams != null) {

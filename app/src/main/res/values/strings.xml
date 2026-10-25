@@ -216,4 +216,5 @@
     <string name="weight_record">Record weight</string>
     <string name="steps_from_hc">Health Connect</string>
     <string name="steps_from_sensor">phone sensor, since first opened today</string>
+    <string name="portion_typical">Typical weight of one serving or piece. If you know the exact weight, type it in.</string>
 </resources>

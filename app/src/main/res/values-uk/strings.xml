@@ -216,4 +216,5 @@
     <string name="weight_record">Записати вагу</string>
     <string name="steps_from_hc">Health Connect</string>
     <string name="steps_from_sensor">датчик телефону, з першого відкриття за день</string>
+    <string name="portion_typical">Типова вага однієї порції чи штуки. Якщо знаєте точну, впишіть свою.</string>
 </resources>

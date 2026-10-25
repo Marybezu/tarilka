@@ -49,6 +49,7 @@ class LogicTest {
         assertEquals("o04", en("corn oil"))
         assertEquals("u69", en("breaded chicken"))
         assertEquals("e04", en("omelet"))
+        assertEquals("m13", en("meat pieces"))
         assertEquals("e03", en("fried eggs"))
         assertEquals("v21", en("greens"))
         assertEquals("dr14", en("green tea"))

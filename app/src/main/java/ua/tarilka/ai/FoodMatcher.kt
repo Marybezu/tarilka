@@ -37,6 +37,7 @@ object FoodMatcher {
             .split(Regex("[^\\p{L}\\d']+"))
             .filter { it.length > 1 && it !in STOP }
             .map(::norm)
+            .filter { it !in STOP } // "pieces" → "piece" is a stop word too
             .toSet()
 
     /** What a bare word on a plate usually means (codes in foods.csv). */

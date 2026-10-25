@@ -176,7 +176,7 @@ fun TodayScreen(
                 Spacer(Modifier.height(8.dp))
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
-                        "⚖ " + (weight?.let { "${it.f1()} ${stringResource(R.string.kg)}" } ?: "—") +
+                        "⚖️ " + (weight?.let { "${it.f1()} ${stringResource(R.string.kg)}" } ?: "—") +
                             (trend?.let { "  ·  " + stringResource(R.string.trend_week, (if (it > 0) "+" else "") + it.f1()) } ?: ""),
                         style = MaterialTheme.typography.bodyMedium.merge(Numbers),
                         modifier = Modifier.weight(1f),
@@ -443,10 +443,12 @@ private fun MealSection(
             // Swipe left to delete; "Undo" appears at the bottom.
             // The state keeps its first callback; read the entry as it is now (grams or answers may have changed).
             val current by androidx.compose.runtime.rememberUpdatedState(e)
+            // Only a long, deliberate swipe (over 60 % of the row) deletes; a short one springs back.
             val swipe = androidx.compose.material3.rememberSwipeToDismissBoxState(
                 confirmValueChange = { v ->
                     if (v == androidx.compose.material3.SwipeToDismissBoxValue.EndToStart) { onDelete(current); true } else false
                 },
+                positionalThreshold = { width -> width * 0.6f },
             )
             androidx.compose.material3.SwipeToDismissBox(
                 state = swipe,

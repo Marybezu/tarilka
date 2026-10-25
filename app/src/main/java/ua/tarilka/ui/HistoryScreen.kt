@@ -86,7 +86,7 @@ fun HistoryScreen(vm: MainViewModel, ai: AiViewModel, onBack: () -> Unit, onOpen
                         )
                         val parts = buildList {
                             if (d.fluidMl > 0) add("💧 ${(d.fluidMl / 1000).f1()} ${stringResource(R.string.unit_l)}")
-                            d.weight?.let { add("⚖ ${it.f1()} ${stringResource(R.string.kg)}") }
+                            d.weight?.let { add("⚖️ ${it.f1()} ${stringResource(R.string.kg)}") }
 
                         }
                         if (parts.isNotEmpty()) {

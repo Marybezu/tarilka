@@ -48,7 +48,7 @@ u62;grains;Гречка з молоком;Buckwheat with milk;73;3.14;1.56;12.32
 b01;bread;Хліб білий пшеничний;White bread;266;8.85;3.33;49.42;2.7;0;30;скибка;slice;USDA;Bread, white, commercially prepared (includes soft bread crumbs)
 b02;bread;Хліб житній;Rye bread;259;8.5;3.3;48.3;5.8;0;30;скибка;slice;USDA;Bread, rye
 b03;bread;Хліб цільнозерновий;Whole-wheat bread;252;12.45;3.5;42.71;6;0;30;скибка;slice;USDA;Bread, whole-wheat, commercially prepared
-b04;bread;Лаваш;Lavash / pita bread;275;9.1;1.2;55.7;2.2;0;60;шт;piece;USDA;Bread, pita, white, enriched
+b04;bread;Лаваш / піта / коржик;Lavash / pita bread / flatbread;275;9.1;1.2;55.7;2.2;0;60;шт;piece;USDA;Bread, pita, white, enriched
 b05;bread;Хлібці рисові;Rice cakes;387;8.2;2.8;81.5;4.2;0;9;шт;piece;USDA;Snacks, rice cakes, brown rice, plain
 b06;bread;Сухарі;Rusks / croutons;407;11.9;6.6;73.5;5.1;0;30;жменя;handful;USDA;Croutons, plain
 b07;bread;Круасан;Croissant, butter;406;8.2;21;45.8;2.6;0;60;шт;piece;USDA;Croissants, butter
@@ -137,7 +137,7 @@ v65;veg;Гриби консервовані;Canned mushrooms;25;1.87;0.29;5.09;2
 v66;veg;Кукурудза консервована;Canned sweet corn;67;2.29;1.22;14.34;2;0;80;порція;serving;USDA;Corn, sweet, yellow, canned, whole kernel, drained solids
 v67;veg;Горошок консервований;Canned green peas;50;3.09;0.27;9.25;2;0;80;порція;serving;USDA;Peas, green, canned
 v68;veg;Оливки зелені;Green olives;145;1.03;15.32;3.84;3.3;0;30;жменя;handful;USDA;Olives, pickled, canned or bottled, green
-v69;veg;Маслини;Black olives;116;0.84;10.9;6.04;1.6;0;30;жменя;handful;USDA;Olives, ripe, canned (small-extra large)
+v69;veg;Маслини (оливки чорні);Black olives;116;0.84;10.9;6.04;1.6;0;30;жменя;handful;USDA;Olives, ripe, canned (small-extra large)
 v70;veg;Квасоля стручкова варена;Green beans, boiled;35;1.89;0.28;7.88;3.2;0;150;порція;serving;USDA;Beans, snap, green, cooked, boiled, drained, without salt
 v71;veg;Шпинат варений;Spinach, boiled;23;2.97;0.26;3.75;2.4;0;100;порція;serving;USDA;Spinach, cooked, boiled, drained, without salt
 v72;veg;Кабачок варений;Zucchini, boiled;15;1.14;0.36;2.69;1;0;150;порція;serving;USDA;Squash, summer, zucchini, includes skin, cooked, boiled, drained, without salt
@@ -594,3 +594,5 @@ x09;fastfood;Локшина швидкого приготування (суха)
 x10;fastfood;Картопля фрі (духовка);Oven fries;158;2.75;5.48;25.55;2;0;120;порція;serving;USDA;Potatoes, french fried, all types, salt added in processing, frozen, home-prepared, oven heated
 x11;fastfood;Цибулеві кільця;Onion rings;411;3.86;25.23;43.58;2.7;0;100;порція;serving;USDA;Fast foods, onion rings, breaded and fried
 x12;fastfood;Сендвіч з куркою;Chicken sandwich;250;16.28;11.19;20.89;1.4;0;180;шт;piece;USDA;Fast foods, chicken fillet sandwich, plain with pickles
+d62;dairy;Халумі (сир для гриля);Halloumi cheese, grilled;321;21.0;25.0;2.2;0;0;80;порція;serving;LABEL;
+a20;sauces;Соус цацикі;Tzatziki;100;4.0;7.5;4.0;0.5;0;30;ложка;tbsp;LABEL;

@@ -98,6 +98,10 @@ class AiViewModel(app: Application) : AndroidViewModel(app) {
 
     // ---- photo analysis ----
 
+    fun warmUp() {
+        if (_model.value is ModelStore.State.Ready) viewModelScope.launch { gemma.warmUp() }
+    }
+
     fun setNote(text: String) = _photo.update { it.copy(note = text) }
 
     fun resetPhoto() {

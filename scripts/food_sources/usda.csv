@@ -21,7 +21,7 @@ g20;grains;Кукурудзяні пластівці;Corn flakes;30;порція
 b01;bread;Хліб білий пшеничний;White bread;30;скибка;slice;Bread, white, commercially prepared (includes soft bread crumbs)
 b02;bread;Хліб житній;Rye bread;30;скибка;slice;Bread, rye
 b03;bread;Хліб цільнозерновий;Whole-wheat bread;30;скибка;slice;Bread, whole-wheat, commercially prepared
-b04;bread;Лаваш;Lavash / pita bread;60;шт;piece;Bread, pita, white, enriched
+b04;bread;Лаваш / піта / коржик;Lavash / pita bread / flatbread;60;шт;piece;Bread, pita, white, enriched
 b05;bread;Хлібці рисові;Rice cakes;9;шт;piece;Snacks, rice cakes, brown rice, plain
 b06;bread;Сухарі;Rusks / croutons;30;жменя;handful;Croutons, plain
 b07;bread;Круасан;Croissant, butter;60;шт;piece;Croissants, butter
@@ -234,7 +234,7 @@ v65;veg;Гриби консервовані;Canned mushrooms;100;порція;se
 v66;veg;Кукурудза консервована;Canned sweet corn;80;порція;serving;Corn, sweet, yellow, canned, whole kernel, drained solids
 v67;veg;Горошок консервований;Canned green peas;80;порція;serving;Peas, green, canned
 v68;veg;Оливки зелені;Green olives;30;жменя;handful;Olives, pickled, canned or bottled, green
-v69;veg;Маслини;Black olives;30;жменя;handful;Olives, ripe, canned (small-extra large)
+v69;veg;Маслини (оливки чорні);Black olives;30;жменя;handful;Olives, ripe, canned (small-extra large)
 v70;veg;Квасоля стручкова варена;Green beans, boiled;150;порція;serving;Beans, snap, green, cooked, boiled, drained, without salt
 v71;veg;Шпинат варений;Spinach, boiled;100;порція;serving;Spinach, cooked, boiled, drained, without salt
 v72;veg;Кабачок варений;Zucchini, boiled;150;порція;serving;Squash, summer, zucchini, includes skin, cooked, boiled, drained, without salt

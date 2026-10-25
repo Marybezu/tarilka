@@ -74,6 +74,7 @@ fun PhotoScreen(
     val ui by ai.photo.collectAsState()
     val day by vm.day.collectAsState()
     var meal by rememberSaveable { mutableIntStateOf(initialMeal) }
+    androidx.compose.runtime.LaunchedEffect(Unit) { ai.warmUp() }
 
     Scaffold(
         topBar = {
@@ -227,7 +228,7 @@ private fun ReviewCard(i: Int, item: ReviewItem, ai: AiViewModel, onReplace: (In
         Row(verticalAlignment = Alignment.CenterVertically) {
             Checkbox(checked = item.include, onCheckedChange = { ai.setInclude(i, it) })
             Column(Modifier.weight(1f)) {
-                Text(item.food?.name() ?: ua.tarilka.data.localized(item.detected.nameUk, item.detected.nameEn), style = MaterialTheme.typography.bodyLarge)
+                Text(item.food?.name() ?: detectedName(item.detected), style = MaterialTheme.typography.bodyLarge)
                 val sub = when {
                     item.isEstimate -> stringResource(R.string.ai_estimate)
                     else -> stringResource(R.string.from_db, sourceLabel(item.food!!.source))
@@ -250,4 +251,10 @@ private fun ReviewCard(i: Int, item: ReviewItem, ai: AiViewModel, onReplace: (In
             TextButton(onClick = { onReplace(i) }) { Text(stringResource(R.string.replace)) }
         }
     }
+}
+
+/** The model sometimes answers in Russian; then the English name is shown instead. */
+private fun detectedName(d: ua.tarilka.ai.DetectedFood): String {
+    val looksRussian = d.nameUk.any { it in "ыэъёЫЭЪЁ" }
+    return if (ua.tarilka.data.isUkrainian() && !looksRussian) d.nameUk else d.nameEn
 }

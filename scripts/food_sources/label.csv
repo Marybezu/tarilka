@@ -62,3 +62,5 @@ a19;sauces;Майонез легкий 30%;Light mayonnaise 30%;296;0.5;30.0;6.0
 b22;bread;Хліб «Український» (житньо-пшеничний);Ukrainian rye-wheat bread;221;6.7;1.1;46.0;5.0;0;30;скибка;slice;LABEL;
 b23;bread;Батон нарізний;Sliced white loaf (baton);260;7.5;2.9;51.0;2.3;0;30;скибка;slice;LABEL;
 b24;bread;Хліб «Бородинський»;Borodinsky rye bread;203;6.8;1.3;41.0;6.0;0;30;скибка;slice;LABEL;
+d62;dairy;Халумі (сир для гриля);Halloumi cheese, grilled;321;21.0;25.0;2.2;0;0;80;порція;serving;LABEL;
+a20;sauces;Соус цацикі;Tzatziki;100;4.0;7.5;4.0;0.5;0;30;ложка;tbsp;LABEL;

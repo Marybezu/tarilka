@@ -113,6 +113,9 @@ class GemmaEngine(private val context: Context, private val models: ModelStore) 
             }
         }
 
+    /** Loads the model in the background so the first photo doesn't wait for it. */
+    suspend fun warmUp() = runCatching { withEngine { } }
+
     /** Short, friendly advice based on the day's numbers. */
     suspend fun advice(summary: String, ukrainian: Boolean): String = withEngine { e ->
         e.createConversation(
@@ -138,7 +141,10 @@ class GemmaEngine(private val context: Context, private val models: ModelStore) 
 
         private const val PHOTO_PROMPT = """Look at this photo of a meal. List every distinct food or dish you can see.
 For each one estimate the edible weight in grams. Use the plate (a dinner plate is about 26 cm wide), bowls, cutlery and hands for scale.
-Prefer simple, common names, e.g. "buckwheat, cooked", "chicken breast, cooked", "borscht", "tomato", "rye bread".
+Be specific and look closely: tell cheese from meat or fish (e.g. "halloumi, grilled"), olives from grapes, sauces from yogurt.
+Use simple, common names, e.g. "halloumi, grilled", "olives", "pita bread", "boiled egg", "cucumber", "cherry tomatoes",
+"tzatziki", "buckwheat, cooked", "chicken breast, cooked", "borscht", "rye bread".
+name_uk must be in Ukrainian (not Russian).
 Also give your best estimate of nutrients per 100 g.
 Answer with ONLY JSON, no other text, in this exact form:
 {"items":[{"name_en":"...","name_uk":"... (in Ukrainian)","grams":150,"kcal_per_100g":120,"protein_per_100g":5,"fat_per_100g":3,"carbs_per_100g":18,"confidence":"high"}]}

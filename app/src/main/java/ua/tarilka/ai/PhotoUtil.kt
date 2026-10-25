@@ -37,7 +37,7 @@ object PhotoUtil {
     }
 
     /** Copies, rotates upright and shrinks the photo so the model gets a small, clean image. */
-    suspend fun prepare(context: Context, uri: Uri, maxSide: Int = 1024): File = withContext(Dispatchers.IO) {
+    suspend fun prepare(context: Context, uri: Uri, maxSide: Int = 768): File = withContext(Dispatchers.IO) {
         val cr = context.contentResolver
         val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
         cr.openInputStream(uri)!!.use { BitmapFactory.decodeStream(it, null, bounds) }

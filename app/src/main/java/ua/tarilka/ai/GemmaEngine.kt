@@ -32,7 +32,14 @@ data class DetectedFood(
 )
 
 /** What the model answered, kept so a failed recognition can be explained. */
-data class PhotoResult(val foods: List<DetectedFood>, val raw: String, val backend: String)
+data class PhotoResult(
+    val foods: List<DetectedFood>,
+    val raw: String,
+    val backend: String,
+    /** Seconds spent loading the model (0 if it was already loaded) and analyzing the photo. */
+    val loadSec: Int,
+    val analyzeSec: Int,
+)
 
 /** Runs Gemma 4 fully on the phone via LiteRT-LM. Nothing leaves the device. */
 class GemmaEngine(
@@ -85,10 +92,20 @@ class GemmaEngine(
         return Engine(config).also { it.initialize() }
     }
 
+    /** Time the last call spent loading the model, ms. */
+    private var lastLoadMs = 0L
+
     private suspend fun <T> withEngine(block: (Engine) -> T): T {
         idleJob?.cancel()
         try {
-            return mutex.withLock { withContext(Dispatchers.Default) { block(engineLocked()) } }
+            return mutex.withLock {
+                withContext(Dispatchers.Default) {
+                    val t0 = System.currentTimeMillis()
+                    val e = engineLocked()
+                    lastLoadMs = System.currentTimeMillis() - t0
+                    block(e)
+                }
+            }
         } finally {
             scheduleRelease()
         }
@@ -108,11 +125,16 @@ class GemmaEngine(
             append(PHOTO_PROMPT)
             if (!note.isNullOrBlank()) append("\nThe person says about this meal: ").append(note.trim())
         }
+        val start = System.currentTimeMillis()
         val raw = withEngine { e ->
             // Constrained decoding makes the small model answer in valid JSON; fall back if unsupported.
             runCatching { ask(e, image, prompt, constrained = true) }.getOrElse { ask(e, image, prompt, constrained = false) }
         }
-        return PhotoResult(parseFoods(raw), raw, backend)
+        val total = System.currentTimeMillis() - start
+        return PhotoResult(
+            parseFoods(raw), raw, backend,
+            loadSec = (lastLoadMs / 1000).toInt(), analyzeSec = ((total - lastLoadMs) / 1000).toInt(),
+        )
     }
 
     private fun ask(e: Engine, image: File, prompt: String, constrained: Boolean): String =
@@ -122,7 +144,7 @@ class GemmaEngine(
                 samplerConfig = SamplerConfig(topK = 20, topP = 0.9, temperature = 0.2),
                 // No hidden "thinking": it would use up the output before the list is written.
                 thinkingConfig = ThinkingConfig(enableThinking = false),
-                maxOutputToken = 1024,
+                maxOutputToken = 512,
                 enableResponseFormat = constrained,
             ),
         ).use { conv ->
@@ -157,12 +179,16 @@ class GemmaEngine(
                 "You always answer with valid JSON only."
 
         private const val SCHEMA = """{"type":"object","properties":{"items":{"type":"array","items":{"type":"object",
-"properties":{"name_en":{"type":"string"},"name_uk":{"type":"string"},"grams":{"type":"number"},
-"kcal_per_100g":{"type":"number"},"protein_per_100g":{"type":"number"},"fat_per_100g":{"type":"number"},
-"carbs_per_100g":{"type":"number"},"confidence":{"type":"string","enum":["high","medium","low"]}},
-"required":["name_en","name_uk","grams"]}}},"required":["items"]}"""
+"properties":{"name":{"type":"string"},"grams":{"type":"number"},"confidence":{"type":"string","enum":["high","medium","low"]}},
+"required":["name","grams"]}}},"required":["items"]}"""
 
-        private const val PHOTO_PROMPT = """Look at this photo of a meal. List every distinct food or dish you can see.
+        private const val PHOTO_PROMPT = """Look at this photo of a meal. List every distinct food you can see, in English.
+Estimate the edible weight of each in grams, using the plate (about 26 cm wide) and cutlery for scale.
+Look closely: tell cheese from meat or fish, olives from grapes, carrots from tomatoes, spinach from grains.
+Use short common names, e.g. "boiled egg", "avocado", "sweet corn", "toast", "scrambled eggs", "hash browns",
+"spinach, cooked", "mushrooms", "halloumi, grilled", "olives", "pita bread", "cucumber", "carrots", "buckwheat, cooked", "borscht".
+Answer with ONLY JSON: {"items":[{"name":"boiled egg","grams":100,"confidence":"high"}]}
+confidence is "high", "medium" or "low". If there is no food, answer {"items":[]}."""Look at this photo of a meal. List every distinct food or dish you can see.
 For each one estimate the edible weight in grams. Use the plate (a dinner plate is about 26 cm wide), bowls, cutlery and hands for scale.
 Be specific and look closely: tell cheese from meat or fish (e.g. "halloumi, grilled"), olives from grapes, sauces from yogurt.
 Use simple, common names, e.g. "halloumi, grilled", "olives", "pita bread", "boiled egg", "cucumber", "cherry tomatoes",
@@ -191,12 +217,12 @@ confidence is "high", "medium" or "low". If there is no food in the photo answer
                     .recoverCatching { JSONArray(text.substring(text.indexOf('['), text.lastIndexOf(']') + 1)) }
                     .map { a -> (0 until a.length()).mapNotNull { a.optJSONObject(it) } }
                     .getOrElse {
-                        Regex("\\{[^{}]*\"name_(?:en|uk)\"[^{}]*\\}").findAll(text)
+                        Regex("\\{[^{}]*\"name(?:_en|_uk)?\"[^{}]*\\}").findAll(text)
                             .mapNotNull { m -> runCatching { JSONObject(m.value) }.getOrNull() }.toList()
                     }
             }
             return objects.mapNotNull { o ->
-                val en = o.optString("name_en").trim()
+                val en = o.optString("name").ifBlank { o.optString("name_en") }.trim()
                 val uk = o.optString("name_uk").trim()
                 if (en.isEmpty() && uk.isEmpty()) return@mapNotNull null
                 fun num(k: String) = o.optDouble(k).takeIf { !it.isNaN() && it >= 0 }

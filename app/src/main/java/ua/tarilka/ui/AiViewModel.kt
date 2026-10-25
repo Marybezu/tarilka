@@ -25,7 +25,7 @@ data class ReviewItem(
     val grams: Double,
     val include: Boolean = true,
 ) {
-    val kcal: Double get() = (food?.kcal ?: detected.kcal100 ?: 0.0) * grams / 100
+    val kcal: Double get() = (food?.kcal ?: 0.0) * grams / 100
     val isEstimate: Boolean get() = food == null
 }
 
@@ -41,6 +41,8 @@ data class PhotoUi(
     /** Shown when nothing was recognized, to see what went wrong. */
     val raw: String = "",
     val backend: String = "",
+    val loadSec: Int = 0,
+    val analyzeSec: Int = 0,
 )
 
 class AiViewModel(app: Application) : AndroidViewModel(app) {
@@ -123,10 +125,13 @@ class AiViewModel(app: Application) : AndroidViewModel(app) {
             _photo.update { it.copy(preview = PhotoUtil.thumbnail(img)) }
             val foods = tapp.db.foods().allOnce()
             val result = gemma.analyzePhoto(img, _photo.value.note)
-            _photo.update { it.copy(raw = result.raw.take(600), backend = result.backend) }
+            _photo.update {
+                it.copy(raw = result.raw.take(600), backend = result.backend, loadSec = result.loadSec, analyzeSec = result.analyzeSec)
+            }
             val items = result.foods.map { d ->
                 val match = FoodMatcher.best(d.nameEn, d.nameUk, foods)
-                ReviewItem(detected = d, food = match?.food, grams = d.grams)
+                // Not in the database: off until the person picks the right food with "Replace".
+                ReviewItem(detected = d, food = match?.food, grams = d.grams, include = match != null)
             }
             _photo.update { it.copy(items = items, analyzed = true) }
         } catch (t: Throwable) {
@@ -141,7 +146,7 @@ class AiViewModel(app: Application) : AndroidViewModel(app) {
 
     fun setGrams(i: Int, grams: Double) = updateItem(i) { it.copy(grams = grams) }
     fun setInclude(i: Int, on: Boolean) = updateItem(i) { it.copy(include = on) }
-    fun replaceFood(i: Int, food: Food) = updateItem(i) { it.copy(food = food) }
+    fun replaceFood(i: Int, food: Food) = updateItem(i) { it.copy(food = food, include = true) }
 
     fun addManualItem(food: Food) = _photo.update {
         val d = DetectedFood(food.nameEn, food.nameUk, food.portionG ?: 100.0, null, null, null, null, "manual")
@@ -152,20 +157,10 @@ class AiViewModel(app: Application) : AndroidViewModel(app) {
         ui.copy(items = ui.items.mapIndexed { idx, item -> if (idx == i) f(item) else item })
     }
 
-    fun entriesFor(day: Long, meal: Int): List<DiaryEntry> = _photo.value.items.filter { it.include && it.grams > 0 }.map { item ->
-        val f = item.food
-        if (f != null) {
-            DiaryEntry.of(f, item.grams, day, meal, fromAi = true)
-        } else {
-            val k = item.grams / 100
-            val d = item.detected
-            DiaryEntry(
-                day = day, meal = meal, foodId = null, nameUk = d.nameUk, nameEn = d.nameEn,
-                grams = item.grams, kcal = (d.kcal100 ?: 0.0) * k, protein = (d.protein100 ?: 0.0) * k,
-                fat = (d.fat100 ?: 0.0) * k, carbs = (d.carbs100 ?: 0.0) * k, fiber = 0.0, fromAi = true,
-            )
-        }
-    }
+    /** Only foods from the database are saved: the numbers never come from the model. */
+    fun entriesFor(day: Long, meal: Int): List<DiaryEntry> = _photo.value.items
+        .filter { it.include && it.grams > 0 && it.food != null }
+        .map { DiaryEntry.of(it.food!!, it.grams, day, meal, fromAi = true) }
 
     // ---- advice ----
 

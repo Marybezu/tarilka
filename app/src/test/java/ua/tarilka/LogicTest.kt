@@ -39,6 +39,14 @@ class LogicTest {
         assertEquals("u08", en("dumplings with potato", "вареники з картоплею"))
         assertEquals("v15", en("tomato"))
         assertNull(FoodMatcher.best("xylophone", "ксилофон", foods))
+        // Photo answers seen on a real phone
+        assertEquals("v23", en("corn"))
+        assertEquals("v26", en("mushrooms"))
+        assertEquals("d15", en("cheese"))
+        assertEquals("u13", en("hash browns"))
+        assertEquals("e04", en("scrambled eggs"))
+        assertEquals("v71", en("spinach, cooked"))
+        assertEquals("o04", en("corn oil"))
     }
 
     @Test
@@ -97,6 +105,9 @@ class LogicTest {
         // An answer cut off in the middle still gives the complete items.
         val cut = """{"items":[{"name_en":"spinach","name_uk":"шпинат","grams":80},{"name_en":"mushro"""
         assertEquals("spinach", p.parseFoods(cut).single().nameEn)
+        // The current prompt answers with English names only.
+        val short = """{"items":[{"name":"boiled egg","grams":100,"confidence":"high"},{"name":"corn","grams":50}]}"""
+        assertEquals(listOf("boiled egg", "corn"), p.parseFoods(short).map { it.nameEn })
         assertTrue(p.parseFoods("I see a plate").isEmpty())
     }
 

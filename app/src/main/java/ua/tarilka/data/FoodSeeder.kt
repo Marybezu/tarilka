@@ -5,7 +5,7 @@ import android.content.Context
 /** Loads the built-in food database from assets/foods.csv into Room. */
 object FoodSeeder {
     /** Bump when foods.csv changes so existing installs get the update. */
-    const val VERSION = 5
+    const val VERSION = 6
 
     suspend fun seedIfNeeded(context: Context, db: AppDatabase, prefs: Prefs) {
         if (prefs.seedVersion >= VERSION) return

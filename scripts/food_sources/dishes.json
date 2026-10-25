@@ -64,7 +64,7 @@
      "items": [["v06", 800], ["g04", 150], ["m33", 250], ["m32", 250], ["v12", 100], ["v10", 100], ["v46", 50], ["d10", 100], ["dr13", 500], ["o01", 30]]},
     {"code": "u47", "category": "dishes", "uk": "Перці фаршировані", "en": "Stuffed peppers", "portion": [250, "порція", "serving"], "yield": 2000,
      "items": [["v16", 800], ["m32", 250], ["m33", 250], ["g04", 120], ["v12", 100], ["v10", 100], ["v46", 60], ["d10", 100], ["dr13", 500]]},
-    {"code": "u13", "category": "dishes", "uk": "Деруни", "en": "Deruny (potato pancakes)", "portion": [150, "порція", "serving"], "yield": 900,
+    {"code": "u13", "category": "dishes", "uk": "Деруни", "en": "Deruny (potato pancakes, hash browns)", "portion": [150, "порція", "serving"], "yield": 900,
      "items": [["v05", 1000], ["v12", 100], ["e02", 100], ["g18", 60], ["o01", 100]]},
     {"code": "u14", "category": "dishes", "uk": "Сирники", "en": "Syrnyky (cottage cheese pancakes)", "portion": [150, "порція (3 шт)", "serving (3 pcs)"], "yield": 700,
      "items": [["d13", 500], ["e02", 100], ["g18", 80], ["c01", 50], ["o01", 40]]},

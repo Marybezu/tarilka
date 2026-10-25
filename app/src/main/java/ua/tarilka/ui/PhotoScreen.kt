@@ -84,7 +84,7 @@ fun PhotoScreen(
             )
         },
         bottomBar = {
-            val chosen = ui.items.filter { it.include }
+            val chosen = ui.items.filter { it.include && it.food != null }
             if (chosen.isNotEmpty()) {
                 BottomAppBar {
                     Text(
@@ -189,7 +189,7 @@ fun PhotoScreen(
                     item {
                         // Diagnostics: which processor ran the model and what it answered.
                         Text(
-                            stringResource(R.string.ai_diagnostics, ui.backend, ui.seconds) + "\n" + ui.raw.ifBlank { "—" },
+                            stringResource(R.string.ai_diagnostics, ui.backend, ui.loadSec, ui.analyzeSec) + "\n" + ui.raw.ifBlank { "—" },
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
@@ -197,7 +197,7 @@ fun PhotoScreen(
                 } else {
                     item {
                         Text(
-                            stringResource(R.string.review_hint) + "  (" + stringResource(R.string.ai_diagnostics, ui.backend, ui.seconds) + ")",
+                            stringResource(R.string.review_hint) + "  (" + stringResource(R.string.ai_diagnostics, ui.backend, ui.loadSec, ui.analyzeSec) + ")",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
@@ -226,7 +226,7 @@ private fun ReviewCard(i: Int, item: ReviewItem, ai: AiViewModel, onReplace: (In
     var text by remember(i, item.food?.id) { mutableStateOf(item.grams.f0()) }
     Section {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Checkbox(checked = item.include, onCheckedChange = { ai.setInclude(i, it) })
+            Checkbox(checked = item.include, onCheckedChange = { ai.setInclude(i, it) }, enabled = item.food != null)
             Column(Modifier.weight(1f)) {
                 Text(item.food?.name() ?: detectedName(item.detected), style = MaterialTheme.typography.bodyLarge)
                 val sub = when {
@@ -255,4 +255,4 @@ private fun ReviewCard(i: Int, item: ReviewItem, ai: AiViewModel, onReplace: (In
 
 /** The model sometimes answers in Russian; then the English name is shown instead. */
 private fun detectedName(d: ua.tarilka.ai.DetectedFood): String =
-    if (ua.tarilka.data.isUkrainian()) ua.tarilka.data.Lang.safeUk(d.nameUk, d.nameEn) else d.nameEn
+    d.nameEn // the model's own Ukrainian is unreliable; database names are shown when matched

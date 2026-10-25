@@ -141,7 +141,7 @@
     <string name="try_again">Спробувати ще</string>
     <string name="no_food_found">На фото не знайдено їжі. Спробуйте інший ракурс або додайте вручну.</string>
     <string name="review_hint">Перевірте вагу: ШІ оцінює порції на око і може помилятися. Якщо продукт розпізнано, цифри беруться з бази.</string>
-    <string name="ai_estimate">Оцінка ШІ, не з бази</string>
+    <string name="ai_estimate">Немає в базі — натисніть «Замінити»</string>
     <string name="from_db">З бази · %1$s</string>
     <string name="low_confidence">не впевнено</string>
     <string name="add_item">Додати продукт</string>
@@ -211,7 +211,7 @@
     <string name="cooked_weight_hint">Інгредієнти важать %1$s г. Якщо страва уварилася або вбрала воду, зважте її та впишіть вагу для точних цифр.</string>
     <string name="source_recipe_user">Ваш рецепт</string>
     <string name="export_retry">Поки обирали файл, застосунок перезапустився, тому нічого не збережено. Спробуйте експорт ще раз.</string>
-    <string name="ai_diagnostics">%1$s · %2$d с</string>
+    <string name="ai_diagnostics">%1$s · завантаження %2$d с · аналіз %3$d с</string>
     <string name="portion">порція</string>
     <string name="weight_record">Записати вагу</string>
     <string name="steps_from_hc">Health Connect</string>
@@ -220,4 +220,5 @@
     <string name="missing_title">Не знайдено в базі</string>
     <string name="missing_hint">Що ви шукали й не знайшли (у дужках скільки разів). Зберігається лише на телефоні. Скопіюйте список, щоб ці продукти додали в наступних версіях.</string>
     <string name="copy_list">Скопіювати список</string>
+    <string name="missing_empty">Поки порожньо. Тут зʼявиться те, що ви шукали в «Додати» і не знайшли.</string>
 </resources>

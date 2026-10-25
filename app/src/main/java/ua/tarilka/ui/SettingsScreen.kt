@@ -423,12 +423,15 @@ private fun PasswordField(label: String, value: String, onChange: (String) -> Un
 @Composable
 private fun MissingSection(vm: MainViewModel) {
     val missing by vm.missing.collectAsState()
-    if (missing.isEmpty()) return
     val clipboard = androidx.compose.ui.platform.LocalClipboardManager.current
     val text = missing.entries.sortedByDescending { it.value }.joinToString("\n") { "${it.key} (${it.value})" }
     Section(title = stringResource(R.string.missing_title)) {
         Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
             Text(stringResource(R.string.missing_hint), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            if (missing.isEmpty()) {
+                Text(stringResource(R.string.missing_empty), style = MaterialTheme.typography.bodyMedium)
+                return@Column
+            }
             Text(text, style = MaterialTheme.typography.bodyMedium)
             Row {
                 TextButton(onClick = { clipboard.setText(androidx.compose.ui.text.AnnotatedString(text)) }) {

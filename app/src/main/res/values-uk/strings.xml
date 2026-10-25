@@ -217,4 +217,7 @@
     <string name="steps_from_hc">Health Connect</string>
     <string name="steps_from_sensor">датчик телефону, з першого відкриття за день</string>
     <string name="portion_typical">Типова вага однієї порції чи штуки. Якщо знаєте точну, впишіть свою.</string>
+    <string name="missing_title">Не знайдено в базі</string>
+    <string name="missing_hint">Що ви шукали й не знайшли (у дужках скільки разів). Зберігається лише на телефоні. Скопіюйте список, щоб ці продукти додали в наступних версіях.</string>
+    <string name="copy_list">Скопіювати список</string>
 </resources>

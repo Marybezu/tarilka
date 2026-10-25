@@ -253,6 +253,10 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
 
     fun saveProfile(p: Profile) = prefs.saveProfile(p)
 
+    val missing: StateFlow<Map<String, Int>> = prefs.missing
+    fun recordMissing(q: String) = prefs.recordMissing(q)
+    fun clearMissing() = prefs.clearMissing()
+
     val themeMode: Int get() = prefs.themeMode
     val dynamicColor: StateFlow<Boolean> = prefs.dynamicColor
     fun setThemeMode(mode: Int) {

@@ -113,6 +113,15 @@ fun AddFoodScreen(
     val recent by vm.recent.collectAsState()
     var chosen by remember { mutableStateOf<Food?>(null) }
 
+    // Remember searches that found nothing, so missing foods can be added to the database later.
+    val nothing = query.trim().length >= 3 && results.isEmpty()
+    androidx.compose.runtime.LaunchedEffect(query, nothing) {
+        if (nothing) {
+            kotlinx.coroutines.delay(1500)
+            vm.recordMissing(query)
+        }
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(

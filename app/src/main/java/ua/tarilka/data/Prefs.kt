@@ -62,6 +62,35 @@ class Prefs(context: Context) {
         _dynamicColor.value = on
     }
 
+    // ---- searches that found nothing (kept only on this phone) ----
+
+    private val _missing = MutableStateFlow(loadMissing())
+    /** Search text → how many times it found nothing. */
+    val missing: StateFlow<Map<String, Int>> = _missing.asStateFlow()
+
+    fun recordMissing(query: String) {
+        val q = query.trim().lowercase()
+        if (q.length < 3) return
+        val m = _missing.value.toMutableMap()
+        // "сирн" then "сирники": keep only the longer, finished word.
+        m.keys.filter { q.startsWith(it) && it != q }.forEach { m.remove(it) }
+        if (m.keys.any { it.startsWith(q) && it != q }) return
+        m[q] = (m[q] ?: 0) + 1
+        val trimmed = m.entries.sortedByDescending { it.value }.take(50).associate { it.key to it.value }
+        _missing.value = trimmed
+        sp.edit().putString("missing", org.json.JSONObject(trimmed).toString()).apply()
+    }
+
+    fun clearMissing() {
+        _missing.value = emptyMap()
+        sp.edit().remove("missing").apply()
+    }
+
+    private fun loadMissing(): Map<String, Int> = runCatching {
+        val o = org.json.JSONObject(sp.getString("missing", null) ?: return emptyMap())
+        o.keys().asSequence().associateWith { o.getInt(it) }
+    }.getOrDefault(emptyMap())
+
     private val _profile = MutableStateFlow(loadProfile())
     val profile: StateFlow<Profile> = _profile.asStateFlow()
 

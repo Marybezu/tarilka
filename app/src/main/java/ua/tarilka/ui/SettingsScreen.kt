@@ -74,6 +74,7 @@ fun SettingsScreen(vm: MainViewModel, ai: AiViewModel, padding: PaddingValues) {
         }
         item { ActivitySection(vm) }
         item { ModelSection(ai) }
+        item { MissingSection(vm) }
         item { DataSection(vm) }
         item { AppearanceSection(vm) }
         item { LanguageSection() }
@@ -416,4 +417,25 @@ private fun PasswordField(label: String, value: String, onChange: (String) -> Un
         keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Password),
         modifier = Modifier.fillMaxWidth(),
     )
+}
+
+/** Foods people searched for and didn't find; shown only when there are some. */
+@Composable
+private fun MissingSection(vm: MainViewModel) {
+    val missing by vm.missing.collectAsState()
+    if (missing.isEmpty()) return
+    val clipboard = androidx.compose.ui.platform.LocalClipboardManager.current
+    val text = missing.entries.sortedByDescending { it.value }.joinToString("\n") { "${it.key} (${it.value})" }
+    Section(title = stringResource(R.string.missing_title)) {
+        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            Text(stringResource(R.string.missing_hint), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(text, style = MaterialTheme.typography.bodyMedium)
+            Row {
+                TextButton(onClick = { clipboard.setText(androidx.compose.ui.text.AnnotatedString(text)) }) {
+                    Text(stringResource(R.string.copy_list))
+                }
+                TextButton(onClick = vm::clearMissing) { Text(stringResource(R.string.clear)) }
+            }
+        }
+    }
 }

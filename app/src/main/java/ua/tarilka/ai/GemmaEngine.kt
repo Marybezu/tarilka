@@ -182,11 +182,12 @@ class GemmaEngine(
 "properties":{"name":{"type":"string"},"grams":{"type":"number"},"confidence":{"type":"string","enum":["high","medium","low"]}},
 "required":["name","grams"]}}},"required":["items"]}"""
 
-        private const val PHOTO_PROMPT = """Look at this photo of a meal. List every distinct food you can see, in English.
-Estimate the edible weight of each in grams, using the plate (about 26 cm wide) and cutlery for scale.
-Look closely: tell cheese from meat or fish, olives from grapes, carrots from tomatoes, spinach from grains.
-Use short common names, e.g. "boiled egg", "avocado", "sweet corn", "toast", "scrambled eggs", "hash browns",
-"spinach, cooked", "mushrooms", "halloumi, grilled", "olives", "pita bread", "cucumber", "carrots", "buckwheat, cooked", "borscht".
+        // No long list of example foods: the small model tends to "see" whatever the prompt names.
+        private const val PHOTO_PROMPT = """Look at this photo of a meal and list each distinct food that is clearly visible, in English.
+Do not list anything you cannot see. Do not miss meat, fish, cutlets, bread, cheese or sauces.
+Estimate the edible weight of each in grams. For scale: a dinner plate is about 26 cm wide, a slice of bread or toast
+weighs about 35 g, one egg about 50 g, half an avocado about 70 g, a tablespoon of sauce about 15 g.
+Use short common names, for example "boiled egg" or "rye bread".
 Answer with ONLY JSON: {"items":[{"name":"boiled egg","grams":100,"confidence":"high"}]}
 confidence is "high", "medium" or "low". If there is no food, answer {"items":[]}."""
 

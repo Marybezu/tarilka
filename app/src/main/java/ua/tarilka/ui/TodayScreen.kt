@@ -16,7 +16,11 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.foundation.layout.Box
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilledTonalButton
@@ -209,6 +213,7 @@ fun TodayScreen(
                     onAdd = { onAdd(meal) },
                     onPhoto = { onPhoto(meal) },
                     onEntry = { editing = it },
+                    onDeleteAll = { vm.deleteMeal(meal) },
                 )
             }
         }
@@ -283,6 +288,7 @@ fun TodayScreen(
             fluids = fluids,
             onAdd = { vm.addFluid(it) },
             onDelete = { vm.deleteFluid(it) },
+            onDeleteAll = { vm.deleteFluidsOfDay(); fluidDialog = false },
             onDismiss = { fluidDialog = false },
         )
     }
@@ -351,8 +357,10 @@ private fun MealSection(
     onAdd: () -> Unit,
     onPhoto: () -> Unit,
     onEntry: (DiaryEntry) -> Unit,
+    onDeleteAll: () -> Unit,
 ) {
     val kcal = entries.sumOf { it.kcal }
+    var menu by remember { mutableStateOf(false) }
     Section(
         title = mealName(meal),
         trailing = {
@@ -362,6 +370,17 @@ private fun MealSection(
                     style = MaterialTheme.typography.labelLarge.merge(Numbers),
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
+                Box {
+                    IconButton(onClick = { menu = true }, modifier = Modifier.size(32.dp)) {
+                        Icon(Icons.Filled.MoreVert, stringResource(R.string.more))
+                    }
+                    DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
+                        DropdownMenuItem(
+                            text = { Text(stringResource(R.string.delete_meal)) },
+                            onClick = { menu = false; onDeleteAll() },
+                        )
+                    }
+                }
             }
         },
     ) {

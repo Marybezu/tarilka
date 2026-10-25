@@ -8,7 +8,20 @@ object Lang {
         "(?iu)(?<![\\p{L}])(и|что|это|или|нет|как|если|также|очень|можно|нужно|рекомендуется|белок|овощи|рыба|мясо)(?![\\p{L}])",
     )
 
-    fun looksRussian(s: String): Boolean = RUSSIAN_LETTERS.containsMatchIn(s) || RUSSIAN_WORDS.containsMatchIn(s)
+    /** Russian stems that never start a Ukrainian word. */
+    private val RUSSIAN_STEMS = Regex("(?iu)(?<![\\p{L}])(подсолн|сегодня|сейчас|завтрак)")
+
+    fun looksRussian(s: String): Boolean =
+        RUSSIAN_LETTERS.containsMatchIn(s) || RUSSIAN_WORDS.containsMatchIn(s) || RUSSIAN_STEMS.containsMatchIn(s)
+
+    /** Letters from another alphabet (the model once slipped into Devanagari mid-word). */
+    fun hasForeignScript(s: String): Boolean = s.any { c ->
+        c.isLetter() && Character.UnicodeScript.of(c.code) !in OK_SCRIPTS
+    }
+    private val OK_SCRIPTS = setOf(Character.UnicodeScript.LATIN, Character.UnicodeScript.CYRILLIC)
+
+    /** Text fit to show: no stray alphabets, and for Ukrainian no Russian. */
+    fun isClean(s: String, ukrainian: Boolean): Boolean = !hasForeignScript(s) && !(ukrainian && looksRussian(s))
 
     /** A Ukrainian name if it is clean, otherwise the English one. */
     fun safeUk(uk: String, en: String): String = if (uk.isBlank() || looksRussian(uk)) en else uk

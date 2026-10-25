@@ -151,7 +151,7 @@
     <string name="lang_system">System</string>
     <string name="about">About</string>
     <string name="about_text">Tarilka is a free, open-source, offline calorie and weight tracker. Data stays on your phone. Food values: USDA FoodData Central (public domain), typical Ukrainian labels and recipe calculations; the source is shown for each food. This app is not medical advice; for health conditions, pregnancy or eating disorders please talk to a doctor.</string>
-    <string name="water">Water</string>
+    <string name="water">Fluids</string>
     <string name="water_title">Drinks</string>
     <string name="water_hint">Water, tea, coffee and other drinks. Juice, kefir and other drinks logged as food are counted automatically.</string>
     <string name="unit_l">L</string>
@@ -218,7 +218,19 @@
     <string name="steps_from_sensor">phone sensor, since first opened today</string>
     <string name="portion_typical">Typical weight of one serving or piece. If you know the exact weight, type it in.</string>
     <string name="missing_title">Not found in the database</string>
-    <string name="missing_hint">What you searched for and didn\'t find (times in brackets). Kept only on this phone. Copy the list so these foods can be added in future versions.</string>
+    <string name="missing_hint">What you searched for, or what the AI saw in a photo, that isn\'t in the database (times in brackets). Kept only on this phone. Copy the list so these foods can be added in future versions.</string>
     <string name="copy_list">Copy list</string>
-    <string name="missing_empty">Empty for now. Searches in Add that found nothing will appear here.</string>
+    <string name="missing_empty">Empty for now. Searches in Add, or foods the AI saw in a photo, that are not in the database will appear here.</string>
+    <string name="more">More</string>
+    <string name="delete_meal">Delete everything in this meal</string>
+    <string name="delete_fluids_day">Delete all fluids for the day</string>
+    <string name="deleted_n">Deleted: %1$d</string>
+    <string name="undo">Undo</string>
+    <string name="clear_done">Data deleted.</string>
+    <string name="clear_diary">Clear diary</string>
+    <string name="clear_all">Delete all personal data</string>
+    <string name="clear_diary_text">All food, fluid, weight and note records will be deleted. Your foods, recipes, profile and the AI model stay. This cannot be undone.</string>
+    <string name="clear_all_text">The diary, your foods and recipes, favorites, profile and the Not found list will be deleted. Only the AI model, language and theme stay. This cannot be undone.</string>
+    <string name="clear_hc">Also delete Tarilka\'s records from Health Connect</string>
+    <string name="export_first">Make a backup first</string>
 </resources>

@@ -320,6 +320,9 @@ private fun DataSection(vm: MainViewModel) {
     val date = java.time.LocalDate.now().toString()
     var askPassword by remember { mutableStateOf(false) }
     var password by remember { mutableStateOf("") }
+    /** null = no dialog, false = clear the diary, true = delete all personal data */
+    var clearing by remember { mutableStateOf<Boolean?>(null) }
+    val healthSync by vm.healthSync.collectAsState()
     val exportJson = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { uri ->
         // The password is kept in the view model: after rotation the UI state is new,
         // and an empty password here must never silently mean "save unencrypted".
@@ -346,10 +349,43 @@ private fun DataSection(vm: MainViewModel) {
                 }
                 OutlinedButton(onClick = { exportCsv.launch("tarilka-diary-$date.csv") }) { Text(stringResource(R.string.export_csv)) }
             }
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                TextButton(onClick = { clearing = false }) {
+                    Text(stringResource(R.string.clear_diary), color = MaterialTheme.colorScheme.error)
+                }
+                TextButton(onClick = { clearing = true }) {
+                    Text(stringResource(R.string.clear_all), color = MaterialTheme.colorScheme.error)
+                }
+            }
             message?.let {
                 Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.primary)
             }
         }
+    }
+    clearing?.let { everything ->
+        var alsoHc by remember { mutableStateOf(true) }
+        androidx.compose.material3.AlertDialog(
+            onDismissRequest = { clearing = null },
+            title = { Text(stringResource(if (everything) R.string.clear_all else R.string.clear_diary)) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(stringResource(if (everything) R.string.clear_all_text else R.string.clear_diary_text), style = MaterialTheme.typography.bodyMedium)
+                    if (healthSync) {
+                        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.clickable { alsoHc = !alsoHc }) {
+                            androidx.compose.material3.Checkbox(checked = alsoHc, onCheckedChange = { alsoHc = it })
+                            Text(stringResource(R.string.clear_hc), style = MaterialTheme.typography.bodyMedium)
+                        }
+                    }
+                    TextButton(onClick = { clearing = null; askPassword = true }) { Text(stringResource(R.string.export_first)) }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { vm.clearData(everything, alsoHc && healthSync); clearing = null }) {
+                    Text(stringResource(R.string.delete), color = MaterialTheme.colorScheme.error)
+                }
+            },
+            dismissButton = { TextButton(onClick = { clearing = null }) { Text(stringResource(R.string.cancel)) } },
+        )
     }
     if (askPassword) {
         var repeat by remember { mutableStateOf("") }

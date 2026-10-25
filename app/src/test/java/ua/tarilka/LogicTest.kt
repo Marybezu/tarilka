@@ -47,6 +47,7 @@ class LogicTest {
         assertEquals("e04", en("scrambled eggs"))
         assertEquals("v71", en("spinach, cooked"))
         assertEquals("o04", en("corn oil"))
+        assertEquals("u69", en("breaded chicken"))
     }
 
     @Test
@@ -116,6 +117,9 @@ class LogicTest {
         val l = ua.tarilka.data.Lang
         assertTrue(l.looksRussian("рыба, запечена на грилі"))
         assertTrue(l.looksRussian("Мясо и овощи"))
+        assertTrue(l.looksRussian("оливкову або подсолнечную олію"))
+        assertTrue(l.hasForeignScript("подсолचन"))
+        assertTrue(l.isClean("Додайте більше овочів і цільнозернового хліба.", ukrainian = true))
         assertTrue(!l.looksRussian("Халумі на грилі, оливки й огірок"))
         assertTrue(!l.looksRussian("Їжте більше білка і клітковини"))
         assertEquals("grilled fish", l.safeUk("рыба на гриле", "grilled fish"))

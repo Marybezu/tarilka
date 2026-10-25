@@ -126,6 +126,16 @@ class HealthSync(private val context: Context) {
         }
     }
 
+    /** Removes every record this app wrote (Health Connect limits the delete to our own records). */
+    suspend fun deleteAllOwn() {
+        val c = client ?: return
+        if (!canWrite()) return
+        val range = TimeRangeFilter.before(Instant.now().plusSeconds(2 * 86_400))
+        listOf(NutritionRecord::class, HydrationRecord::class, WeightRecord::class).forEach { type ->
+            runCatching { c.deleteRecords(type, range) }
+        }
+    }
+
     companion object {
         val READ_STEPS = HealthPermission.getReadPermission(StepsRecord::class)
         val WRITE = setOf(

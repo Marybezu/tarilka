@@ -91,6 +91,14 @@ class Prefs(context: Context) {
         o.keys().asSequence().associateWith { o.getInt(it) }
     }.getOrDefault(emptyMap())
 
+    /** Forget the profile and the not-found list; app settings stay. */
+    fun clearPersonal() {
+        sp.edit().apply { PROFILE_KEYS.forEach { remove(it) } }.remove("missing").apply()
+        _profile.value = Profile()
+        _missing.value = emptyMap()
+    }
+    private val PROFILE_KEYS = listOf("sex", "age", "height", "weight", "activity", "goal", "customKcal", "profileSet")
+
     private val _profile = MutableStateFlow(loadProfile())
     val profile: StateFlow<Profile> = _profile.asStateFlow()
 

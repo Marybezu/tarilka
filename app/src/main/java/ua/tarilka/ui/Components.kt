@@ -293,6 +293,7 @@ fun FluidDialog(
     fluids: List<ua.tarilka.data.FluidEntry>,
     onAdd: (Double) -> Unit,
     onDelete: (ua.tarilka.data.FluidEntry) -> Unit,
+    onDeleteAll: () -> Unit,
     onDismiss: () -> Unit,
 ) {
     var custom by remember { mutableStateOf("") }
@@ -332,6 +333,11 @@ fun FluidDialog(
                         Spacer(Modifier.width(12.dp))
                         Text("${f.ml.f0()} ${stringResource(R.string.ml)}", Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium.merge(Numbers))
                         TextButton(onClick = { onDelete(f) }) { Text(stringResource(R.string.delete)) }
+                    }
+                }
+                if (fluids.size > 1) {
+                    TextButton(onClick = onDeleteAll) {
+                        Text(stringResource(R.string.delete_fluids_day), color = MaterialTheme.colorScheme.error)
                     }
                 }
             }

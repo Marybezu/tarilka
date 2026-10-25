@@ -133,6 +133,8 @@ class AiViewModel(app: Application) : AndroidViewModel(app) {
                 // Not in the database: off until the person picks the right food with "Replace".
                 ReviewItem(detected = d, food = match?.food, grams = d.grams, include = match != null)
             }
+            // Unknown foods go to the "Not found" list in Options, like empty searches.
+            items.filter { it.food == null }.forEach { tapp.prefs.recordMissing(it.detected.nameEn) }
             _photo.update { it.copy(items = items, analyzed = true) }
         } catch (t: Throwable) {
             _photo.update { it.copy(error = t.message ?: t.javaClass.simpleName) }
@@ -168,9 +170,10 @@ class AiViewModel(app: Application) : AndroidViewModel(app) {
         _adviceLoading.value = true
         _advice.value = runCatching {
             var text = gemma.advice(summary, ukrainian)
-            // The small model sometimes slips into Russian: ask once more, then show nothing rather than Russian.
-            if (ukrainian && ua.tarilka.data.Lang.looksRussian(text)) text = gemma.advice(summary, ukrainian)
-            if (ukrainian && ua.tarilka.data.Lang.looksRussian(text)) null else text
+            // The small model sometimes slips into Russian or another alphabet: ask once more, then show nothing.
+            val lang = ua.tarilka.data.Lang
+            if (!lang.isClean(text, ukrainian)) text = gemma.advice(summary, ukrainian)
+            if (lang.isClean(text, ukrainian)) text else null
         }.getOrElse { "⚠ ${it.message}" }
         _adviceLoading.value = false
     }

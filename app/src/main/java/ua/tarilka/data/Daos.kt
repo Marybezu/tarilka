@@ -88,6 +88,9 @@ interface DiaryDao {
     suspend fun update(entry: DiaryEntry)
 
     @Delete
+    suspend fun deleteMany(entries: List<DiaryEntry>)
+
+    @Delete
     suspend fun delete(entry: DiaryEntry)
 }
 
@@ -143,6 +146,9 @@ interface FluidDao {
 
     @Delete
     suspend fun delete(entry: FluidEntry)
+
+    @Delete
+    suspend fun deleteMany(entries: List<FluidEntry>)
 
     @Query("SELECT day, SUM(ml) AS ml FROM fluids WHERE day BETWEEN :from AND :to GROUP BY day")
     fun totals(from: Long, to: Long): Flow<List<DayFluid>>

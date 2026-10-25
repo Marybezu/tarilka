@@ -46,6 +46,8 @@ object FoodMatcher {
         setOf("fish") to "s06", setOf("pasta") to "g15", setOf("egg") to "e01", setOf("beef") to "m13",
         setOf("pork") to "m09", setOf("salad") to "u24", setOf("bean") to "l01", setOf("noodle") to "g36",
         setOf("sausage") to "m17", setOf("meat") to "m13", setOf("salmon") to "s01", setOf("oatmeal") to "g06",
+        setOf("schnitzel") to "u69", setOf("chicken", "schnitzel") to "u69", setOf("breaded", "chicken") to "u69",
+        setOf("chicken", "cutlet") to "u69", setOf("fried", "chicken", "breast") to "u69",
     )
 
     private fun score(query: Set<String>, name: String): Double {

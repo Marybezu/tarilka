@@ -151,7 +151,7 @@
     <string name="lang_system">Як у системі</string>
     <string name="about">Про застосунок</string>
     <string name="about_text">Тарілка — безкоштовний офлайн-трекер калорій і ваги з відкритим кодом. Дані залишаються на вашому телефоні. Харчова цінність: USDA FoodData Central (суспільне надбання), типові етикетки українських продуктів і розрахунки за рецептами; джерело вказано для кожного продукту. Застосунок не замінює лікаря; при захворюваннях, вагітності чи розладах харчової поведінки порадьтеся з фахівцем.</string>
-    <string name="water">Вода</string>
+    <string name="water">Рідина</string>
     <string name="water_title">Напої</string>
     <string name="water_hint">Вода, чай, кава та інші напої. Сік, кефір та інші напої, записані як їжа, рахуються автоматично.</string>
     <string name="unit_l">л</string>
@@ -218,7 +218,19 @@
     <string name="steps_from_sensor">датчик телефону, з першого відкриття за день</string>
     <string name="portion_typical">Типова вага однієї порції чи штуки. Якщо знаєте точну, впишіть свою.</string>
     <string name="missing_title">Не знайдено в базі</string>
-    <string name="missing_hint">Що ви шукали й не знайшли (у дужках скільки разів). Зберігається лише на телефоні. Скопіюйте список, щоб ці продукти додали в наступних версіях.</string>
+    <string name="missing_hint">Що ви шукали або що ШІ побачило на фото, але не знайшлося в базі (у дужках скільки разів). Зберігається лише на телефоні. Скопіюйте список, щоб ці продукти додали в наступних версіях.</string>
     <string name="copy_list">Скопіювати список</string>
-    <string name="missing_empty">Поки порожньо. Тут зʼявиться те, що ви шукали в «Додати» і не знайшли.</string>
+    <string name="missing_empty">Поки порожньо. Тут зʼявиться те, що ви шукали в «Додати» або що ШІ побачило на фото, але не знайшло в базі.</string>
+    <string name="more">Ще</string>
+    <string name="delete_meal">Видалити все з прийому</string>
+    <string name="delete_fluids_day">Видалити всю рідину за день</string>
+    <string name="deleted_n">Видалено: %1$d</string>
+    <string name="undo">Повернути</string>
+    <string name="clear_done">Дані видалено.</string>
+    <string name="clear_diary">Очистити щоденник</string>
+    <string name="clear_all">Видалити всі особисті дані</string>
+    <string name="clear_diary_text">Буде видалено всі записи про їжу, рідину, вагу та нотатки. Ваші продукти, рецепти, профіль і модель ШІ залишаться. Це не можна скасувати.</string>
+    <string name="clear_all_text">Буде видалено щоденник, ваші продукти й рецепти, обрані, профіль і список «Не знайдено в базі». Залишаться лише модель ШІ, мова й тема. Це не можна скасувати.</string>
+    <string name="clear_hc">Також видалити записи Тарілки з Health Connect</string>
+    <string name="export_first">Спочатку зробити резервну копію</string>
 </resources>

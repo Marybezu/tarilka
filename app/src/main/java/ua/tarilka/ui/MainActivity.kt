@@ -17,6 +17,8 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -170,7 +172,17 @@ private fun AppRoot() {
 
 @Composable
 private fun Tabs(vm: MainViewModel, ai: AiViewModel, tab: Int, onTab: (Int) -> Unit, push: (Overlay) -> Unit) {
+    val snackbar = remember { androidx.compose.material3.SnackbarHostState() }
+    val undoCount by vm.undoCount.collectAsState()
+    val deletedText = undoCount?.let { stringResource(R.string.deleted_n, it) }
+    val undoText = stringResource(R.string.undo)
+    LaunchedEffect(undoCount) {
+        if (deletedText == null) return@LaunchedEffect
+        val r = snackbar.showSnackbar(deletedText, actionLabel = undoText, duration = androidx.compose.material3.SnackbarDuration.Short)
+        if (r == androidx.compose.material3.SnackbarResult.ActionPerformed) vm.undo() else vm.undoShown()
+    }
     Scaffold(
+        snackbarHost = { androidx.compose.material3.SnackbarHost(snackbar) },
         floatingActionButton = {
             if (tab == 2) {
                 ExtendedFloatingActionButton(

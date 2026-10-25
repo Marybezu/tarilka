@@ -80,7 +80,7 @@ fun TodayScreen(
     val fluids by vm.fluids.collectAsState()
     val steps by vm.steps.collectAsState()
     val stepsEnabled by vm.stepsEnabled.collectAsState()
-    val weight by vm.latestWeight.collectAsState()
+    val weight by vm.weightForDay.collectAsState()
     val stepsFromHc by vm.stepsFromHc.collectAsState()
     val trend by vm.weeklyTrend.collectAsState()
     val habits by vm.weekHabits.collectAsState()
@@ -271,7 +271,7 @@ fun TodayScreen(
             confirmButton = {
                 TextButton(
                     enabled = text.toNumber()?.let { it in 25.0..350.0 } == true,
-                    onClick = { text.toNumber()?.let { vm.saveWeight(it) }; weightDialog = false },
+                    onClick = { text.toNumber()?.let { vm.saveWeight(it, day) }; weightDialog = false },
                 ) { Text(stringResource(R.string.save)) }
             },
             dismissButton = { TextButton(onClick = { weightDialog = false }) { Text(stringResource(R.string.cancel)) } },

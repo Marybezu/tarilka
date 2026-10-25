@@ -114,7 +114,11 @@ private fun AppRoot() {
             initialMeal = top.meal,
             onBack = ::pop,
             onSetupModel = { stack.clear(); tab = 3 },
-            onReplace = { push(Overlay.PickForPhoto(it)) },
+            onReplace = { i ->
+                // For a food the database lacks, start the search with the name the AI gave.
+                ai.photo.value.items.getOrNull(i)?.takeIf { it.food == null }?.let { vm.query.value = it.detected.nameEn }
+                push(Overlay.PickForPhoto(i))
+            },
             onAddItem = { push(Overlay.PickForPhoto(null)) },
             onCamera = { meal -> pendingMeal = meal; camera.launch(ua.tarilka.ai.PhotoUtil.captureUri(context)) },
             onGallery = { meal ->

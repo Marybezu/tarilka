@@ -253,4 +253,5 @@
     <string name="habit_alcohol_info">A standard drink has 10 g of alcohol: about 250 ml of beer, 100 ml of wine or 30 ml of spirits. There is no safe amount, so less is better. Alcohol-free days and a glass of water between drinks help.</string>
     <string name="habit_fastfood">🍔 Fast food: %1$d days</string>
     <string name="habit_fastfood_info">Days with fast food: pizza, burgers, shawarma and so on. Now and then is fine. If often, keep a simple quick home option at hand.</string>
+    <string name="ai_unknown">AI sees: “%1$s”</string>
 </resources>

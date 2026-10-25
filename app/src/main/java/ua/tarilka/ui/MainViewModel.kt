@@ -60,6 +60,10 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     val weights: StateFlow<List<WeightEntry>> =
         db.weights().all().stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
+    /** Weight on the selected day, or the last one recorded before it. */
+    val weightForDay: StateFlow<Double?> = combine(weights, day) { list, d -> list.lastOrNull { it.day <= d.toEpochDay() }?.kg }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
     val latestWeight: StateFlow<Double?> =
         weights.map { it.lastOrNull()?.kg }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
@@ -188,10 +192,14 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         val to = t.toEpochDay()
         val from = to - 365
         combine(
-            db.diary().totals(from, to), db.fluids().totals(from, to), db.weights().all(), db.notes().all(),
-        ) { food, fluid, weight, notes ->
+            db.diary().totals(from, to),
+            combine(
+                db.fluids().totals(from, to),
+                db.fluids().drinksFromDiaryRange(from, to, ua.tarilka.data.FluidRules.ALCOHOL, ua.tarilka.data.FluidRules.MILK_DRINKS),
+            ) { a, b -> (a + b).groupBy { it.day }.mapValues { (d, l) -> ua.tarilka.data.DayFluid(d, l.sumOf { it.ml }) } },
+            db.weights().all(), db.notes().all(),
+        ) { food, w, weight, notes ->
             val f = food.associateBy { it.day }
-            val w = fluid.associateBy { it.day }
             val kg = weight.associateBy { it.day }
             val n = notes.associate { it.day to it.text }
             (f.keys + w.keys + kg.keys.filter { it >= from } + n.keys).sortedDescending().map { d ->

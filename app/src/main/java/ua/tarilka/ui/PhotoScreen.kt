@@ -228,7 +228,7 @@ private fun ReviewCard(i: Int, item: ReviewItem, ai: AiViewModel, onReplace: (In
         Row(verticalAlignment = Alignment.CenterVertically) {
             Checkbox(checked = item.include, onCheckedChange = { ai.setInclude(i, it) }, enabled = item.food != null)
             Column(Modifier.weight(1f)) {
-                Text(item.food?.name() ?: detectedName(item.detected), style = MaterialTheme.typography.bodyLarge)
+                Text(item.food?.name() ?: stringResource(R.string.ai_unknown, item.detected.nameEn), style = MaterialTheme.typography.bodyLarge)
                 val sub = when {
                     item.isEstimate -> stringResource(R.string.ai_estimate)
                     else -> stringResource(R.string.from_db, sourceLabel(item.food!!.source))
@@ -252,7 +252,3 @@ private fun ReviewCard(i: Int, item: ReviewItem, ai: AiViewModel, onReplace: (In
         }
     }
 }
-
-/** The model sometimes answers in Russian; then the English name is shown instead. */
-private fun detectedName(d: ua.tarilka.ai.DetectedFood): String =
-    d.nameEn // the model's own Ukrainian is unreliable; database names are shown when matched

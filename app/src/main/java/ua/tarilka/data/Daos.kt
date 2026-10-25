@@ -138,6 +138,15 @@ interface FluidDao {
         milkDrinks: List<String>,
     ): Flow<Double>
 
+    /** Drinks logged as food, per day (same rules as [drinksFromDiary]). */
+    @Query(
+        """SELECT d.day AS day, SUM(d.grams) AS ml FROM diary d JOIN foods f ON f.id = d.foodId
+           WHERE d.day BETWEEN :from AND :to AND f.kcal < 150 AND (
+             (f.category = 'drinks' AND f.code NOT IN (:alcohol)) OR f.code IN (:milkDrinks))
+           GROUP BY d.day"""
+    )
+    fun drinksFromDiaryRange(from: Long, to: Long, alcohol: List<String>, milkDrinks: List<String>): Flow<List<DayFluid>>
+
     @Insert
     suspend fun insert(entry: FluidEntry): Long
 

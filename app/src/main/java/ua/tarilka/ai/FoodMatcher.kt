@@ -13,7 +13,7 @@ object FoodMatcher {
         "з", "із", "зі", "і", "й", "та", "в", "у", "на", "свіжий", "свіжа", "шматок",
     )
 
-    private val SYNONYMS = mapOf("boiled" to "cooked", "stewed" to "cooked", "simmered" to "cooked")
+    private val SYNONYMS = mapOf("boiled" to "cooked", "stewed" to "cooked", "simmered" to "cooked", "omelet" to "omelette")
 
     /**
      * English words are compared whole, with plurals folded ("tomatoes" = "tomato");
@@ -47,7 +47,9 @@ object FoodMatcher {
         setOf("pork") to "m09", setOf("salad") to "u24", setOf("bean") to "l01", setOf("noodle") to "g36",
         setOf("sausage") to "m17", setOf("meat") to "m13", setOf("salmon") to "s01", setOf("oatmeal") to "g06",
         setOf("schnitzel") to "u69", setOf("chicken", "schnitzel") to "u69", setOf("breaded", "chicken") to "u69",
-        setOf("chicken", "cutlet") to "u69", setOf("fried", "chicken", "breast") to "u69",
+        setOf("chicken", "cutlet") to "u69", setOf("omelette") to "e04",
+        setOf("green") to "v21", setOf("leafy", "green") to "v21", setOf("salad", "green") to "v21", setOf("chard") to "v20",
+        setOf("swiss", "chard") to "v20", setOf("fried", "chicken", "breast") to "u69",
     )
 
     private fun score(query: Set<String>, name: String): Double {
@@ -67,6 +69,12 @@ object FoodMatcher {
     private val FAT_WORDS = setOf(
         "oil", "butter", "lard", "margarine", "mayonnaise", "sauce", "dressing", "ketchup", "mustard", "vinegar",
         "олія", "масло", "смалець", "маргарин", "майонез", "соус", "заправка", "кетчуп", "гірчиця", "оцет",
+    ).map(::norm).toSet()
+
+    private val DRINK_WORDS = setOf(
+        "tea", "coffee", "espresso", "latte", "cappuccino", "juice", "milk", "drink", "water", "beer", "wine", "soda", "cola",
+        "kvass", "compote", "uzvar", "lemonade", "nectar", "vodka", "liqueur", "kefir", "smoothie",
+        "чай", "кава", "сік", "молоко", "напій", "вода", "пиво", "вино", "кола", "квас", "компот", "узвар", "кефір",
     ).map(::norm).toSet()
 
     data class Match(val food: Food, val score: Double)
@@ -90,6 +98,8 @@ object FoodMatcher {
             // "corn" is sweet corn, not corn oil; "mushrooms" are mushrooms, not mushroom soup.
             if (f.category in setOf("fats", "sauces") && FAT_WORDS.none { it in queryAll }) s *= 0.5
             if (f.category in setOf("dishes", "fastfood") && f.code != null) s *= 0.85
+            // "greens" are leaves, not green tea.
+            if (f.category == "drinks" && DRINK_WORDS.none { it in queryAll }) s *= 0.5
             // Ingredients without a typical portion (flour, dry grains) are not what a plate shows.
             if (f.portionG == null && f.code != null) s *= 0.8
             val b = best

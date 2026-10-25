@@ -48,6 +48,10 @@ class LogicTest {
         assertEquals("v71", en("spinach, cooked"))
         assertEquals("o04", en("corn oil"))
         assertEquals("u69", en("breaded chicken"))
+        assertEquals("e04", en("omelet"))
+        assertEquals("e03", en("fried eggs"))
+        assertEquals("v21", en("greens"))
+        assertEquals("dr14", en("green tea"))
     }
 
     @Test

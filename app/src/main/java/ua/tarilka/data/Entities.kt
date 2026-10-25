@@ -58,6 +58,11 @@ data class DiaryEntry(
     val fiber: Double,
     val fromAi: Boolean = false,
     val createdAt: Long = System.currentTimeMillis(),
+    /** Optional "why I eat": see [Reasons]. */
+    val reason: Int? = null,
+    /** Hunger before eating, 1 (not hungry) … 5 (very hungry). */
+    val hunger: Int? = null,
+    @androidx.room.ColumnInfo(defaultValue = "0") val hardToStop: Boolean = false,
 ) {
     fun name(): String = localized(nameUk, nameEn)
 
@@ -95,6 +100,25 @@ data class DayNote(
     @PrimaryKey val day: Long,
     val text: String,
 )
+
+/** Hours slept, recorded for the day you woke up. */
+@Entity(tableName = "sleep")
+data class SleepEntry(
+    @PrimaryKey val day: Long,
+    val hours: Double,
+    /** 0 poor, 1 okay, 2 good */
+    val quality: Int? = null,
+)
+
+object Reasons {
+    const val HUNGER = 0
+    const val STRESS = 1
+    const val BOREDOM = 2
+    const val COMPANY = 3
+    const val HABIT = 4
+    val ALL = listOf(HUNGER, STRESS, BOREDOM, COMPANY, HABIT)
+    val EN = listOf("hunger", "stress", "boredom", "company", "habit")
+}
 
 data class DayFluid(val day: Long, val ml: Double)
 

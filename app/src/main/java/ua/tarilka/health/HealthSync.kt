@@ -6,6 +6,7 @@ import androidx.health.connect.client.permission.HealthPermission
 import androidx.health.connect.client.records.HydrationRecord
 import androidx.health.connect.client.records.MealType
 import androidx.health.connect.client.records.NutritionRecord
+import androidx.health.connect.client.records.SleepSessionRecord
 import androidx.health.connect.client.records.StepsRecord
 import androidx.health.connect.client.records.WeightRecord
 import androidx.health.connect.client.records.metadata.Metadata
@@ -65,6 +66,30 @@ class HealthSync(private val context: Context) {
         return runCatching {
             c.aggregate(AggregateRequest(setOf(StepsRecord.COUNT_TOTAL), TimeRangeFilter.between(from.atStartOfDay(zone).toInstant(), end)))[StepsRecord.COUNT_TOTAL]
         }.getOrNull()
+    }
+
+    /**
+     * Hours slept per wake-up day. A night counts for the day it ended on
+     * (sessions ending after 18:00 count for the next day: an evening nap is not last night).
+     */
+    suspend fun sleepByDay(from: LocalDate, to: LocalDate): Map<Long, Double> {
+        val c = client ?: return emptyMap()
+        if (READ_SLEEP !in granted()) return emptyMap()
+        val zone = ZoneId.systemDefault()
+        val start = from.minusDays(1).atTime(18, 0).atZone(zone).toInstant()
+        val end = minOf(to.atTime(18, 0).atZone(zone).toInstant(), Instant.now())
+        if (!end.isAfter(start)) return emptyMap()
+        val records = runCatching {
+            c.readRecords(
+                androidx.health.connect.client.request.ReadRecordsRequest(
+                    SleepSessionRecord::class, TimeRangeFilter.between(start, end), pageSize = 2000,
+                ),
+            ).records
+        }.getOrNull() ?: return emptyMap()
+        return records.groupBy { r ->
+            val local = r.endTime.atZone(zone)
+            (if (local.hour >= 18) local.toLocalDate().plusDays(1) else local.toLocalDate()).toEpochDay()
+        }.mapValues { (_, list) -> list.sumOf { java.time.Duration.between(it.startTime, it.endTime).toMinutes() } / 60.0 }
     }
 
     suspend fun writeMeal(e: DiaryEntry) {
@@ -149,6 +174,7 @@ class HealthSync(private val context: Context) {
 
     companion object {
         val READ_STEPS = HealthPermission.getReadPermission(StepsRecord::class)
+        val READ_SLEEP = HealthPermission.getReadPermission(SleepSessionRecord::class)
         val WRITE = setOf(
             HealthPermission.getWritePermission(NutritionRecord::class),
             HealthPermission.getWritePermission(HydrationRecord::class),

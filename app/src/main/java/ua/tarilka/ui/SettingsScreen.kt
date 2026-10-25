@@ -73,6 +73,7 @@ fun SettingsScreen(vm: MainViewModel, ai: AiViewModel, padding: PaddingValues) {
             }
         }
         item { ActivitySection(vm) }
+        item { SelfSection(vm) }
         item { ModelSection(ai) }
         item { MissingSection(vm) }
         item { DataSection(vm) }
@@ -273,6 +274,30 @@ private fun ActivitySection(vm: MainViewModel) {
             } else {
                 Text(stringResource(R.string.hc_unavailable), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
+        }
+    }
+}
+
+/** Optional self-observation: sleep and "why I eat". Both off by default. */
+@Composable
+private fun SelfSection(vm: MainViewModel) {
+    val sleepOn by vm.sleepEnabled.collectAsState()
+    val reasonsOn by vm.reasonsEnabled.collectAsState()
+    val sleepLauncher = rememberLauncherForActivityResult(
+        androidx.health.connect.client.PermissionController.createRequestPermissionResultContract(),
+    ) { vm.refreshSleep() }
+    Section(title = stringResource(R.string.self_section)) {
+        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            SwitchRow(
+                stringResource(R.string.sleep_title),
+                stringResource(if (vm.healthAvailable) R.string.sleep_hint_hc else R.string.sleep_hint),
+                sleepOn,
+            ) { on ->
+                vm.setSleepEnabled(on)
+                // Health Connect is optional: without the permission sleep is simply typed in.
+                if (on && vm.healthAvailable) sleepLauncher.launch(setOf(ua.tarilka.health.HealthSync.READ_SLEEP))
+            }
+            SwitchRow(stringResource(R.string.reasons_title), stringResource(R.string.reasons_hint), reasonsOn) { vm.setReasonsEnabled(it) }
         }
     }
 }

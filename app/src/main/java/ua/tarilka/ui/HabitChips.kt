@@ -47,6 +47,17 @@ fun HabitChips(h: Habits, modifier: Modifier = Modifier) {
         val lateInfo = stringResource(R.string.habit_late_info)
         Badge(late, h.lateLevel) { info = late to lateInfo }
 
+        h.sleepAvg?.let { hrs ->
+            val sl = stringResource(R.string.habit_sleep, hrs.f1())
+            val slInfo = stringResource(R.string.habit_sleep_info)
+            Badge(sl, h.sleepLevel) { info = sl to slInfo }
+        }
+        if (h.reasonMeals > 0) {
+            val rs = stringResource(R.string.habit_reasons, h.notHungerTotal, h.reasonMeals)
+            val top = h.notHunger.maxByOrNull { it.value }?.let { stringResource(REASON_NAMES[it.key]) }
+            val rsInfo = stringResource(R.string.habit_reasons_info, top ?: "—", h.hardToStop)
+            Badge(rs, h.reasonsLevel) { info = rs to rsInfo }
+        }
         if (h.alcoholPerWeek > 0) {
             val alc = stringResource(R.string.habit_alcohol, h.alcoholPerWeek.f1())
             val alcInfo = stringResource(R.string.habit_alcohol_info)

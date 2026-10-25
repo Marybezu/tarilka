@@ -90,6 +90,9 @@ interface DiaryDao {
     @Delete
     suspend fun deleteMany(entries: List<DiaryEntry>)
 
+    @Query("UPDATE diary SET reason = :reason, hunger = :hunger, hardToStop = :hardToStop WHERE id IN (:ids)")
+    suspend fun setReason(ids: List<Long>, reason: Int?, hunger: Int?, hardToStop: Boolean)
+
     @Query("SELECT * FROM diary WHERE day BETWEEN :from AND :to ORDER BY day, createdAt")
     suspend fun range(from: Long, to: Long): List<DiaryEntry>
 
@@ -190,6 +193,30 @@ interface NoteDao {
     suspend fun delete(day: Long)
 
     @Query("DELETE FROM notes")
+    suspend fun deleteAll()
+}
+
+@Dao
+interface SleepDao {
+    @Query("SELECT * FROM sleep WHERE day = :day")
+    fun forDay(day: Long): Flow<SleepEntry?>
+
+    @Query("SELECT * FROM sleep WHERE day BETWEEN :from AND :to ORDER BY day")
+    fun rangeFlow(from: Long, to: Long): Flow<List<SleepEntry>>
+
+    @Query("SELECT * FROM sleep WHERE day BETWEEN :from AND :to ORDER BY day")
+    suspend fun range(from: Long, to: Long): List<SleepEntry>
+
+    @Query("SELECT * FROM sleep ORDER BY day")
+    suspend fun allOnce(): List<SleepEntry>
+
+    @Upsert
+    suspend fun upsert(entry: SleepEntry)
+
+    @Query("DELETE FROM sleep WHERE day = :day")
+    suspend fun delete(day: Long)
+
+    @Query("DELETE FROM sleep")
     suspend fun deleteAll()
 }
 

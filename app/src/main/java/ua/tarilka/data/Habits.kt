@@ -26,7 +26,15 @@ data class Habits(
     /** Standard drinks (10 g of alcohol) per week. */
     val alcoholPerWeek: Double,
     val fastFoodDays: Int,
+    /** Average hours of sleep on days with a record, or null. */
+    val sleepAvg: Double? = null,
+    /** Meals with a "why I eat" answer; the next three count only those. */
+    val reasonMeals: Int = 0,
+    /** Meals eaten for another reason than hunger, by reason. */
+    val notHunger: Map<Int, Int> = emptyMap(),
+    val hardToStop: Int = 0,
 ) {
+    val notHungerTotal: Int get() = notHunger.values.sum()
     enum class Level { GOOD, OK, WATCH }
 
     val sweetsLevel get() = level(sweetsPct < 5, sweetsPct <= 10)
@@ -34,6 +42,9 @@ data class Habits(
     val lateLevel get() = level(latePct < 10, latePct < 25)
     val alcoholLevel get() = level(alcoholPerWeek == 0.0, alcoholPerWeek <= 7)
     val fastFoodLevel get() = level(fastFoodDays == 0, fastFoodDays * 7.0 / periodDays <= 1)
+    val sleepLevel get() = sleepAvg?.let { level(it >= 7, it >= 6) } ?: Level.OK
+    /** Hard-to-stop episodes twice a week or more are worth attention; eating for other reasons now and then is normal. */
+    val reasonsLevel get() = if (hardToStop * 7.0 / periodDays >= 2) Level.WATCH else level(notHungerTotal == 0 && hardToStop == 0, true)
 
     private fun level(good: Boolean, ok: Boolean) = if (good) Level.GOOD else if (ok) Level.OK else Level.WATCH
 
@@ -63,7 +74,13 @@ data class Habits(
         fun isSweet(f: Food) = f.category == "sweets" || f.code in SUGARY_DRINKS
         fun isVegFruit(f: Food) = (f.category == "veg" || f.category == "fruit") && f.code !in STARCHY
 
-        fun of(entries: List<DiaryEntry>, foods: Map<Long, Food>, periodDays: Int, zone: ZoneId = ZoneId.systemDefault()): Habits {
+        fun of(
+            entries: List<DiaryEntry>,
+            foods: Map<Long, Food>,
+            periodDays: Int,
+            zone: ZoneId = ZoneId.systemDefault(),
+            sleep: Map<Long, Double> = emptyMap(),
+        ): Habits {
             fun food(e: DiaryEntry) = e.foodId?.let(foods::get)
             fun sweet(e: DiaryEntry) = food(e)?.let(::isSweet) == true
             val byDay = entries.groupBy { it.day }
@@ -74,6 +91,9 @@ data class Habits(
                 h >= 22 || h < 4
             }.sumOf { it.kcal }
             val alcohol = entries.sumOf { e -> food(e)?.code?.let(ALCOHOL_G::get)?.let { it * e.grams / 100 } ?: 0.0 } / 10
+            // One answer covers everything added at once; count it once per meal of a day.
+            val meals = entries.filter { it.reason != null || it.hunger != null || it.hardToStop }
+                .groupBy { it.day to it.meal }.values.map { it.first() }
             fun pct(part: Double) = if (kcal > 0) part / kcal * 100 else 0.0
             fun perDay(total: Double) = if (days > 0) total / days else 0.0
             return Habits(
@@ -88,6 +108,10 @@ data class Habits(
                 latePct = pct(late),
                 alcoholPerWeek = alcohol * 7 / periodDays,
                 fastFoodDays = byDay.values.count { list -> list.any { food(it)?.category == "fastfood" } },
+                sleepAvg = sleep.values.takeIf { it.isNotEmpty() }?.average(),
+                reasonMeals = meals.size,
+                notHunger = meals.mapNotNull { it.reason }.filter { it != Reasons.HUNGER }.groupingBy { it }.eachCount(),
+                hardToStop = meals.count { it.hardToStop },
             )
         }
     }

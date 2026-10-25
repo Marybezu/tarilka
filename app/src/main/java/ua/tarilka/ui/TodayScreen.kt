@@ -84,6 +84,9 @@ fun TodayScreen(
     val stepsFromHc by vm.stepsFromHc.collectAsState()
     val trend by vm.weeklyTrend.collectAsState()
     val habits by vm.weekHabits.collectAsState()
+    val sleep by vm.sleep.collectAsState()
+    val sleepOn by vm.sleepEnabled.collectAsState()
+    var sleepDialog by remember { mutableStateOf(false) }
     var weightDialog by remember { mutableStateOf(false) }
     val note by vm.note.collectAsState()
     var noteDialog by remember { mutableStateOf(false) }
@@ -176,6 +179,20 @@ fun TodayScreen(
                         modifier = Modifier.weight(1f),
                     )
                     TextButton(onClick = { weightDialog = true }) { Text(stringResource(R.string.weight_record)) }
+                }
+                if (sleepOn) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            "😴 " + (sleep?.let { s ->
+                                stringResource(R.string.sleep_line, s.hours.f1()) +
+                                    (s.quality?.let { " · " + stringResource(SLEEP_QUALITY[it]) } ?: "") +
+                                    (if (s.fromHc) " · Health Connect" else "")
+                            } ?: stringResource(R.string.sleep_title) + " —"),
+                            style = MaterialTheme.typography.bodyMedium.merge(Numbers),
+                            modifier = Modifier.weight(1f),
+                        )
+                        TextButton(onClick = { sleepDialog = true }) { Text(stringResource(R.string.record)) }
+                    }
                 }
             }
         }
@@ -275,6 +292,15 @@ fun TodayScreen(
                 ) { Text(stringResource(R.string.save)) }
             },
             dismissButton = { TextButton(onClick = { weightDialog = false }) { Text(stringResource(R.string.cancel)) } },
+        )
+    }
+
+    if (sleepDialog) {
+        SleepDialog(
+            initial = sleep,
+            onSave = { h, q -> vm.saveSleep(h, q); sleepDialog = false },
+            onDelete = { vm.deleteSleep(); sleepDialog = false },
+            onDismiss = { sleepDialog = false },
         )
     }
 
@@ -540,4 +566,55 @@ private fun adviceSummary(
         tips.forEach { appendLine("- " + context.getString(it.res, *it.args.toTypedArray())) }
     }
     append(if (isToday) "Give short practical advice for the rest of the day or for tomorrow." else "Give short practical advice based on that day.")
+}
+
+private val SLEEP_QUALITY = listOf(R.string.sleep_poor, R.string.sleep_ok, R.string.sleep_good)
+
+/** Hours slept last night in two taps; quality is optional. */
+@OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
+@Composable
+private fun SleepDialog(
+    initial: MainViewModel.SleepShown?,
+    onSave: (Double, Int?) -> Unit,
+    onDelete: () -> Unit,
+    onDismiss: () -> Unit,
+) {
+    var hours by remember { mutableStateOf(initial?.hours?.let { kotlin.math.round(it * 2) / 2 }) }
+    var quality by remember { mutableStateOf(initial?.quality) }
+    androidx.compose.material3.AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.sleep_question)) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                androidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    listOf(4.0, 5.0, 6.0, 6.5, 7.0, 7.5, 8.0, 9.0, 10.0).forEach { h ->
+                        androidx.compose.material3.FilterChip(
+                            selected = hours == h,
+                            onClick = { hours = h },
+                            label = { Text(if (h % 1.0 == 0.0) h.toInt().toString() else h.f1()) },
+                        )
+                    }
+                }
+                Text(stringResource(R.string.sleep_quality), style = MaterialTheme.typography.bodyMedium)
+                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    SLEEP_QUALITY.forEachIndexed { i, res ->
+                        androidx.compose.material3.FilterChip(
+                            selected = quality == i,
+                            onClick = { quality = if (quality == i) null else i },
+                            label = { Text(stringResource(res)) },
+                        )
+                    }
+                }
+            }
+        },
+        confirmButton = { TextButton(enabled = hours != null, onClick = { onSave(hours!!, quality) }) { Text(stringResource(R.string.save)) } },
+        dismissButton = {
+            Row {
+                if (initial != null && !initial.fromHc) {
+                    TextButton(onClick = onDelete) { Text(stringResource(R.string.delete), color = MaterialTheme.colorScheme.error) }
+                }
+                TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) }
+            }
+        },
+    )
 }

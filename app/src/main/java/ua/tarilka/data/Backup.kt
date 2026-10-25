@@ -88,6 +88,9 @@ object Backup {
                         .put("kcal", e.kcal).put("protein", e.protein).put("fat", e.fat)
                         .put("carbs", e.carbs).put("fiber", e.fiber).put("fromAi", e.fromAi)
                         .put("createdAt", e.createdAt)
+                    e.reason?.let { o.put("reason", it) }
+                    e.hunger?.let { o.put("hunger", it) }
+                    if (e.hardToStop) o.put("hardToStop", true)
                     e.foodId?.let { id ->
                         val code = builtinCodes[id]
                         if (code != null) o.put("foodCode", code) else o.put("customFoodId", id)
@@ -103,6 +106,11 @@ object Backup {
             .put("notes", JSONArray().apply {
                 db.notes().allOnce().forEach {
                     put(JSONObject().put("day", LocalDate.ofEpochDay(it.day).toString()).put("text", it.text))
+                }
+            })
+            .put("sleep", JSONArray().apply {
+                db.sleep().allOnce().forEach {
+                    put(JSONObject().put("day", LocalDate.ofEpochDay(it.day).toString()).put("hours", it.hours).put("quality", it.quality ?: JSONObject.NULL))
                 }
             })
             .put("weights", JSONArray().apply {
@@ -136,6 +144,7 @@ object Backup {
             db.weights().deleteAll()
             db.foods().deleteCustom()
             db.notes().deleteAll()
+            db.sleep().deleteAll()
 
             val idMap = mutableMapOf<Long, Long>()
             o.optJSONArray("customFoods")?.let { arr ->
@@ -189,6 +198,9 @@ object Backup {
                         grams = e.getDouble("grams"), kcal = e.getDouble("kcal"), protein = e.getDouble("protein"),
                         fat = e.getDouble("fat"), carbs = e.getDouble("carbs"), fiber = e.optDouble("fiber", 0.0),
                         fromAi = e.optBoolean("fromAi"), createdAt = e.optLong("createdAt", System.currentTimeMillis()),
+                        reason = if (e.has("reason")) e.getInt("reason") else null,
+                        hunger = if (e.has("hunger")) e.getInt("hunger") else null,
+                        hardToStop = e.optBoolean("hardToStop"),
                     )
                 })
             }
@@ -204,6 +216,14 @@ object Backup {
                 for (i in 0 until arr.length()) {
                     val e = arr.getJSONObject(i)
                     db.notes().upsert(DayNote(LocalDate.parse(e.getString("day")).toEpochDay(), e.getString("text")))
+                }
+            }
+            o.optJSONArray("sleep")?.let { arr ->
+                for (i in 0 until arr.length()) {
+                    val e = arr.getJSONObject(i)
+                    db.sleep().upsert(
+                        SleepEntry(LocalDate.parse(e.getString("day")).toEpochDay(), e.getDouble("hours"), if (e.isNull("quality")) null else e.getInt("quality")),
+                    )
                 }
             }
             o.optJSONArray("weights")?.let { arr ->
@@ -233,10 +253,11 @@ object Backup {
     suspend fun diaryCsv(db: AppDatabase, ukrainian: Boolean): String {
         val zone = ZoneId.systemDefault()
         val header = if (ukrainian) {
-            "дата;час;прийом;продукт;грами;ккал;білки;жири;вуглеводи;клітковина;ШІ"
+            "дата;час;прийом;продукт;грами;ккал;білки;жири;вуглеводи;клітковина;ШІ;чому;голод 1-5;важко зупинитися"
         } else {
-            "date;time;meal;food;grams;kcal;protein;fat;carbs;fiber;ai"
+            "date;time;meal;food;grams;kcal;protein;fat;carbs;fiber;ai;why;hunger 1-5;hard to stop"
         }
+        val reasons = if (ukrainian) listOf("голод", "стрес", "нудьга", "компанія", "звичка") else Reasons.EN
         val meals = if (ukrainian) listOf("сніданок", "обід", "вечеря", "перекус") else listOf("breakfast", "lunch", "dinner", "snack")
         fun n(d: Double) = String.format(java.util.Locale.ROOT, "%.1f", d)
         val sb = StringBuilder("﻿").append(header).append('\n')
@@ -247,7 +268,10 @@ object Backup {
                 .append(meals.getOrElse(e.meal) { "" }).append(';').append(name).append(';')
                 .append(n(e.grams)).append(';').append(n(e.kcal)).append(';').append(n(e.protein)).append(';')
                 .append(n(e.fat)).append(';').append(n(e.carbs)).append(';').append(n(e.fiber)).append(';')
-                .append(if (e.fromAi) 1 else 0).append('\n')
+                .append(if (e.fromAi) 1 else 0).append(';')
+                .append(e.reason?.let { reasons.getOrNull(it) } ?: "").append(';')
+                .append(e.hunger ?: "").append(';')
+                .append(if (e.hardToStop) 1 else "").append('\n')
         }
         return sb.toString()
     }

@@ -49,6 +49,16 @@ class Prefs(context: Context) {
         get() = sp.getLong("stepLast", -1)
         set(v) = sp.edit().putLong("stepLast", v).apply()
 
+    private val _sleepEnabled = MutableStateFlow(sp.getBoolean("sleepEnabled", false))
+    /** Show the sleep row (typed in, or read from Health Connect). */
+    val sleepEnabled: StateFlow<Boolean> = _sleepEnabled.asStateFlow()
+    fun setSleepEnabled(on: Boolean) { sp.edit().putBoolean("sleepEnabled", on).apply(); _sleepEnabled.value = on }
+
+    private val _reasonsEnabled = MutableStateFlow(sp.getBoolean("reasonsEnabled", false))
+    /** Ask "why do I eat?" after adding food. */
+    val reasonsEnabled: StateFlow<Boolean> = _reasonsEnabled.asStateFlow()
+    fun setReasonsEnabled(on: Boolean) { sp.edit().putBoolean("reasonsEnabled", on).apply(); _reasonsEnabled.value = on }
+
     /** 0 = follow system, 1 = light, 2 = dark */
     var themeMode: Int
         get() = sp.getInt("themeMode", 0)

@@ -177,6 +177,10 @@ private fun AppRoot() {
 
 @Composable
 private fun Tabs(vm: MainViewModel, ai: AiViewModel, tab: Int, onTab: (Int) -> Unit, push: (Overlay) -> Unit) {
+    val pendingReason by vm.pendingReason.collectAsState()
+    if (pendingReason != null) {
+        ReasonDialog(onSave = vm::setReason, onSkip = vm::skipReason)
+    }
     val snackbar = remember { androidx.compose.material3.SnackbarHostState() }
     val undoCount by vm.undoCount.collectAsState()
     val deletedText = undoCount?.let { stringResource(R.string.deleted_n, it) }

@@ -152,4 +152,21 @@ class LogicTest {
         assertEquals(2.12, h.alcoholPerWeek, 0.01) // 200 g of dry red wine = 21.2 g of alcohol
         assertEquals(ua.tarilka.data.Habits.Level.WATCH, h.sweetsLevel)
     }
+
+    @Test
+    fun reasonsAndSleepAreCounted() {
+        fun e(day: Long, meal: Int, reason: Int?, hard: Boolean = false) = ua.tarilka.data.DiaryEntry(
+            day = day, meal = meal, foodId = null, nameUk = "", nameEn = "", grams = 100.0, kcal = 100.0,
+            protein = 0.0, fat = 0.0, carbs = 0.0, fiber = 0.0, reason = reason, hardToStop = hard,
+        )
+        val r = ua.tarilka.data.Reasons
+        // Two items added together for one meal count as one answer.
+        val list = listOf(e(1, 0, r.HUNGER), e(1, 2, r.STRESS), e(1, 2, r.STRESS), e(2, 3, r.BOREDOM, hard = true), e(2, 1, null))
+        val h = ua.tarilka.data.Habits.of(list, emptyMap(), 7, sleep = mapOf(1L to 6.0, 2L to 7.0))
+        assertEquals(3, h.reasonMeals)
+        assertEquals(2, h.notHungerTotal)
+        assertEquals(1, h.hardToStop)
+        assertEquals(6.5, h.sleepAvg!!, 0.001)
+        assertEquals(ua.tarilka.data.Habits.Level.OK, h.sleepLevel)
+    }
 }

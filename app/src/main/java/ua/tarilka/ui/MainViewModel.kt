@@ -52,6 +52,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
             today.value = now
         }
         refreshSteps()
+        refreshSleep()
     }
     val query = MutableStateFlow("")
 
@@ -123,6 +124,66 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     init {
         viewModelScope.launch { day.collect { refreshSteps() } }
     }
+
+    // ---- sleep ----
+
+    val sleepEnabled: StateFlow<Boolean> = prefs.sleepEnabled
+    fun setSleepEnabled(on: Boolean) { prefs.setSleepEnabled(on); refreshSleep() }
+
+    /** Health Connect sleep for the 7 days ending at the selected day (empty without permission). */
+    private val hcSleep = MutableStateFlow<Map<Long, Double>>(emptyMap())
+
+    init {
+        // After hcSleep exists: the first collect runs right away.
+        viewModelScope.launch { day.collect { refreshSleep() } }
+    }
+
+    fun refreshSleep() = viewModelScope.launch {
+        val d = day.value
+        hcSleep.value = if (prefs.sleepEnabled.value) runCatching { health.sleepByDay(d.minusDays(6), d) }.getOrDefault(emptyMap()) else emptyMap()
+    }
+
+    data class SleepShown(val hours: Double, val quality: Int?, val fromHc: Boolean)
+
+    /** What you typed wins over Health Connect. */
+    val sleep: StateFlow<SleepShown?> = combine(
+        prefs.sleepEnabled, day.flatMapLatest { db.sleep().forDay(it.toEpochDay()) }, hcSleep, day,
+    ) { on, manual, hc, d ->
+        when {
+            !on -> null
+            manual != null -> SleepShown(manual.hours, manual.quality, false)
+            else -> hc[d.toEpochDay()]?.let { SleepShown(it, null, true) }
+        }
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    fun saveSleep(hours: Double, quality: Int?) = viewModelScope.launch {
+        db.sleep().upsert(ua.tarilka.data.SleepEntry(day.value.toEpochDay(), hours, quality))
+    }
+
+    fun deleteSleep() = viewModelScope.launch { db.sleep().delete(day.value.toEpochDay()) }
+
+    /** Hours per day for a range: typed-in values, else Health Connect. */
+    private suspend fun sleepRange(from: LocalDate, to: LocalDate): Map<Long, Double> {
+        if (!prefs.sleepEnabled.value) return emptyMap()
+        val hc = runCatching { health.sleepByDay(from, to) }.getOrDefault(emptyMap())
+        return hc + db.sleep().range(from.toEpochDay(), to.toEpochDay()).associate { it.day to it.hours }
+    }
+
+    // ---- "why I eat" ----
+
+    val reasonsEnabled: StateFlow<Boolean> = prefs.reasonsEnabled
+    fun setReasonsEnabled(on: Boolean) = prefs.setReasonsEnabled(on)
+
+    /** Entries just added, waiting for the optional "why" answer. */
+    val pendingReason = MutableStateFlow<List<Long>?>(null)
+
+    fun setReason(reason: Int?, hunger: Int?, hardToStop: Boolean) = viewModelScope.launch {
+        val ids = pendingReason.value ?: return@launch
+        pendingReason.value = null
+        db.diary().setReason(ids, reason, hunger, hardToStop)
+    }
+
+    fun skipReason() { pendingReason.value = null }
 
     /** Reads steps for the selected day: Health Connect first, then the phone's step sensor (today only). */
     fun refreshSteps() = viewModelScope.launch {
@@ -223,6 +284,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
             withTime.copy(id = db.diary().insert(withTime))
         }
         sync { saved.forEach { health.writeMeal(it) } }
+        if (prefs.reasonsEnabled.value && saved.isNotEmpty()) pendingReason.value = saved.map { it.id }
     }
 
     fun updateGrams(entry: DiaryEntry, grams: Double) = viewModelScope.launch {
@@ -300,6 +362,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         db.fluids().deleteAll()
         db.weights().deleteAll()
         db.notes().deleteAll()
+        db.sleep().deleteAll()
         if (everything) {
             db.foods().deleteCustom()
             db.foods().setFavorites(emptyList())
@@ -321,15 +384,22 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     val weekHabits: StateFlow<Habits?> = combine(
         day.flatMapLatest { db.diary().rangeFlow(it.minusDays(6).toEpochDay(), it.toEpochDay()) },
         foodsById,
-    ) { list, foods -> Habits.of(list, foods, 7).takeIf { it.days >= 2 } }
+        day.flatMapLatest { db.sleep().rangeFlow(it.minusDays(6).toEpochDay(), it.toEpochDay()) },
+        hcSleep,
+        prefs.sleepEnabled,
+    ) { list, foods, manual, hc, sleepOn ->
+        val sleepMap = if (sleepOn) hc + manual.associate { it.day to it.hours } else emptyMap()
+        Habits.of(list, foods, 7, sleep = sleepMap).takeIf { it.days >= 2 }
+    }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     enum class Period(val days: Int) { WEEK(7), MONTH(30), YEAR(365) }
 
     suspend fun habitsFor(period: Period): Habits {
         val end = LocalDate.now()
-        val list = db.diary().range(end.minusDays(period.days - 1L).toEpochDay(), end.toEpochDay())
-        return Habits.of(list, foodsById.value.ifEmpty { db.foods().allOnce().associateBy { it.id } }, period.days)
+        val from = end.minusDays(period.days - 1L)
+        val list = db.diary().range(from.toEpochDay(), end.toEpochDay())
+        return Habits.of(list, foodsById.value.ifEmpty { db.foods().allOnce().associateBy { it.id } }, period.days, sleep = sleepRange(from, end))
     }
 
     /** Plain-text summary of a period ending today, compared with the period before, for the AI. */
@@ -341,8 +411,9 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         val foods = foodsById.value.ifEmpty { db.foods().allOnce().associateBy { it.id } }
         val all = db.diary().range(prevFrom.toEpochDay(), end.toEpochDay())
         val (cur, prev) = all.partition { it.day >= from.toEpochDay() }
-        val h = Habits.of(cur, foods, period.days)
-        val hp = Habits.of(prev, foods, period.days)
+        val sleepAll = sleepRange(prevFrom, end)
+        val h = Habits.of(cur, foods, period.days, sleep = sleepAll.filterKeys { it >= from.toEpochDay() })
+        val hp = Habits.of(prev, foods, period.days, sleep = sleepAll.filterKeys { it < from.toEpochDay() })
         val fluidsByDay = db.fluids().totalsOnce(prevFrom.toEpochDay(), end.toEpochDay()).associate { it.day to it.ml }
         val tg = targets.value
         val time = java.time.format.DateTimeFormatter.ofPattern("HH:mm")
@@ -395,6 +466,16 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
                 line("Alcohol", "${"%.1f".format(java.util.Locale.ROOT, h.alcoholPerWeek)} standard drinks a week", "%.1f".format(java.util.Locale.ROOT, hp.alcoholPerWeek))
                 line("Days with fast food", "${h.fastFoodDays}", "${hp.fastFoodDays}")
             }
+            if (h.sleepAvg != null || hp.sleepAvg != null) {
+                line("Average sleep", h.sleepAvg?.let { "%.1f h".format(java.util.Locale.ROOT, it) } ?: "not recorded", hp.sleepAvg?.let { "%.1f h".format(java.util.Locale.ROOT, it) } ?: "not recorded")
+            }
+            if (h.reasonMeals > 0) {
+                val why = h.notHunger.entries.sortedByDescending { it.value }.joinToString { "${ua.tarilka.data.Reasons.EN[it.key]} ${it.value}" }
+                appendLine(
+                    "Why the person ate (answered for ${h.reasonMeals} meals): not from hunger ${h.notHungerTotal} times" +
+                        (if (why.isNotEmpty()) " ($why)" else "") + "; hard to stop ${h.hardToStop} times.",
+                )
+            }
             line("Average drinks (water etc.) on days with any", avgFluid(from, end)?.let { "$it ml" } ?: "none logged", avgFluid(prevFrom, from.minusDays(1))?.let { "$it ml" } ?: "none")
             if (steps != null) line("Average steps a day", "${steps / n}", prevSteps?.let { "${it / n}" } ?: "no data")
             val recent = weights.value.filter { it.day in minOf(prevFrom, end.minusDays(27)).toEpochDay()..end.toEpochDay() }
@@ -412,8 +493,10 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
             append(
                 "Write a kind, encouraging summary: first what went well or improved, then 2–3 patterns worth attention, " +
                     "then the techniques. Compare with the previous $periodName where it helps. Days with nothing logged were probably just not recorded. " +
-                    "Never shame. Do not set weight targets or suggest diets. Suggest seeing a doctor or a specialist only if weight falls faster " +
-                    "than about 1 % of body weight a week, the average is under 1200 kcal, or a quarter or more of calories are eaten late on most days.",
+                    "Never shame. Do not set weight targets or suggest diets. If sleep is short, mention that it raises appetite. " +
+                    "Suggest seeing a doctor or a specialist only if weight falls faster than about 1 % of body weight a week, " +
+                    "the average is under 1200 kcal, a quarter or more of calories are eaten late on most days, " +
+                    "or eating felt hard to stop twice a week or more; then say kindly that this is common and help works.",
             )
         }
     }

@@ -254,7 +254,5 @@ private fun ReviewCard(i: Int, item: ReviewItem, ai: AiViewModel, onReplace: (In
 }
 
 /** The model sometimes answers in Russian; then the English name is shown instead. */
-private fun detectedName(d: ua.tarilka.ai.DetectedFood): String {
-    val looksRussian = d.nameUk.any { it in "ыэъёЫЭЪЁ" }
-    return if (ua.tarilka.data.isUkrainian() && !looksRussian) d.nameUk else d.nameEn
-}
+private fun detectedName(d: ua.tarilka.ai.DetectedFood): String =
+    if (ua.tarilka.data.isUkrainian()) ua.tarilka.data.Lang.safeUk(d.nameUk, d.nameEn) else d.nameEn

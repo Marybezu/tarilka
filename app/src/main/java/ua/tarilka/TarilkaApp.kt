@@ -46,7 +46,7 @@ class TarilkaApp : Application() {
         prefs = Prefs(this)
         applyThemeMode(prefs.themeMode)
         models = ModelStore(this)
-        gemma = GemmaEngine(this, models)
+        gemma = GemmaEngine(this, models, scope)
         health = HealthSync(this)
         stepSensor = StepSensor(this, prefs)
         scope.launch {

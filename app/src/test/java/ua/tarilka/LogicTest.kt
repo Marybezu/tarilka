@@ -99,4 +99,14 @@ class LogicTest {
         assertEquals("spinach", p.parseFoods(cut).single().nameEn)
         assertTrue(p.parseFoods("I see a plate").isEmpty())
     }
+
+    @Test
+    fun russianIsCaught() {
+        val l = ua.tarilka.data.Lang
+        assertTrue(l.looksRussian("рыба, запечена на грилі"))
+        assertTrue(l.looksRussian("Мясо и овощи"))
+        assertTrue(!l.looksRussian("Халумі на грилі, оливки й огірок"))
+        assertTrue(!l.looksRussian("Їжте більше білка і клітковини"))
+        assertEquals("grilled fish", l.safeUk("рыба на гриле", "grilled fish"))
+    }
 }

@@ -171,7 +171,12 @@ class AiViewModel(app: Application) : AndroidViewModel(app) {
 
     fun requestAdvice(summary: String, ukrainian: Boolean) = viewModelScope.launch {
         _adviceLoading.value = true
-        _advice.value = runCatching { gemma.advice(summary, ukrainian) }.getOrElse { "⚠ ${it.message}" }
+        _advice.value = runCatching {
+            var text = gemma.advice(summary, ukrainian)
+            // The small model sometimes slips into Russian: ask once more, then show nothing rather than Russian.
+            if (ukrainian && ua.tarilka.data.Lang.looksRussian(text)) text = gemma.advice(summary, ukrainian)
+            if (ukrainian && ua.tarilka.data.Lang.looksRussian(text)) null else text
+        }.getOrElse { "⚠ ${it.message}" }
         _adviceLoading.value = false
     }
 

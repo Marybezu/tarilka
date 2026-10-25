@@ -219,6 +219,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         prefs.stepsEnabled = on
         _stepsEnabled.value = on
         refreshSteps()
+        runCatching { ua.tarilka.notify.Reminders.schedule(getApplication()) }
     }
 
     fun setHealthSync(on: Boolean) {

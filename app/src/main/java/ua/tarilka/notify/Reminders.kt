@@ -32,6 +32,9 @@ object Reminders {
     const val WATER = 10
     const val SLEEP = 20
     const val WEEKLY = 30
+    /** Not a notification: a silent reading of the step sensor just before midnight. */
+    const val STEPS = 40
+    private val STEPS_TIME = LocalTime.of(23, 55)
     private val WATER_TIMES = listOf(LocalTime.of(12, 0), LocalTime.of(16, 0), LocalTime.of(19, 0))
     private val WEEKLY_TIME = LocalTime.of(19, 0)
     private const val CHANNEL = "reminders"
@@ -54,6 +57,9 @@ object Reminders {
         for (meal in 0..2) set(MEAL_0 + meal, prefs.mealReminder(meal)?.let(::next))
         set(WATER, if (prefs.waterReminder) WATER_TIMES.map(::next).minOrNull() else null)
         set(SLEEP, prefs.sleepReminder?.let(::next))
+        // The sensor counts since the phone was switched on; a nightly reading splits it into days,
+        // so morning steps are not lost when the app is opened later. Not needed with Health Connect.
+        set(STEPS, if (prefs.stepsEnabled && (context.applicationContext as TarilkaApp).stepSensor.present) next(STEPS_TIME) else null)
         set(WEEKLY, if (prefs.weeklyReminder) {
             var d = next(WEEKLY_TIME)
             while (d.dayOfWeek != DayOfWeek.SUNDAY) d = d.plusDays(1)
@@ -88,6 +94,10 @@ object Reminders {
             }
             SLEEP -> context.getString(R.string.remind_sleep)
             WEEKLY -> context.getString(R.string.remind_weekly)
+            STEPS -> {
+                app.stepSensor.today()?.let { app.prefs.logSteps(today, it) }
+                return
+            }
             else -> return
         }
         show(context, kind, text)

@@ -90,5 +90,8 @@ jobs:
           files: out/*.apk
           make_latest: true
           body: |
-            Install: download the .apk below on your phone and open it.
-            Встановлення: завантажте .apk нижче на телефоні й відкрийте його.
+            **Тестова версія.** Завантажте .apk нижче на телефоні й відкрийте його. Перед оновленням зробіть резервну копію: Опції → Дані → Експорт копії.
+            Відгук або помилка: Опції → Про застосунок → «Написати відгук», або вкладка Issues.
+
+            **Test version.** Download the .apk below on your phone and open it. Before updating, make a backup: Options → Data → Export backup.
+            Feedback or a bug: Options → About → Send feedback, or the Issues tab.

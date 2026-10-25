@@ -249,8 +249,8 @@
     <string name="habit_late">🌙 After 22:00: %1$s%% of calories</string>
     <string name="habit_late_none">🌙 Nothing after 22:00</string>
     <string name="habit_late_info">Share of calories logged after 22:00. A quarter of the day or more is worth attention. What helps most: regular meals during the day (no gaps over 4 hours), protein at dinner and a planned evening snack. The time of logging is used, so a dinner logged late counts too.</string>
-    <string name="habit_alcohol">🍷 Alcohol: %1$s drinks/week</string>
-    <string name="habit_alcohol_info">A standard drink has 10 g of alcohol: about 250 ml of beer, 100 ml of wine or 30 ml of spirits. There is no safe amount, so less is better. Alcohol-free days and a glass of water between drinks help.</string>
+    <string name="habit_alcohol">🍷 Alcohol: %1$s drinks/week · %2$d days</string>
+    <string name="habit_alcohol_info">A standard drink has 10 g of alcohol: about 250 ml of beer, 100 ml of wine or 30 ml of spirits. There is no safe amount of alcohol (WHO), so less is better.</string>
     <string name="habit_fastfood">🍔 Fast food: %1$d days</string>
     <string name="habit_fastfood_info">Days with fast food: pizza, burgers, shawarma and so on. Now and then is fine. If often, keep a simple quick home option at hand.</string>
     <string name="ai_unknown">AI sees: “%1$s”</string>
@@ -281,4 +281,53 @@
     <string name="habit_reasons">💭 Not from hunger: %1$d of %2$d</string>
     <string name="habit_reasons_info">How often you ate for another reason than hunger (of the times you answered "Why I eat"). Most often: %1$s. Eating for company or pleasure now and then is normal. When the urge is not hunger, name what you feel and wait 10–15 minutes: a short walk, a call, a glass of water. The wave usually passes. Regular meals during the day help too. "Hard to stop": %2$d time(s). If this happens often, talk to a doctor or a psychologist: it is common and help works.</string>
     <string name="ai_download">Download model</string>
+    <string name="alcohol_many">Noticed: more than 7 drinks a week.</string>
+    <string name="alcohol_often">Noticed: alcohol on 4 or more days a week.</string>
+    <string name="alcohol_heavy">Noticed days with 6 or more drinks: %1$d. That much at once is especially harmful.</string>
+    <string name="alcohol_trend_down">Less than in the period before (it was %1$s drinks/week). Good progress!</string>
+    <string name="alcohol_trend_up">More than in the period before (it was %1$s drinks/week).</string>
+    <string name="alcohol_tips">What helps:\n• decide in advance how much and on which days, and write it down;\n• at least 2–3 alcohol-free days a week;\n• drink slowly, alternate with a glass of water, not on an empty stomach;\n• smaller glasses, alcohol-free beer or wine, sparkling water with lemon;\n• notice what pushes you (stress, company, evenings) and plan something else for then;\n• tell someone close about your goal.</string>
+    <string name="alcohol_help">If heavy days keep coming back or cutting down alone does not work, help from a doctor, a psychologist or a support line is a normal and effective step.</string>
+    <string name="audit_button">Check yourself (AUDIT-C)</string>
+    <string name="audit_title">AUDIT-C self-check</string>
+    <string name="audit_intro">Three WHO questions about alcohol over the past year. A drink is 10 g of alcohol: 250 ml of beer, 100 ml of wine or 30 ml of spirits. Answers are not saved anywhere.</string>
+    <string name="audit_q1">How often do you have a drink containing alcohol?</string>
+    <string name="audit_q2">How many drinks do you have on a typical day when you drink?</string>
+    <string name="audit_q3">How often do you have 6 or more drinks on one occasion?</string>
+    <string name="audit_score">Result: %1$d of 12</string>
+    <string name="audit_none">You don\'t drink alcohol. Great.</string>
+    <string name="audit_low">Lower risk. Still, there is no safe amount, so less is better.</string>
+    <string name="audit_risk">Increased risk. Try the tips below and set yourself a goal for the coming weeks: the app shows how the amount changes.</string>
+    <string name="audit_high">High risk to health. Start with the tips below. Help from a doctor, a psychologist or a support line is a normal and effective step, and the earlier the easier.</string>
+    <string name="steps_title">Steps</string>
+    <string name="steps_no_history">No data yet. Health Connect shows past days too; the phone sensor only days you opened the app.</string>
+    <string name="steps_avg">On average %1$s a day · goal reached on %2$d of %3$d days</string>
+    <string name="steps_goal">Daily steps goal</string>
+    <string name="steps_goal_hint">8,000 by default. Large studies show the health benefit grows up to about 7–8 thousand steps (8–10 thousand for younger people) and then hardly increases. 10,000 comes from a 1960s pedometer advert.</string>
+    <string name="filter_all">All</string>
+    <string name="filter_mine">Mine</string>
+    <string name="filter_favorites">Favorites</string>
+    <string name="filter_mine_empty">Your own foods and recipes will be here. Add them with New food.</string>
+    <string name="filter_favorites_empty">Favorite foods will be here. Tap the heart on what you eat often.</string>
+    <string-array name="audit_a1">
+        <item>Never</item>
+        <item>Monthly or less</item>
+        <item>2–4 times a month</item>
+        <item>2–3 times a week</item>
+        <item>4+ times a week</item>
+    </string-array>
+    <string-array name="audit_a2">
+        <item>1–2</item>
+        <item>3–4</item>
+        <item>5–6</item>
+        <item>7–9</item>
+        <item>10+</item>
+    </string-array>
+    <string-array name="audit_a3">
+        <item>Never</item>
+        <item>Less than monthly</item>
+        <item>Monthly</item>
+        <item>Weekly</item>
+        <item>Daily or almost</item>
+    </string-array>
 </resources>

@@ -122,7 +122,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         val now = LocalTime.now().hour
         val finished = d.isBefore(LocalDate.now()) || now >= 21
         val afternoon = d == LocalDate.now() && now >= 15
-        Tips.forDay(t, tg, n, finished, rest[1] as Profile, rest[2] as Double?, rest[3] as Double?, fluid, afternoon, st)
+        Tips.forDay(t, tg, n, finished, rest[1] as Profile, rest[2] as Double?, rest[3] as Double?, fluid, afternoon, st, prefs.stepsGoal.value)
     }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     init {
@@ -198,6 +198,21 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         val useHc = fromHc != null && (fromHc > 0 || fromSensor == null)
         _steps.value = if (useHc) fromHc else fromSensor
         stepsFromHc.value = useHc
+        if (!useHc && fromSensor != null) prefs.logSteps(d.toEpochDay(), fromSensor)
+    }
+
+    val stepsGoal: StateFlow<Int> = prefs.stepsGoal
+    fun setStepsGoal(v: Int) = prefs.setStepsGoal(v)
+
+    /** Steps per day for the last [days] days ending at the selected day: Health Connect, else the sensor log. */
+    suspend fun stepsHistory(days: Int): List<Pair<LocalDate, Long?>> {
+        val end = day.value
+        val log = prefs.loggedSteps()
+        val hc = runCatching { health.canReadSteps() }.getOrDefault(false)
+        return (days - 1 downTo 0).map { i ->
+            val d = end.minusDays(i.toLong())
+            d to ((if (hc) runCatching { health.steps(d) }.getOrNull() else null) ?: log[d.toEpochDay()])
+        }
     }
 
     fun setStepsEnabled(on: Boolean) {
@@ -386,14 +401,18 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
 
     /** Patterns for the 7 days ending at the selected day (the "Week" card). */
     val weekHabits: StateFlow<Habits?> = combine(
-        day.flatMapLatest { db.diary().rangeFlow(it.minusDays(6).toEpochDay(), it.toEpochDay()) },
+        // Two weeks: the one before gives the alcohol trend.
+        day.flatMapLatest { db.diary().rangeFlow(it.minusDays(13).toEpochDay(), it.toEpochDay()) },
         foodsById,
         day.flatMapLatest { db.sleep().rangeFlow(it.minusDays(6).toEpochDay(), it.toEpochDay()) },
         hcSleep,
         prefs.sleepEnabled,
     ) { list, foods, manual, hc, sleepOn ->
         val sleepMap = if (sleepOn) hc + manual.associate { it.day to it.hours } else emptyMap()
-        Habits.of(list, foods, 7, sleep = sleepMap).takeIf { it.days >= 2 }
+        val (cur, prev) = list.partition { it.day > day.value.minusDays(7).toEpochDay() }
+        Habits.of(cur, foods, 7, sleep = sleepMap)
+            .copy(alcoholPrevPerWeek = Habits.of(prev, foods, 7).alcoholPerWeek)
+            .takeIf { it.days >= 2 }
     }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
@@ -402,8 +421,11 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     suspend fun habitsFor(period: Period): Habits {
         val end = LocalDate.now()
         val from = end.minusDays(period.days - 1L)
-        val list = db.diary().range(from.toEpochDay(), end.toEpochDay())
-        return Habits.of(list, foodsById.value.ifEmpty { db.foods().allOnce().associateBy { it.id } }, period.days, sleep = sleepRange(from, end))
+        val foods = foodsById.value.ifEmpty { db.foods().allOnce().associateBy { it.id } }
+        val (cur, prev) = db.diary().range(from.minusDays(period.days.toLong()).toEpochDay(), end.toEpochDay())
+            .partition { it.day >= from.toEpochDay() }
+        return Habits.of(cur, foods, period.days, sleep = sleepRange(from, end))
+            .copy(alcoholPrevPerWeek = Habits.of(prev, foods, period.days).alcoholPerWeek)
     }
 
     /** Plain-text summary of a period ending today, compared with the period before, for the AI. */
@@ -467,7 +489,11 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
                 line("Sweets and sugary drinks", "${h.sweetsPct.r()} % of calories, ${h.sweetFreeDays} of ${h.days} days without", if (hp.days > 0) "${hp.sweetsPct.r()} %" else "no data")
                 line("Vegetables and fruit", "${h.vegFruitG.r()} g a day (WHO: 400 g or more)", if (hp.days > 0) "${hp.vegFruitG.r()} g" else "no data")
                 line("Calories logged after 22:00", "${h.latePct.r()} %", if (hp.days > 0) "${hp.latePct.r()} %" else "no data")
-                line("Alcohol", "${"%.1f".format(java.util.Locale.ROOT, h.alcoholPerWeek)} standard drinks a week", "%.1f".format(java.util.Locale.ROOT, hp.alcoholPerWeek))
+                line(
+                    "Alcohol (standard drinks of 10 g)",
+                    "${"%.1f".format(java.util.Locale.ROOT, h.alcoholPerWeek)} a week, on ${h.alcoholDays} days, ${h.heavyDrinkDays} days with 6 or more",
+                    "${"%.1f".format(java.util.Locale.ROOT, hp.alcoholPerWeek)} a week, on ${hp.alcoholDays} days, ${hp.heavyDrinkDays} days with 6 or more",
+                )
                 line("Days with fast food", "${h.fastFoodDays}", "${hp.fastFoodDays}")
             }
             if (h.sleepAvg != null || hp.sleepAvg != null) {
@@ -501,13 +527,19 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
             }
             appendLine("Techniques you may suggest (pick 1–2 that fit what you see, explain simply):")
             Habits.TECHNIQUES.forEach { appendLine("- $it") }
+            if (h.alcoholPerWeek > 0) {
+                appendLine("For alcohol (WHO brief intervention; if there is alcohol, always include 2 of these, more if drinking is frequent or heavy):")
+                Habits.ALCOHOL_TECHNIQUES.forEach { appendLine("- $it") }
+            }
             append(
                 "Write a kind, encouraging summary: first what went well or improved, then 2–3 patterns worth attention, " +
                     "then the techniques. Compare with the previous $periodName where it helps. Days with nothing logged were probably just not recorded. " +
                     "Never shame. Do not set weight targets or suggest diets. If sleep is short, mention that it raises appetite. " +
                     "Suggest seeing a doctor or a specialist only if weight falls faster than about 1 % of body weight a week, " +
                     "the average is under 1200 kcal, a quarter or more of calories are eaten late on most days, " +
-                    "or eating felt hard to stop twice a week or more; then say kindly that this is common and help works.",
+                    "or eating felt hard to stop twice a week or more; then say kindly that this is common and help works. " +
+                    "For alcohol there is no safe amount: say whether it went up or down compared with before; if there were days with 6 or more drinks, " +
+                    "give the alcohol techniques first and only then add that a doctor or a support line can help.",
             )
         }
     }

@@ -22,6 +22,7 @@ object Tips {
         fluidMl: Double = 0.0,
         afternoon: Boolean = false,
         steps: Long? = null,
+        stepsGoal: Int = 8_000,
     ): List<Tip> {
         val tips = mutableListOf<Tip>()
         if (entries == 0) {
@@ -65,7 +66,7 @@ object Tips {
         }
         if (steps != null) {
             when {
-                steps >= 10_000 -> tips += Tip(R.string.tip_steps_good, listOf(steps.toInt()), Tip.Kind.GOOD)
+                steps >= stepsGoal -> tips += Tip(R.string.tip_steps_good, listOf(steps.toInt()), Tip.Kind.GOOD)
                 dayFinished && steps < 4_000 -> tips += Tip(R.string.tip_steps_low, listOf(steps.toInt()))
             }
         }

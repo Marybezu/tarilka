@@ -59,6 +59,28 @@ class Prefs(context: Context) {
     val reasonsEnabled: StateFlow<Boolean> = _reasonsEnabled.asStateFlow()
     fun setReasonsEnabled(on: Boolean) { sp.edit().putBoolean("reasonsEnabled", on).apply(); _reasonsEnabled.value = on }
 
+    private val _stepsGoal = MutableStateFlow(sp.getInt("stepsGoal", 8_000))
+    /**
+     * Daily steps goal. 8 000 by default: large studies see the health benefit level off around
+     * 6 000–8 000 steps (older adults) and 8 000–10 000 (younger); 10 000 comes from a 1960s advert.
+     */
+    val stepsGoal: StateFlow<Int> = _stepsGoal.asStateFlow()
+    fun setStepsGoal(v: Int) { sp.edit().putInt("stepsGoal", v).apply(); _stepsGoal.value = v }
+
+    /** Daily totals from the phone's step sensor (Health Connect keeps its own history). */
+    fun logSteps(day: Long, steps: Long) {
+        val o = runCatching { org.json.JSONObject(sp.getString("stepLog", "{}")!!) }.getOrDefault(org.json.JSONObject())
+        o.put(day.toString(), steps)
+        // Keep a little over a year.
+        o.keys().asSequence().toList().filter { it.toLong() < day - 400 }.forEach { o.remove(it) }
+        sp.edit().putString("stepLog", o.toString()).apply()
+    }
+
+    fun loggedSteps(): Map<Long, Long> = runCatching {
+        val o = org.json.JSONObject(sp.getString("stepLog", "{}")!!)
+        o.keys().asSequence().associate { it.toLong() to o.getLong(it) }
+    }.getOrDefault(emptyMap())
+
     /** 0 = follow system, 1 = light, 2 = dark */
     var themeMode: Int
         get() = sp.getInt("themeMode", 0)

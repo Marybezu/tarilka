@@ -88,6 +88,8 @@ fun TodayScreen(
     val sleep by vm.sleep.collectAsState()
     val sleepOn by vm.sleepEnabled.collectAsState()
     var sleepDialog by remember { mutableStateOf(false) }
+    var stepsDialog by remember { mutableStateOf(false) }
+    val stepsGoal by vm.stepsGoal.collectAsState()
     var weightDialog by remember { mutableStateOf(false) }
     val note by vm.note.collectAsState()
     var noteDialog by remember { mutableStateOf(false) }
@@ -161,12 +163,12 @@ fun TodayScreen(
                 if (stepsEnabled && steps != null) {
                     Spacer(Modifier.height(8.dp))
                     val kcal = ua.tarilka.data.Nutrition.stepsKcal(steps!!, weight ?: profile.weightKg)
+                    Column(Modifier.clickable { stepsDialog = true }) {
+                        NutrientBar("👣 " + stringResource(R.string.steps_title), steps!!.toDouble(), stepsGoal.toDouble(), macros.fiber, unit = "")
+                    }
                     Text(
-                        "👣 " + stringResource(R.string.steps_line, steps!!.toInt(), kcal.f0()),
-                        style = MaterialTheme.typography.bodyMedium.merge(Numbers),
-                    )
-                    Text(
-                        stringResource(if (stepsFromHc) R.string.steps_from_hc else R.string.steps_from_sensor),
+                        "≈ ${kcal.f0()} ${stringResource(R.string.unit_kcal)} · " +
+                            stringResource(if (stepsFromHc) R.string.steps_from_hc else R.string.steps_from_sensor),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -272,7 +274,7 @@ fun TodayScreen(
                     WeekBars(day, week, targets.kcal)
                     habits?.let {
                         Spacer(Modifier.height(10.dp))
-                        HabitChips(it)
+                        HabitChips(it, sex = profile.sex)
                     }
                     TextButton(onClick = onHistory) { Text(stringResource(R.string.summaries_link)) }
                 }
@@ -304,6 +306,8 @@ fun TodayScreen(
             },
         )
     }
+
+    if (stepsDialog) StepsDialog(vm) { stepsDialog = false }
 
     if (sleepDialog) {
         SleepDialog(

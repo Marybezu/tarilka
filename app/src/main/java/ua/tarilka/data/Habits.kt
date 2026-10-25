@@ -33,6 +33,12 @@ data class Habits(
     /** Meals eaten for another reason than hunger, by reason. */
     val notHunger: Map<Int, Int> = emptyMap(),
     val hardToStop: Int = 0,
+    /** Days with any alcohol. */
+    val alcoholDays: Int = 0,
+    /** Days with 6 or more standard drinks (WHO: heavy episodic drinking, 60 g of alcohol). */
+    val heavyDrinkDays: Int = 0,
+    /** The same figure for the period before, for the trend; set by the caller. */
+    val alcoholPrevPerWeek: Double? = null,
 ) {
     val notHungerTotal: Int get() = notHunger.values.sum()
     enum class Level { GOOD, OK, WATCH }
@@ -40,7 +46,15 @@ data class Habits(
     val sweetsLevel get() = level(sweetsPct < 5, sweetsPct <= 10)
     val vegLevel get() = level(vegFruitG >= 400, vegFruitG >= 200)
     val lateLevel get() = level(latePct < 10, latePct < 25)
-    val alcoholLevel get() = level(alcoholPerWeek == 0.0, alcoholPerWeek <= 7)
+    /**
+     * There is no safe amount (WHO 2023), so any alcohol is amber. Orange: more than 7 drinks a week,
+     * alcohol on 4 or more days a week, or any day with 6 or more drinks.
+     */
+    val alcoholLevel get() = when {
+        alcoholPerWeek == 0.0 -> Level.GOOD
+        alcoholPerWeek > 7 || alcoholDays * 7.0 / periodDays >= 4 || heavyDrinkDays > 0 -> Level.WATCH
+        else -> Level.OK
+    }
     val fastFoodLevel get() = level(fastFoodDays == 0, fastFoodDays * 7.0 / periodDays <= 1)
     val sleepLevel get() = sleepAvg?.let { level(it >= 7, it >= 6) } ?: Level.OK
     /** Hard-to-stop episodes twice a week or more are worth attention; eating for other reasons now and then is normal. */
@@ -71,6 +85,16 @@ data class Habits(
             "After a slip: one evening does not cancel the week; guilt itself often triggers the next episode.",
         )
 
+        /** WHO brief intervention for alcohol: what people can do on their own. */
+        val ALCOHOL_TECHNIQUES = listOf(
+            "Decide in advance how much and on which days; write it down.",
+            "At least 2–3 alcohol-free days every week.",
+            "Drink slowly, alternate each drink with a glass of water, never on an empty stomach.",
+            "Smaller glasses; alcohol-free beer or wine, or sparkling water with lemon.",
+            "Notice what pushes you to drink (stress, company, evenings) and plan something else for that moment.",
+            "Tell someone close about your goal; it makes it easier to keep.",
+        )
+
         fun isSweet(f: Food) = f.category == "sweets" || f.code in SUGARY_DRINKS
         fun isVegFruit(f: Food) = (f.category == "veg" || f.category == "fruit") && f.code !in STARCHY
 
@@ -90,7 +114,9 @@ data class Habits(
                 val h = Instant.ofEpochMilli(it.createdAt).atZone(zone).hour
                 h >= 22 || h < 4
             }.sumOf { it.kcal }
-            val alcohol = entries.sumOf { e -> food(e)?.code?.let(ALCOHOL_G::get)?.let { it * e.grams / 100 } ?: 0.0 } / 10
+            fun alcoholG(e: DiaryEntry) = food(e)?.code?.let(ALCOHOL_G::get)?.let { it * e.grams / 100 } ?: 0.0
+            val alcohol = entries.sumOf(::alcoholG) / 10
+            val alcoholByDay = byDay.values.map { list -> list.sumOf(::alcoholG) }
             // One answer covers everything added at once; count it once per meal of a day.
             val meals = entries.filter { it.reason != null || it.hunger != null || it.hardToStop }
                 .groupBy { it.day to it.meal }.values.map { it.first() }
@@ -112,6 +138,8 @@ data class Habits(
                 reasonMeals = meals.size,
                 notHunger = meals.mapNotNull { it.reason }.filter { it != Reasons.HUNGER }.groupingBy { it }.eachCount(),
                 hardToStop = meals.count { it.hardToStop },
+                alcoholDays = alcoholByDay.count { it > 0 },
+                heavyDrinkDays = alcoholByDay.count { it >= 60 },
             )
         }
     }

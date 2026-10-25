@@ -190,15 +190,36 @@ fun FoodsScreen(vm: MainViewModel, padding: PaddingValues, onEdit: (Food?) -> Un
     val query by vm.query.collectAsState()
     val results by vm.searchResults.collectAsState()
     var details by remember { mutableStateOf<Food?>(null) }
+    /** 0 all, 1 my own foods and recipes, 2 favorites */
+    var filter by androidx.compose.runtime.saveable.rememberSaveable { androidx.compose.runtime.mutableIntStateOf(0) }
+    val shown = when (filter) {
+        1 -> results.filter { it.isCustom }
+        2 -> results.filter { it.favorite }
+        else -> results
+    }
 
     Column(Modifier.padding(top = padding.calculateTopPadding())) {
         SearchField(query, { vm.query.value = it }, Modifier.padding(horizontal = 16.dp, vertical = 8.dp))
+        Row(Modifier.padding(horizontal = 16.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            listOf(R.string.filter_all, R.string.filter_mine, R.string.filter_favorites).forEachIndexed { i, res ->
+                androidx.compose.material3.FilterChip(selected = filter == i, onClick = { filter = i }, label = { Text(stringResource(res)) })
+            }
+        }
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
             contentPadding = PaddingValues(bottom = padding.calculateBottomPadding() + 88.dp),
         ) {
-            items(results, key = { it.id }) { f ->
+            items(shown, key = { it.id }) { f ->
                 FoodRow(f, { details = f }, onFavorite = { vm.toggleFavorite(f) })
+            }
+            if (shown.isEmpty() && filter != 0) {
+                item {
+                    Text(
+                        stringResource(if (filter == 1) R.string.filter_mine_empty else R.string.filter_favorites_empty),
+                        modifier = Modifier.padding(24.dp),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
             }
         }
     }

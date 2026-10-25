@@ -297,6 +297,9 @@ private fun SelfSection(vm: MainViewModel) {
                 if (on && vm.healthAvailable) sleepLauncher.launch(setOf(ua.tarilka.health.HealthSync.READ_SLEEP))
             }
             SwitchRow(stringResource(R.string.reasons_title), stringResource(R.string.reasons_hint), reasonsOn) { vm.setReasonsEnabled(it) }
+            var audit by remember { mutableStateOf(false) }
+            TextButton(onClick = { audit = true }) { Text(stringResource(R.string.audit_button)) }
+            if (audit) AuditCDialog(vm.profile.value.sex) { audit = false }
         }
     }
 }

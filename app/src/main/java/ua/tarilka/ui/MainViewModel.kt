@@ -242,6 +242,68 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         fluids.value.maxByOrNull { it.createdAt }?.let { deleteFluid(it) }
     }
 
+    // ---- batch delete with a short undo ----
+
+    private var undoAction: (suspend () -> Unit)? = null
+    /** How many items the last batch delete removed; the UI offers "Undo" while this is set. */
+    val undoCount = MutableStateFlow<Int?>(null)
+
+    private fun offerUndo(count: Int, restore: suspend () -> Unit) {
+        undoAction = restore
+        undoCount.value = count
+    }
+
+    fun undo() = viewModelScope.launch {
+        undoAction?.invoke()
+        undoAction = null
+        undoCount.value = null
+    }
+
+    fun undoShown() { undoCount.value = null }
+
+    fun deleteMeal(meal: Int) = viewModelScope.launch {
+        val list = entries.value.filter { it.meal == meal }
+        if (list.isEmpty()) return@launch
+        db.diary().deleteMany(list)
+        sync { list.forEach { health.deleteMeal(it) } }
+        offerUndo(list.size) {
+            db.diary().insertAll(list)
+            sync { list.forEach { health.writeMeal(it) } }
+        }
+    }
+
+    fun deleteFluidsOfDay() = viewModelScope.launch {
+        val list = fluids.value
+        if (list.isEmpty()) return@launch
+        db.fluids().deleteMany(list)
+        sync { list.forEach { health.deleteFluid(it) } }
+        offerUndo(list.size) {
+            db.fluids().insertAll(list)
+            sync { list.forEach { health.writeFluid(it) } }
+        }
+    }
+
+    /**
+     * Clears the diary (food, drinks, weight, notes). With [everything] also own foods, recipes,
+     * favorites, the profile and the not-found list. The AI model and app settings stay.
+     */
+    fun clearData(everything: Boolean, alsoHealthConnect: Boolean) = viewModelScope.launch {
+        db.diary().deleteAll()
+        db.fluids().deleteAll()
+        db.weights().deleteAll()
+        db.notes().deleteAll()
+        if (everything) {
+            db.foods().deleteCustom()
+            db.foods().setFavorites(emptyList())
+            prefs.clearPersonal()
+            java.io.File(getApplication<Application>().cacheDir, "photos").deleteRecursively()
+        }
+        undoAction = null
+        undoCount.value = null
+        if (alsoHealthConnect) tapp.scope.launch { runCatching { health.deleteAllOwn() } }
+        dataMessage.value = getApplication<Application>().getString(ua.tarilka.R.string.clear_done)
+    }
+
     // ---- habits and summaries ----
 
     private val foodsById: StateFlow<Map<Long, Food>> = db.foods().all().map { list -> list.associateBy { it.id } }

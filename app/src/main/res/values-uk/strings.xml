@@ -50,7 +50,7 @@
     <string name="profile_hint">Заповніть профіль у Налаштуваннях, щоб отримати особисті норми калорій і нутрієнтів. Поки що використовуються середні значення.</string>
     <string name="recommendations">Рекомендації</string>
     <string name="week_title">Останні 7 днів</string>
-    <string name="week_avg">У середньому %1$s ккал за %2$d дн. із записами, білка %3$s г на день.</string>
+    <string name="week_avg">У середньому %1$s ккал на день (днів із записами: %2$d), білка %3$s г.</string>
 
     <string name="tip_empty">Ще нічого не записано. Додайте прийом їжі вручну або сфотографуйте тарілку.</string>
     <string name="tip_remaining">На сьогодні залишилось близько %1$d ккал.</string>
@@ -91,7 +91,7 @@
     <string name="weight_today">Вага сьогодні</string>
     <string name="weight_saved_today">Сьогодні збережено: %1$s кг. Нове значення замінить його.</string>
     <string name="weight_chart">Графік</string>
-    <string name="days_n">%1$d днів</string>
+    <string name="days_n">%1$d дн.</string>
     <string name="trend_week">Тренд: %1$s кг на тиждень</string>
     <string name="chart_need_more">Додайте щонайменше два зважування, щоб побачити графік.</string>
     <string name="energy_title">Енергія</string>
@@ -159,9 +159,9 @@
     <string name="plus_ml">+%1$d мл</string>
     <string name="water_target">Рідина: близько %1$s л на день (30 мл на кг).</string>
     <string name="tip_water_low">Варто більше пити: поки %1$d з %2$d мл.</string>
-    <string name="steps_line">%1$d кроків · ≈ %2$s ккал</string>
-    <string name="tip_steps_good">Сьогодні %1$d кроків, чудова прогулянка.</string>
-    <string name="tip_steps_low">Сьогодні лише %1$d кроків. 20 хвилин ходьби — це ще близько 2 000.</string>
+    <string name="steps_line">Кроки: %1$d · ≈ %2$s ккал</string>
+    <string name="tip_steps_good">Кроків сьогодні: %1$d. Чудова прогулянка!</string>
+    <string name="tip_steps_low">Кроків сьогодні: лише %1$d. 20 хвилин ходьби — це ще близько 2 000.</string>
     <string name="activity_section">Кроки та Health Connect</string>
     <string name="show_steps">Показувати кроки</string>
     <string name="show_steps_hint">З Health Connect або з датчика кроків телефону. Видно на екрані «Сьогодні» і враховується в порадах.</string>
@@ -183,9 +183,9 @@
     <string name="export_done">Збережено.</string>
     <string name="data_error">Помилка: %1$s</string>
     <string name="import_title">Відновити з копії?</string>
-    <string name="import_confirm">У файлі %1$d записів їжі, %2$d напоїв, %3$d зважувань і %4$d своїх продуктів. Поточні журнал, напої, вага й свої продукти буде замінено.</string>
+    <string name="import_confirm">У файлі: записів їжі — %1$d, напоїв — %2$d, зважувань — %3$d, своїх продуктів — %4$d. Поточні журнал, напої, вага й свої продукти буде замінено.</string>
     <string name="import_replace">Замінити</string>
-    <string name="import_done">Відновлено: %1$d записів їжі, %2$d зважувань.</string>
+    <string name="import_done">Відновлено. Записів їжі: %1$d, зважувань: %2$d.</string>
     <string name="ai_steps">1. Відкрийте сторінку моделі й завантажте %1$s у браузері (близько 2,6 ГБ, краще через Wi-Fi).\n2. Поверніться й оберіть завантажений файл. Застосунок не має доступу до інтернету, тому модель потрапляє лише так.</string>
     <string name="ai_open_page">Відкрити сторінку моделі</string>
     <string name="ai_delete_original">Видалити завантажений файл після копіювання</string>
@@ -210,4 +210,5 @@
     <string name="cooked_weight">Вага готової страви, г (необовʼязково)</string>
     <string name="cooked_weight_hint">Інгредієнти важать %1$s г. Якщо страва уварилася або вбрала воду, зважте її та впишіть вагу для точних цифр.</string>
     <string name="source_recipe_user">Ваш рецепт</string>
+    <string name="export_retry">Поки обирали файл, застосунок перезапустився, тому нічого не збережено. Спробуйте експорт ще раз.</string>
 </resources>

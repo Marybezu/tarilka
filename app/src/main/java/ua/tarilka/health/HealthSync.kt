@@ -23,7 +23,8 @@ import java.time.ZoneId
 
 /**
  * Optional bridge to Health Connect (built into Android 14+).
- * Writes meals, drinks and weight; reads steps. Every call fails quietly:
+ * Writes meals, drinks and weight; reads steps. Record ids use the entry's creation time,
+ * so they stay unique across reinstalls and restores. Every call fails quietly:
  * the app works the same without it.
  */
 class HealthSync(private val context: Context) {
@@ -63,7 +64,7 @@ class HealthSync(private val context: Context) {
         val rec = NutritionRecord(
             startTime = t, startZoneOffset = off,
             endTime = t.plusSeconds(60), endZoneOffset = off,
-            metadata = Metadata.manualEntry(clientRecordId = "diary-${e.id}"),
+            metadata = Metadata.manualEntry(clientRecordId = "diary-${e.createdAt}"),
             energy = Energy.kilocalories(e.kcal),
             protein = Mass.grams(e.protein),
             totalFat = Mass.grams(e.fat),
@@ -82,7 +83,7 @@ class HealthSync(private val context: Context) {
 
     suspend fun deleteMeal(e: DiaryEntry) {
         val c = client ?: return
-        runCatching { c.deleteRecords(NutritionRecord::class, emptyList(), listOf("diary-${e.id}")) }
+        runCatching { c.deleteRecords(NutritionRecord::class, emptyList(), listOf("diary-${e.createdAt}")) }
     }
 
     suspend fun writeFluid(f: FluidEntry) {
@@ -95,7 +96,7 @@ class HealthSync(private val context: Context) {
                 listOf(
                     HydrationRecord(
                         t, off, t.plusSeconds(60), off, Volume.milliliters(f.ml),
-                        Metadata.manualEntry(clientRecordId = "fluid-${f.id}"),
+                        Metadata.manualEntry(clientRecordId = "fluid-${f.createdAt}"),
                     ),
                 ),
             )
@@ -104,7 +105,12 @@ class HealthSync(private val context: Context) {
 
     suspend fun deleteFluid(f: FluidEntry) {
         val c = client ?: return
-        runCatching { c.deleteRecords(HydrationRecord::class, emptyList(), listOf("fluid-${f.id}")) }
+        runCatching { c.deleteRecords(HydrationRecord::class, emptyList(), listOf("fluid-${f.createdAt}")) }
+    }
+
+    suspend fun deleteWeight(w: WeightEntry) {
+        val c = client ?: return
+        runCatching { c.deleteRecords(WeightRecord::class, emptyList(), listOf("weight-${w.day}")) }
     }
 
     suspend fun writeWeight(w: WeightEntry) {

@@ -303,16 +303,15 @@ private fun AppearanceSection(vm: MainViewModel) {
                 FilterChip(mode == i, { mode = i; vm.setThemeMode(i) }, { Text(stringResource(res)) })
             }
         }
-        if (android.os.Build.VERSION.SDK_INT >= 31) {
-            Spacer(Modifier.height(6.dp))
-            SwitchRow(stringResource(R.string.dynamic_color), stringResource(R.string.dynamic_color_hint), dynamic, vm::setDynamicColor)
-        }
+        Spacer(Modifier.height(6.dp))
+        SwitchRow(stringResource(R.string.dynamic_color), stringResource(R.string.dynamic_color_hint), dynamic, vm::setDynamicColor)
     }
 }
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun DataSection(vm: MainViewModel) {
+    val context = androidx.compose.ui.platform.LocalContext.current
     val message by vm.dataMessage.collectAsState()
     val pending by vm.pendingImport.collectAsState()
     val encrypted by vm.encryptedImport.collectAsState()
@@ -321,7 +320,13 @@ private fun DataSection(vm: MainViewModel) {
     var askPassword by remember { mutableStateOf(false) }
     var password by remember { mutableStateOf("") }
     val exportJson = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { uri ->
-        if (uri != null) vm.exportBackup(uri, password)
+        // The password is kept in the view model: after rotation the UI state is new,
+        // and an empty password here must never silently mean "save unencrypted".
+        val pw = vm.exportPassword
+        if (uri != null) {
+            if (pw == null) vm.dataMessage.value = context.getString(R.string.export_retry) else vm.exportBackup(uri, pw)
+        }
+        vm.exportPassword = null
         password = ""
     }
     val exportCsv = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("text/csv")) { uri ->
@@ -360,6 +365,7 @@ private fun DataSection(vm: MainViewModel) {
             confirmButton = {
                 TextButton(enabled = password.isEmpty() || password == repeat, onClick = {
                     askPassword = false
+                    vm.exportPassword = password
                     exportJson.launch("tarilka-$date.json")
                 }) { Text(stringResource(if (password.isEmpty()) R.string.export_plain else R.string.export_encrypted)) }
             },
@@ -369,7 +375,7 @@ private fun DataSection(vm: MainViewModel) {
     encrypted?.let {
         var pw by remember { mutableStateOf("") }
         androidx.compose.material3.AlertDialog(
-            onDismissRequest = { vm.encryptedImport.value = null },
+            onDismissRequest = { vm.encryptedImport.value = null; vm.wrongPassword.value = false },
             title = { Text(stringResource(R.string.import_title)) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -379,7 +385,9 @@ private fun DataSection(vm: MainViewModel) {
                 }
             },
             confirmButton = { TextButton(enabled = pw.isNotEmpty(), onClick = { vm.unlockImport(pw) }) { Text(stringResource(R.string.unlock)) } },
-            dismissButton = { TextButton(onClick = { vm.encryptedImport.value = null }) { Text(stringResource(R.string.cancel)) } },
+            dismissButton = {
+                TextButton(onClick = { vm.encryptedImport.value = null; vm.wrongPassword.value = false }) { Text(stringResource(R.string.cancel)) }
+            },
         )
     }
     pending?.let { (_, s) ->

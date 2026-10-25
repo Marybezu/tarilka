@@ -1,10 +1,5 @@
 package ua.tarilka.ui
 
-import android.graphics.BitmapFactory
-import android.net.Uri
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.PickVisualMediaRequest
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -45,20 +40,19 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import ua.tarilka.R
 import ua.tarilka.ai.ModelStore
-import ua.tarilka.ai.PhotoUtil
 import ua.tarilka.ui.theme.Numbers
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -71,21 +65,14 @@ fun PhotoScreen(
     onSetupModel: () -> Unit,
     onReplace: (index: Int) -> Unit,
     onAddItem: () -> Unit,
+    /** Camera and gallery are launched by the app root, so a photo survives the app being restarted. */
+    onCamera: (meal: Int) -> Unit,
+    onGallery: (meal: Int) -> Unit,
 ) {
-    val context = LocalContext.current
     val model by ai.model.collectAsState()
     val ui by ai.photo.collectAsState()
     val day by vm.day.collectAsState()
-    var meal by remember { mutableIntStateOf(initialMeal) }
-    var captureUri by remember { mutableStateOf<Uri?>(null) }
-
-    val camera = rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { ok ->
-        val u = captureUri
-        if (ok && u != null) ai.analyze(u)
-    }
-    val gallery = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
-        if (uri != null) ai.analyze(uri)
-    }
+    var meal by rememberSaveable { mutableIntStateOf(initialMeal) }
 
     Scaffold(
         topBar = {
@@ -148,18 +135,12 @@ fun PhotoScreen(
                 }
                 item {
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Button(onClick = {
-                            val u = PhotoUtil.captureUri(context)
-                            captureUri = u
-                            camera.launch(u)
-                        }) {
+                        Button(onClick = { onCamera(meal) }) {
                             Icon(painterResource(R.drawable.ic_camera), null, Modifier.size(18.dp))
                             Spacer(Modifier.width(8.dp))
                             Text(stringResource(R.string.take_photo))
                         }
-                        OutlinedButton(onClick = {
-                            gallery.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
-                        }) { Text(stringResource(R.string.from_gallery)) }
+                        OutlinedButton(onClick = { onGallery(meal) }) { Text(stringResource(R.string.from_gallery)) }
                     }
                 }
                 item {
@@ -169,7 +150,7 @@ fun PhotoScreen(
             ui.preview?.let { preview ->
                 item(key = "img") {
                     val bmp = remember(preview) { preview.asImageBitmap() }
-                    if (bmp != null) {
+                    run {
                         Image(
                             bmp, null,
                             contentScale = ContentScale.Crop,

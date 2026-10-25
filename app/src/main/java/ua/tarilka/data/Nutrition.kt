@@ -1,7 +1,6 @@
 package ua.tarilka.data
 
 import kotlin.math.max
-import kotlin.math.roundToInt
 
 data class Targets(
     val kcal: Double,
@@ -71,5 +70,4 @@ object Nutrition {
     /** Rough energy of walking: ~0.04 kcal per step for 70 kg, scaled by weight. Shown only, not added to targets. */
     fun stepsKcal(steps: Long, weightKg: Double): Double = steps * 0.04 * weightKg / 70.0
 
-    fun Double.r(): Int = roundToInt()
 }

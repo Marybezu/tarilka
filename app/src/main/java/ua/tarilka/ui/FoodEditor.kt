@@ -149,7 +149,7 @@ fun EditFoodScreen(
                 item { Field(stringResource(R.string.fiber), draft.fiber, { draft.fiber = it }) }
             } else {
                 item { Text(stringResource(R.string.recipe_hint), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant) }
-                itemsIndexed(draft.items) { i, it -> IngredientRow(it, onGrams = { g -> draft.items[i] = it.copy(grams = g) }, onRemove = { draft.items.removeAt(i) }) }
+                itemsIndexed(draft.items) { i, it -> IngredientRow(it, onGrams = { g -> draft.items.indexOf(it).takeIf { n -> n >= 0 }?.let { n -> draft.items[n] = it.copy(grams = g) } }, onRemove = { draft.items.remove(it) }) }
                 item {
                     FilledTonalButton(onClick = onAddIngredient) {
                         Icon(Icons.Filled.Add, null)

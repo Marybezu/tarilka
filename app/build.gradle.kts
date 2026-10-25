@@ -96,7 +96,7 @@ dependencies {
     implementation("androidx.health.connect:connect-client:1.1.0-beta02")
 
     // On-device Gemma 4 runtime (Google AI Edge, Apache 2.0)
-    implementation("com.google.ai.edge.litertlm:litertlm-android:latest.release")
+    implementation("com.google.ai.edge.litertlm:litertlm-android:0.18.1")
 
     testImplementation("junit:junit:4.13.2")
     // Real org.json for unit tests (Android provides it on the phone)

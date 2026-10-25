@@ -4,7 +4,6 @@ import android.app.Application
 import android.net.Uri
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -19,7 +18,6 @@ import ua.tarilka.ai.ModelStore
 import ua.tarilka.ai.PhotoUtil
 import ua.tarilka.data.DiaryEntry
 import ua.tarilka.data.Food
-import java.io.File
 
 data class ReviewItem(
     val detected: DetectedFood,
@@ -63,7 +61,6 @@ class AiViewModel(app: Application) : AndroidViewModel(app) {
 
     init {
         refreshModel()
-        PhotoUtil.clear(app)
     }
 
     fun refreshModel() {
@@ -73,9 +70,9 @@ class AiViewModel(app: Application) : AndroidViewModel(app) {
     /** Message after importing a model (e.g. the original file could not be deleted). */
     val importNote = MutableStateFlow<Int?>(null)
 
-    fun deleteModel() {
+    fun deleteModel() = viewModelScope.launch {
         gemma.release()
-        models.delete()
+        kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) { models.delete() }
         refreshModel()
     }
 
@@ -106,6 +103,10 @@ class AiViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     fun analyze(uri: Uri) = viewModelScope.launch {
+        if (_importProgress.value != null) {
+            _photo.update { it.copy(error = "the model is still being copied") }
+            return@launch
+        }
         _photo.update { it.copy(working = true, error = null, items = emptyList(), analyzed = false, seconds = 0) }
         val ticker = launch {
             while (isActive) { delay(1000); _photo.update { it.copy(seconds = it.seconds + 1) } }

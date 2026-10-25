@@ -84,7 +84,7 @@ fun TodayScreen(
     val lifecycle = androidx.lifecycle.compose.LocalLifecycleOwner.current
     androidx.compose.runtime.DisposableEffect(lifecycle) {
         val obs = androidx.lifecycle.LifecycleEventObserver { _, e ->
-            if (e == androidx.lifecycle.Lifecycle.Event.ON_RESUME) vm.refreshSteps()
+            if (e == androidx.lifecycle.Lifecycle.Event.ON_RESUME) vm.onResume()
         }
         lifecycle.lifecycle.addObserver(obs)
         onDispose { lifecycle.lifecycle.removeObserver(obs) }
@@ -168,7 +168,7 @@ fun TodayScreen(
                                 TextButton(onClick = ai::clearAdvice) { Text(stringResource(R.string.hide)) }
                             }
                             else -> FilledTonalButton(onClick = {
-                                val summary = adviceSummary(context, entries, totals, targets, tips, fluidMl, steps, note)
+                                val summary = adviceSummary(context, day, entries, totals, targets, tips, fluidMl, steps, note)
                                 ai.requestAdvice(summary, isUkrainian())
                             }) {
                                 Icon(Icons.Filled.Star, null, Modifier.size(18.dp))
@@ -420,6 +420,7 @@ private fun WeekBars(day: LocalDate, week: List<ua.tarilka.data.DayTotal>, targe
 /** Plain-text summary handed to the AI. The rule-based tips are included so it stays consistent. */
 private fun adviceSummary(
     context: android.content.Context,
+    day: LocalDate,
     entries: List<DiaryEntry>,
     totals: ua.tarilka.data.Totals,
     targets: ua.tarilka.data.Targets,
@@ -429,16 +430,17 @@ private fun adviceSummary(
     note: String,
 ): String = buildString {
     val time = java.time.format.DateTimeFormatter.ofPattern("HH:mm")
-    val now = java.time.LocalTime.now().format(time)
-    appendLine("Current time: $now.")
-    appendLine("Foods eaten today (time, name, amount):")
+    val isToday = day == LocalDate.now()
+    val dayWord = if (isToday) "today" else "on ${day} (a past day)"
+    if (isToday) appendLine("Current time: ${java.time.LocalTime.now().format(time)}.")
+    appendLine("Foods eaten $dayWord (time, name, amount):")
     entries.forEach {
         val t = java.time.Instant.ofEpochMilli(it.createdAt).atZone(java.time.ZoneId.systemDefault()).toLocalTime().format(time)
         appendLine("- $t ${it.nameEn} (${it.nameUk}), ${it.grams.f0()} g, ${it.kcal.f0()} kcal")
     }
-    appendLine("Fluids today: ${fluidMl.f0()} ml (target ${targets.waterMl.f0()} ml).")
-    if (steps != null) appendLine("Steps today: $steps.")
-    if (note.isNotBlank()) appendLine("The person's note for today: ${note.take(300)}")
+    appendLine("Fluids $dayWord: ${fluidMl.f0()} ml (target ${targets.waterMl.f0()} ml).")
+    if (steps != null) appendLine("Steps $dayWord: $steps.")
+    if (note.isNotBlank()) appendLine("The person's note for that day: ${note.take(300)}")
     appendLine(
         "Totals: ${totals.kcal.f0()} kcal (target ${targets.kcal.f0()}), protein ${totals.protein.f0()} g " +
             "(target ${targets.protein.f0()}), fat ${totals.fat.f0()} g (target ${targets.fat.f0()}), " +
@@ -448,5 +450,5 @@ private fun adviceSummary(
         appendLine("Notes from the app:")
         tips.forEach { appendLine("- " + context.getString(it.res, *it.args.toTypedArray())) }
     }
-    append("Give short practical advice for the rest of the day or for tomorrow.")
+    append(if (isToday) "Give short practical advice for the rest of the day or for tomorrow." else "Give short practical advice based on that day.")
 }

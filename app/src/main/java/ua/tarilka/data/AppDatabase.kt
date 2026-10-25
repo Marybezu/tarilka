@@ -27,6 +27,12 @@ abstract class AppDatabase : RoomDatabase() {
         private val MIGRATION_1_2 = object : androidx.room.migration.Migration(1, 2) {
             override fun migrate(db: androidx.sqlite.db.SupportSQLiteDatabase) {
                 db.execSQL("ALTER TABLE foods ADD COLUMN recipe TEXT")
+                // The very first builds had no fluids table yet; create it if missing.
+                db.execSQL(
+                    "CREATE TABLE IF NOT EXISTS fluids (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
+                        "day INTEGER NOT NULL, ml REAL NOT NULL, createdAt INTEGER NOT NULL)",
+                )
+                db.execSQL("CREATE INDEX IF NOT EXISTS index_fluids_day ON fluids(day)")
                 db.execSQL("CREATE TABLE IF NOT EXISTS notes (day INTEGER NOT NULL, text TEXT NOT NULL, PRIMARY KEY(day))")
             }
         }

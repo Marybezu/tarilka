@@ -47,9 +47,10 @@ class ModelStore(private val context: Context) {
         withContext(Dispatchers.IO) {
             val cr = context.contentResolver
             val total = cr.openAssetFileDescriptor(uri, "r")?.use { it.length } ?: -1L
-            val free = dir.usableSpace
-            if (total > 0) require(free > total + 200 * MB) { "not enough free space" }
             val tmp = File(dir, "import.tmp")
+            tmp.delete() // a leftover from a failed copy must not block the space check
+            if (total > 0) require(dir.usableSpace > total + 200 * MB) { "not enough free space" }
+            try {
             cr.openInputStream(uri)!!.use { input ->
                 tmp.outputStream().use { out ->
                     val buf = ByteArray(1 shl 20)
@@ -63,6 +64,10 @@ class ModelStore(private val context: Context) {
                     }
                 }
             }
+            } catch (t: Throwable) {
+                tmp.delete()
+                throw t
+            }
             if (tmp.length() <= MIN_SIZE) {
                 tmp.delete()
                 error("file too small, is it a .litertlm model?")
@@ -70,7 +75,10 @@ class ModelStore(private val context: Context) {
             dir.listFiles { f -> f.name.endsWith(".litertlm") }?.forEach { it.delete() }
             legacyDir?.listFiles()?.forEach { it.delete() }
             val target = File(dir, "model.litertlm")
-            tmp.renameTo(target)
+            if (!tmp.renameTo(target)) {
+                tmp.copyTo(target, overwrite = true)
+                tmp.delete()
+            }
             val deleted = if (deleteOriginal) {
                 runCatching { DocumentsContract.deleteDocument(cr, uri) }.getOrDefault(false)
             } else {

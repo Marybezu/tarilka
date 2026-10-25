@@ -31,28 +31,20 @@ data class DetectedFood(
 class GemmaEngine(private val context: Context, private val models: ModelStore) {
     private var engine: Engine? = null
     private var loadedPath: String? = null
+
+    /** One user of the native engine at a time: loading, inference and release never overlap. */
     private val mutex = Mutex()
 
-    /** "GPU" or "CPU" once loaded. */
-    var backend: String? = null
-        private set
-
-    private suspend fun engine(): Engine = mutex.withLock {
-        withContext(Dispatchers.Default) {
-            val path = models.modelFile()?.absolutePath ?: error("Model not installed")
-            val current = engine
-            if (current != null && loadedPath == path) return@withContext current
-            current?.close()
-            engine = null
-            val created = try {
-                create(path, gpu = true).also { backend = "GPU" }
-            } catch (t: Throwable) {
-                create(path, gpu = false).also { backend = "CPU" }
-            }
-            engine = created
-            loadedPath = path
-            created
-        }
+    /** Must be called with [mutex] held. */
+    private fun engineLocked(): Engine {
+        val path = models.modelFile()?.absolutePath ?: error("Model not installed")
+        engine?.takeIf { loadedPath == path }?.let { return it }
+        engine?.close()
+        engine = null
+        val created = runCatching { create(path, gpu = true) }.getOrElse { create(path, gpu = false) }
+        engine = created
+        loadedPath = path
+        return created
     }
 
     private fun create(path: String, gpu: Boolean): Engine {
@@ -67,18 +59,20 @@ class GemmaEngine(private val context: Context, private val models: ModelStore) 
         return Engine(config).also { it.initialize() }
     }
 
-    /** Warm up so the first photo is faster. */
-    suspend fun preload() = runCatching { engine() }
+    private suspend fun <T> withEngine(block: (Engine) -> T): T =
+        mutex.withLock { withContext(Dispatchers.Default) { block(engineLocked()) } }
 
-    fun release() {
-        engine?.close()
-        engine = null
-        loadedPath = null
+    /** Frees the model's memory; waits for a running analysis to finish first. */
+    suspend fun release() = mutex.withLock {
+        withContext(Dispatchers.Default) {
+            engine?.close()
+            engine = null
+            loadedPath = null
+        }
     }
 
     suspend fun analyzePhoto(image: File, note: String?, knownNames: List<String>): List<DetectedFood> {
-        val e = engine()
-        val text = withContext(Dispatchers.Default) {
+        val text = withEngine { e ->
             e.createConversation(
                 ConversationConfig(
                     systemInstruction = Contents.of(SYSTEM_PHOTO),
@@ -100,16 +94,13 @@ class GemmaEngine(private val context: Context, private val models: ModelStore) 
     }
 
     /** Short, friendly advice based on the day's numbers. */
-    suspend fun advice(summary: String, ukrainian: Boolean): String {
-        val e = engine()
-        return withContext(Dispatchers.Default) {
-            e.createConversation(
-                ConversationConfig(
-                    systemInstruction = Contents.of(if (ukrainian) SYSTEM_ADVICE_UK else SYSTEM_ADVICE_EN),
-                    samplerConfig = SamplerConfig(topK = 40, topP = 0.95, temperature = 0.6),
-                ),
-            ).use { conv -> conv.sendMessage(summary).toString().trim() }
-        }
+    suspend fun advice(summary: String, ukrainian: Boolean): String = withEngine { e ->
+        e.createConversation(
+            ConversationConfig(
+                systemInstruction = Contents.of(if (ukrainian) SYSTEM_ADVICE_UK else SYSTEM_ADVICE_EN),
+                samplerConfig = SamplerConfig(topK = 40, topP = 0.95, temperature = 0.6),
+            ),
+        ).use { conv -> conv.sendMessage(summary).toString().trim() }
     }
 
     companion object {

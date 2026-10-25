@@ -30,9 +30,6 @@ interface FoodDao {
     )
     fun recent(): Flow<List<Food>>
 
-    @Query("SELECT * FROM foods WHERE id = :id")
-    suspend fun byId(id: Long): Food?
-
     @Query("SELECT id, code, favorite FROM foods WHERE code IS NOT NULL")
     suspend fun codes(): List<CodeId>
 
@@ -99,9 +96,6 @@ interface WeightDao {
     @Query("SELECT * FROM weights ORDER BY day")
     fun all(): Flow<List<WeightEntry>>
 
-    @Query("SELECT * FROM weights ORDER BY day DESC LIMIT 1")
-    fun latest(): Flow<WeightEntry?>
-
     @Upsert
     suspend fun upsert(entry: WeightEntry)
 
@@ -120,12 +114,20 @@ interface FluidDao {
     @Query("SELECT * FROM fluids WHERE day = :day ORDER BY createdAt")
     fun forDay(day: Long): Flow<List<FluidEntry>>
 
-    /** Drinks logged as food (juice, kefir, coffee…) also count as fluid; 1 g ≈ 1 ml. */
+    /**
+     * Drinks logged as food also count as fluid (1 g ≈ 1 ml): non-alcoholic drinks
+     * and milk drinks; not spirits, beer or wine, and not dry powders.
+     */
     @Query(
         """SELECT COALESCE(SUM(d.grams), 0) FROM diary d JOIN foods f ON f.id = d.foodId
-           WHERE d.day = :day AND f.category = 'drinks'"""
+           WHERE d.day = :day AND f.kcal < 150 AND (
+             (f.category = 'drinks' AND f.code NOT IN (:alcohol)) OR f.code IN (:milkDrinks))"""
     )
-    fun drinksFromDiary(day: Long): Flow<Double>
+    fun drinksFromDiary(
+        day: Long,
+        alcohol: List<String>,
+        milkDrinks: List<String>,
+    ): Flow<Double>
 
     @Insert
     suspend fun insert(entry: FluidEntry): Long
@@ -165,4 +167,12 @@ interface NoteDao {
 
     @Query("DELETE FROM notes")
     suspend fun deleteAll()
+}
+
+object FluidRules {
+    val ALCOHOL = listOf("dr06", "dr07", "dr08", "dr09", "dr23", "dr24", "dr25")
+    val MILK_DRINKS = listOf(
+        "d01", "d02", "d03", "d04", "d05", "d06", "d21", "d41", "d51", "d52", "d53", "d54", "d58", "d61",
+        "l15", "n20",
+    )
 }

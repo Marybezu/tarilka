@@ -21,7 +21,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.res.painterResource
@@ -44,7 +43,7 @@ class MainActivity : AppCompatActivity() {
 }
 
 /** Screens shown on top of the tabs. */
-private sealed interface Overlay {
+sealed interface Overlay {
     data class AddFood(val meal: Int) : Overlay
     data class Photo(val meal: Int) : Overlay
     /** Pick a food for the photo review: replace item [index], or add a new one when null. */
@@ -55,14 +54,42 @@ private sealed interface Overlay {
     data object History : Overlay
 }
 
+/** Keeps the screen stack (and half-filled forms) across rotation, theme and language changes. */
+class NavViewModel : androidx.lifecycle.ViewModel() {
+    val stack = mutableStateListOf<Overlay>()
+}
+
 @Composable
 private fun AppRoot() {
     val vm: MainViewModel = viewModel()
     val ai: AiViewModel = viewModel()
+    val nav: NavViewModel = viewModel()
+    val context = androidx.compose.ui.platform.LocalContext.current
     var tab by rememberSaveable { mutableIntStateOf(0) }
-    val stack = remember { mutableStateListOf<Overlay>() }
+    val stack = nav.stack
     fun push(o: Overlay) { stack.add(o) }
     fun pop() { if (stack.isNotEmpty()) stack.removeAt(stack.lastIndex) }
+
+    // The camera may be in front long enough for Android to restart this app.
+    // These launchers live at the root, so the result is still delivered and the photo screen comes back.
+    var pendingMeal by rememberSaveable { mutableIntStateOf(-1) }
+    fun showPhoto(meal: Int) { if (stack.lastOrNull() !is Overlay.Photo) push(Overlay.Photo(meal)) }
+    val camera = androidx.activity.compose.rememberLauncherForActivityResult(
+        androidx.activity.result.contract.ActivityResultContracts.TakePicture(),
+    ) { ok ->
+        if (ok && pendingMeal >= 0) {
+            showPhoto(pendingMeal)
+            ai.analyze(ua.tarilka.ai.PhotoUtil.captureUri(context))
+        }
+    }
+    val gallery = androidx.activity.compose.rememberLauncherForActivityResult(
+        androidx.activity.result.contract.ActivityResultContracts.PickVisualMedia(),
+    ) { uri ->
+        if (uri != null && pendingMeal >= 0) {
+            showPhoto(pendingMeal)
+            ai.analyze(uri)
+        }
+    }
 
     BackHandler(enabled = stack.isNotEmpty()) { pop() }
 
@@ -87,6 +114,15 @@ private fun AppRoot() {
             onSetupModel = { stack.clear(); tab = 3 },
             onReplace = { push(Overlay.PickForPhoto(it)) },
             onAddItem = { push(Overlay.PickForPhoto(null)) },
+            onCamera = { meal -> pendingMeal = meal; camera.launch(ua.tarilka.ai.PhotoUtil.captureUri(context)) },
+            onGallery = { meal ->
+                pendingMeal = meal
+                gallery.launch(
+                    androidx.activity.result.PickVisualMediaRequest(
+                        androidx.activity.result.contract.ActivityResultContracts.PickVisualMedia.ImageOnly,
+                    ),
+                )
+            },
         )
 
         is Overlay.PickForPhoto -> AddFoodScreen(

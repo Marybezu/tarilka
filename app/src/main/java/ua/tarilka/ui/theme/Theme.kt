@@ -12,7 +12,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.sp
 
 private val Light = lightColorScheme(
     primary = Color(0xFF2F6B4F),
@@ -98,7 +97,7 @@ fun TarilkaTheme(dynamicColor: Boolean = false, content: @Composable () -> Unit)
     val dark = isSystemInDarkTheme()
     val context = androidx.compose.ui.platform.LocalContext.current
     val scheme = when {
-        dynamicColor && android.os.Build.VERSION.SDK_INT >= 31 ->
+        dynamicColor -> // minSdk is 31, so Material You is always available
             if (dark) androidx.compose.material3.dynamicDarkColorScheme(context)
             else androidx.compose.material3.dynamicLightColorScheme(context)
         dark -> Dark

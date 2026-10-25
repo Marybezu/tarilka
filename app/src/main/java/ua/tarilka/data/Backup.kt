@@ -165,7 +165,8 @@ object Backup {
                     val items = r.optJSONArray("items") ?: return@forEach
                     for (i in 0 until items.length()) {
                         val it = items.getJSONObject(i)
-                        if (it.has("id")) idMap[it.getLong("id")]?.let { n -> it.put("id", n) }
+                        // An id we can't map (food deleted before export) must not point at another food.
+                        if (it.has("id")) it.put("id", idMap[it.getLong("id")] ?: -1L)
                     }
                     db.foods().update(f.copy(recipe = r.toString()))
                 }
@@ -194,7 +195,9 @@ object Backup {
             o.optJSONArray("fluids")?.let { arr ->
                 db.fluids().insertAll((0 until arr.length()).map { i ->
                     val e = arr.getJSONObject(i)
-                    FluidEntry(day = LocalDate.parse(e.getString("day")).toEpochDay(), ml = e.getDouble("ml"), createdAt = e.optLong("createdAt"))
+                    val day = LocalDate.parse(e.getString("day"))
+                    val noon = day.atTime(12, 0).atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
+                    FluidEntry(day = day.toEpochDay(), ml = e.getDouble("ml"), createdAt = e.optLong("createdAt", noon).takeIf { it > 0 } ?: noon)
                 })
             }
             o.optJSONArray("notes")?.let { arr ->

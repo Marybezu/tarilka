@@ -39,6 +39,19 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     private val stepSensor = tapp.stepSensor
 
     val day = MutableStateFlow(LocalDate.now())
+
+    /** The calendar "today", refreshed when the app comes back to the screen. */
+    private val today = MutableStateFlow(LocalDate.now())
+
+    /** Call on resume: if the app stayed open past midnight, move from yesterday to the new day. */
+    fun onResume() {
+        val now = LocalDate.now()
+        if (now != today.value) {
+            if (day.value == today.value) day.value = now
+            today.value = now
+        }
+        refreshSteps()
+    }
     val query = MutableStateFlow("")
 
     val profile: StateFlow<Profile> = prefs.profile
@@ -74,7 +87,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     /** Water entries plus drinks logged as food. */
     val fluidMl: StateFlow<Double> = combine(
         fluids,
-        day.flatMapLatest { db.fluids().drinksFromDiary(it.toEpochDay()) },
+        day.flatMapLatest { db.fluids().drinksFromDiary(it.toEpochDay(), ua.tarilka.data.FluidRules.ALCOHOL, ua.tarilka.data.FluidRules.MILK_DRINKS) },
     ) { f, drinks -> f.sumOf { it.ml } + drinks }
         .stateIn(viewModelScope, SharingStarted.Eagerly, 0.0)
 
@@ -170,8 +183,8 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
 
     data class HistoryDay(val day: LocalDate, val kcal: Double, val fluidMl: Double, val weight: Double?, val note: Boolean)
 
-    val history: StateFlow<List<HistoryDay>> = run {
-        val to = LocalDate.now().toEpochDay()
+    val history: StateFlow<List<HistoryDay>> = today.flatMapLatest { t ->
+        val to = t.toEpochDay()
         val from = to - 365
         combine(
             db.diary().totals(from, to), db.fluids().totals(from, to), db.weights().all(), db.notes().all(),
@@ -214,7 +227,6 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         sync { health.deleteMeal(entry); health.writeMeal(updated) }
     }
 
-    fun moveEntry(entry: DiaryEntry, meal: Int) = viewModelScope.launch { db.diary().update(entry.copy(meal = meal)) }
     fun deleteEntry(entry: DiaryEntry) = viewModelScope.launch {
         db.diary().delete(entry)
         sync { health.deleteMeal(entry) }
@@ -234,7 +246,10 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         sync { health.writeWeight(w) }
     }
 
-    fun deleteWeight(w: WeightEntry) = viewModelScope.launch { db.weights().delete(w) }
+    fun deleteWeight(w: WeightEntry) = viewModelScope.launch {
+        db.weights().delete(w)
+        sync { health.deleteWeight(w) }
+    }
 
     fun saveProfile(p: Profile) = prefs.saveProfile(p)
 
@@ -253,7 +268,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
 
     fun exportBackup(uri: android.net.Uri, password: String) = viewModelScope.launch {
         dataMessage.value = runCatching {
-            val json = ua.tarilka.data.Backup.export(db, prefs)
+            val json = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) { ua.tarilka.data.Backup.export(db, prefs) }
             writeText(uri, if (password.isEmpty()) json else kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) {
                 ua.tarilka.data.Backup.encrypt(json, password)
             })
@@ -263,15 +278,20 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
 
     fun exportCsv(uri: android.net.Uri) = viewModelScope.launch {
         dataMessage.value = runCatching {
-            writeText(uri, ua.tarilka.data.Backup.diaryCsv(db, ua.tarilka.data.isUkrainian()))
+            val ukrainian = ua.tarilka.data.isUkrainian()
+            writeText(uri, kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) { ua.tarilka.data.Backup.diaryCsv(db, ukrainian) })
             getApplication<Application>().getString(ua.tarilka.R.string.export_done)
         }.getOrElse { getApplication<Application>().getString(ua.tarilka.R.string.data_error, it.message ?: "") }
     }
+
+    /** Password chosen for the export in progress ("" = no encryption, null = unknown). */
+    var exportPassword: String? = null
 
     /** Step 1: read and check the file. Step 2 ([confirmImport]) replaces the data. */
     val pendingImport = MutableStateFlow<Pair<String, ua.tarilka.data.Backup.Summary>?>(null)
 
     fun readImport(uri: android.net.Uri) = viewModelScope.launch {
+        wrongPassword.value = false
         runCatching {
             val text = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
                 getApplication<Application>().contentResolver.openInputStream(uri)!!.bufferedReader().use { it.readText() }
@@ -279,7 +299,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
             if (ua.tarilka.data.Backup.isEncrypted(text)) {
                 encryptedImport.value = text
             } else {
-                pendingImport.value = text to ua.tarilka.data.Backup.peek(text)
+                pendingImport.value = text to kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) { ua.tarilka.data.Backup.peek(text) }
             }
         }.onFailure {
             dataMessage.value = getApplication<Application>().getString(ua.tarilka.R.string.data_error, it.message ?: "")
@@ -305,7 +325,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         val (text, _) = pendingImport.value ?: return@launch
         pendingImport.value = null
         dataMessage.value = runCatching {
-            val s = ua.tarilka.data.Backup.restore(db, prefs, text)
+            val s = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) { ua.tarilka.data.Backup.restore(db, prefs, text) }
             getApplication<Application>().getString(ua.tarilka.R.string.import_done, s.diary, s.weights)
         }.getOrElse { getApplication<Application>().getString(ua.tarilka.R.string.data_error, it.message ?: "") }
     }

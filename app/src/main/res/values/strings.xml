@@ -159,7 +159,7 @@
     <string name="plus_ml">+%1$d ml</string>
     <string name="water_target">Fluids: about %1$s L a day (30 ml per kg).</string>
     <string name="tip_water_low">Drink more: %1$d of %2$d ml so far.</string>
-    <string name="steps_line">%1$d steps · ≈ %2$s kcal</string>
+    <string name="steps_line">Steps: %1$d · ≈ %2$s kcal</string>
     <string name="tip_steps_good">%1$d steps today, nice walking.</string>
     <string name="tip_steps_low">Only %1$d steps today. A 20-minute walk is about 2,000 more.</string>
     <string name="activity_section">Steps and Health Connect</string>
@@ -210,4 +210,5 @@
     <string name="cooked_weight">Weight of the finished dish, g (optional)</string>
     <string name="cooked_weight_hint">Ingredients weigh %1$s g. If the dish boiled down or absorbed water, weigh it and enter the weight for accurate values.</string>
     <string name="source_recipe_user">Your recipe</string>
+    <string name="export_retry">The app was restarted while choosing the file, so nothing was saved. Please export again.</string>
 </resources>

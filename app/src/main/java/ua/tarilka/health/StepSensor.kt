@@ -16,9 +16,10 @@ import kotlin.coroutines.resume
 
 /**
  * Fallback when nothing writes steps to Health Connect: the phone's own step counter.
- * The sensor counts steps since the last reboot, so the app remembers the reading
- * at the start of each day. Steps taken before the first reading of a day are
- * counted towards the previous day.
+ * The sensor counts steps since the last reboot, so the app remembers a reading per day.
+ * If the app was last opened yesterday, steps walked since then (late evening included)
+ * count for today; after a longer gap, today starts from the current reading, so
+ * steps from days the app wasn't opened are never added to today.
  */
 class StepSensor(private val context: Context, private val prefs: Prefs) {
     private val sm = context.getSystemService(SensorManager::class.java)
@@ -55,7 +56,7 @@ class StepSensor(private val context: Context, private val prefs: Prefs) {
         val last = prefs.stepLast
         if (prefs.stepDay != today) {
             // New day: start from the last reading we saw (or now, on the very first run).
-            prefs.stepBase = if (last in 0..now) last else now
+            prefs.stepBase = if (prefs.stepDay == today - 1 && last in 0..now) last else now
             prefs.stepDay = today
         } else if (last >= 0 && now < last) {
             // Phone rebooted and the counter restarted from zero: keep what was counted before.

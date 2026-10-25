@@ -30,6 +30,9 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 
+/** "2.11": short enough to keep the cycle row on one line. */
+fun dayMonth(day: Long): String = LocalDate.ofEpochDay(day).let { "${it.dayOfMonth}.%02d".format(it.monthValue) }
+
 fun shortDate(day: Long): String = LocalDate.ofEpochDay(day).format(DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM))
 
 /**

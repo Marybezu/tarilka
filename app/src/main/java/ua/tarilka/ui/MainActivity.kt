@@ -106,11 +106,18 @@ private fun AppRoot() {
                 pop()
             },
             onCreateFood = { push(Overlay.EditFood(null)) },
-            mealTime = if (vm.mealTimes.collectAsState().value) vm.defaultTime(top.meal) else null,
+            // Breakfast/lunch/dinner that already have a time keep it; only a new meal or a snack asks.
+            mealTime = if (vm.mealTimes.collectAsState().value && (top.meal == 3 || vm.mealTimeOf(top.meal) == null)) vm.defaultTime(top.meal) else null,
             onPickedAt = { food, grams, time ->
                 vm.addFood(food, grams, top.meal, time)
                 vm.query.value = ""
                 pop()
+            },
+            onTextList = { text ->
+                ai.analyzeText(text)
+                vm.query.value = ""
+                pop()
+                push(Overlay.Photo(top.meal))
             },
         )
 

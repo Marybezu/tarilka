@@ -50,7 +50,7 @@
     <string name="profile_hint">Заповніть профіль у Налаштуваннях, щоб отримати особисті норми калорій і нутрієнтів. Поки що використовуються середні значення.</string>
     <string name="recommendations">Рекомендації</string>
     <string name="week_title">Останні 7 днів</string>
-    <string name="week_avg">У середньому %1$s ккал на день (днів із записами: %2$d), білка %3$s г.</string>
+    <string name="week_avg">У середньому %1$s з %2$s ккал · білок %3$s з %4$s г (днів із записами: %5$d).</string>
 
     <string name="tip_empty">Ще нічого не записано. Додайте прийом їжі вручну або сфотографуйте тарілку.</string>
     <string name="tip_remaining">На сьогодні залишилось близько %1$d ккал.</string>
@@ -485,4 +485,8 @@
     <string name="cycle_setup_hint">Це лише для першого прогнозу. Далі застосунок рахує за вашими позначками «Почалися».</string>
     <string name="choose_date">Вибрати дату</string>
     <string name="dont_know">Не знаю</string>
+    <string name="text_list_title">Список продуктів</string>
+    <string name="text_list_read">Розпізнати список</string>
+    <string name="text_list_hint">Можна одразу кілька: «квашена капуста 100 г, картопля 40 г, котлета». Або надиктуйте через мікрофон клавіатури.</string>
+    <string name="week_too_few">Поки замало днів для висновків.</string>
 </resources>

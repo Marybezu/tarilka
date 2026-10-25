@@ -50,7 +50,7 @@
     <string name="profile_hint">Fill in your profile in Settings to get personal calorie and nutrient targets. Until then, average values are used.</string>
     <string name="recommendations">Recommendations</string>
     <string name="week_title">Last 7 days</string>
-    <string name="week_avg">Average %1$s kcal over %2$d days with entries, protein %3$s g a day.</string>
+    <string name="week_avg">On average %1$s of %2$s kcal · protein %3$s of %4$s g (days logged: %5$d).</string>
 
     <string name="tip_empty">Nothing logged yet. Add a meal by hand or take a photo of your plate.</string>
     <string name="tip_remaining">About %1$d kcal left for today.</string>
@@ -485,4 +485,8 @@
     <string name="cycle_setup_hint">Only for the first estimate. After that the app counts from your Started marks.</string>
     <string name="choose_date">Choose a date</string>
     <string name="dont_know">Don\'t know</string>
+    <string name="text_list_title">Food list</string>
+    <string name="text_list_read">Read the list</string>
+    <string name="text_list_hint">Several at once works too: "sauerkraut 100 g, potatoes 40 g, cutlet". Or dictate with the keyboard microphone.</string>
+    <string name="week_too_few">Too few days to draw conclusions yet.</string>
 </resources>

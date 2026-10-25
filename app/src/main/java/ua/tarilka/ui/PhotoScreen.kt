@@ -76,12 +76,12 @@ fun PhotoScreen(
     var meal by rememberSaveable { mutableIntStateOf(initialMeal) }
     val timesOn by vm.mealTimes.collectAsState()
     var time by remember(meal) { mutableStateOf(vm.defaultTime(meal)) }
-    androidx.compose.runtime.LaunchedEffect(Unit) { ai.warmUp() }
+    androidx.compose.runtime.LaunchedEffect(Unit) { if (!ui.fromText) ai.warmUp() }
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(R.string.photo_title)) },
+                title = { Text(stringResource(if (ui.fromText) R.string.text_list_title else R.string.photo_title)) },
                 navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back)) } },
             )
         },
@@ -108,7 +108,7 @@ fun PhotoScreen(
             }
         },
     ) { pad ->
-        if (model !is ModelStore.State.Ready) {
+        if (model !is ModelStore.State.Ready && !ui.fromText) {
             Column(Modifier.padding(pad).padding(24.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 Text(stringResource(R.string.photo_need_model), style = MaterialTheme.typography.bodyLarge)
                 Button(onClick = onSetupModel) { Text(stringResource(R.string.ai_setup)) }

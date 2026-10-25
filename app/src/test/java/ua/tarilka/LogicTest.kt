@@ -231,4 +231,20 @@ class LogicTest {
         assertTrue(first.fromTypical)
         assertEquals(null, first.ovulation)
     }
+
+    @Test
+    fun typedListIsRead() {
+        val t = ua.tarilka.data.TextMeal
+        val a = t.parse("квашена капустка 100 г варена картопля 40 г котлета 50 г")
+        assertEquals(listOf("квашена капустка", "варена картопля", "котлета"), a.map { it.name })
+        assertEquals(listOf(100.0, 40.0, 50.0), a.map { it.amount })
+        val b = t.parse("2 котлети, хліб 40 г; кефір 0,5 л, яблуко")
+        assertEquals("котлети", b[0].name)
+        assertEquals(ua.tarilka.data.TextMeal.Unit.PIECES, b[0].unit)
+        assertEquals(2.0, b[0].amount!!, 0.01)
+        assertEquals(500.0, b[2].amount!!, 0.01)
+        assertEquals(null, b[3].amount)
+        assertTrue(t.looksLikeList("котлета 50 г"))
+        assertTrue(!t.looksLikeList("котлета"))
+    }
 }

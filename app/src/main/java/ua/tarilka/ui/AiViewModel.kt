@@ -42,6 +42,8 @@ data class PhotoUi(
     val raw: String = "",
     val backend: String = "",
     val loadSec: Int = 0,
+    /** Typed in as a list, not a photo: no model needed to review it. */
+    val fromText: Boolean = false,
     /** Personal correction applied to the AI's grams (1.0 = none). */
     val factor: Double = 1.0,
     val analyzeSec: Int = 0,
@@ -147,6 +149,44 @@ class AiViewModel(app: Application) : AndroidViewModel(app) {
             // Nothing of the photo stays on disk.
             PhotoUtil.clear(getApplication())
             ticker.cancel()
+            _photo.update { it.copy(working = false) }
+        }
+    }
+
+    /**
+     * A typed list: a quick rule-based reading first (works without the model); if something is
+     * not found and the model is installed, the AI reads the whole text instead. The result goes to the
+     * same review screen as a photo.
+     */
+    fun analyzeText(text: String) = viewModelScope.launch {
+        _photo.value = PhotoUi(note = text, working = true, fromText = true)
+        try {
+            val foods = tapp.db.foods().allOnce()
+            val byRules = ua.tarilka.data.TextMeal.parse(text).map { item ->
+                val food = FoodMatcher.best(item.name, item.name, foods)?.food
+                val grams = when {
+                    item.amount == null -> food?.portionG ?: 100.0
+                    item.unit == ua.tarilka.data.TextMeal.Unit.PIECES -> item.amount * (food?.portionG ?: 100.0)
+                    else -> item.amount
+                }
+                ReviewItem(DetectedFood(item.name, item.name, grams, null, null, null, null, "manual"), food, grams, include = food != null)
+            }
+            val allFound = byRules.isNotEmpty() && byRules.all { it.food != null }
+            val items = if (allFound || _model.value !is ModelStore.State.Ready) {
+                byRules
+            } else {
+                runCatching {
+                    gemma.parseText(text).map { d ->
+                        val match = FoodMatcher.best(d.nameEn, d.nameUk, foods)
+                        ReviewItem(d.copy(confidence = "manual"), match?.food, d.grams, include = match != null)
+                    }
+                }.getOrNull()?.takeIf { it.isNotEmpty() } ?: byRules
+            }
+            items.filter { it.food == null }.forEach { tapp.prefs.recordMissing(it.detected.nameEn) }
+            _photo.update { it.copy(items = items, analyzed = true) }
+        } catch (t: Throwable) {
+            _photo.update { it.copy(error = t.message ?: t.javaClass.simpleName) }
+        } finally {
             _photo.update { it.copy(working = false) }
         }
     }

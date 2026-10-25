@@ -110,6 +110,8 @@ fun AddFoodScreen(
     /** When set, the grams dialog also asks the time of the meal. */
     mealTime: java.time.LocalTime? = null,
     onPickedAt: ((Food, Double, java.time.LocalTime) -> Unit)? = null,
+    /** "квашена капуста 100 г, картопля 40 г…": read the whole list at once. */
+    onTextList: ((String) -> Unit)? = null,
 ) {
     val query by vm.query.collectAsState()
     val results by vm.searchResults.collectAsState()
@@ -117,7 +119,7 @@ fun AddFoodScreen(
     var chosen by remember { mutableStateOf<Food?>(null) }
 
     // Remember searches that found nothing, so missing foods can be added to the database later.
-    val nothing = query.trim().length >= 3 && results.isEmpty()
+    val nothing = query.trim().length >= 3 && results.isEmpty() && !(onTextList != null && ua.tarilka.data.TextMeal.looksLikeList(query))
     androidx.compose.runtime.LaunchedEffect(query, nothing) {
         if (nothing) {
             kotlinx.coroutines.delay(1500)
@@ -142,6 +144,20 @@ fun AddFoodScreen(
     ) { pad ->
         Column(Modifier.padding(pad)) {
             SearchField(query, { vm.query.value = it }, Modifier.padding(horizontal = 16.dp, vertical = 8.dp))
+            if (onTextList != null) {
+                if (ua.tarilka.data.TextMeal.looksLikeList(query)) {
+                    androidx.compose.material3.FilledTonalButton(onClick = { onTextList(query) }, modifier = Modifier.padding(horizontal = 16.dp)) {
+                        Text(stringResource(R.string.text_list_read))
+                    }
+                } else if (query.isBlank()) {
+                    Text(
+                        stringResource(R.string.text_list_hint),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(horizontal = 16.dp),
+                    )
+                }
+            }
             LazyColumn(contentPadding = PaddingValues(bottom = 96.dp)) {
                 if (query.isBlank() && recent.isNotEmpty()) {
                     item { ListHeader(stringResource(R.string.recent)) }

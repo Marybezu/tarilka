@@ -208,8 +208,8 @@ fun TodayScreen(
                         Text(
                             "🌸 " + when {
                                 !periodsKnown -> stringResource(R.string.cycle_not_set)
-                                c.late(t) -> stringResource(R.string.cycle_late, shortDate(c.nextStart!!))
-                                cd != null -> stringResource(R.string.cycle_day, cd) + (c.nextStart?.let { " · " + stringResource(R.string.cycle_next_short, shortDate(it)) } ?: "")
+                                c.late(t) -> stringResource(R.string.cycle_late, dayMonth(c.nextStart!!))
+                                cd != null -> stringResource(R.string.cycle_day, cd) + (c.nextStart?.let { " · " + stringResource(R.string.cycle_next_short, dayMonth(it)) } ?: "")
                                 else -> stringResource(R.string.cycle_title) + " —"
                             },
                             style = MaterialTheme.typography.bodyMedium,
@@ -219,7 +219,8 @@ fun TodayScreen(
                             TextButton(onClick = { cycleSetup = true }) { Text(stringResource(R.string.cycle_set)) }
                         } else if (c.inPeriod) {
                             TextButton(onClick = { vm.periodEnded(day) }) { Text(stringResource(R.string.cycle_ended)) }
-                        } else {
+                        } else if (c.nextStart == null || t >= c.nextStart - 5) {
+                            // Only around the expected start; on other days tap the row to mark it.
                             TextButton(onClick = { vm.periodStarted(day) }) { Text(stringResource(R.string.cycle_started)) }
                         }
                     }
@@ -321,6 +322,8 @@ fun TodayScreen(
                     onEntry = { editing = it },
                     onDeleteAll = { vm.deleteMeal(meal) },
                     onDelete = { vm.deleteEntry(it) },
+                    time = if (mealTimesOn && meal != 3 && list.isNotEmpty()) vm.mealTimeOf(meal) else null,
+                    onTime = { vm.setMealTime(meal, it) },
                 )
             }
         }
@@ -345,7 +348,8 @@ fun TodayScreen(
                     val avg = withData.sumOf { it.kcal } / withData.size
                     val avgP = withData.sumOf { it.protein } / withData.size
                     Text(
-                        stringResource(R.string.week_avg, avg.f0(), withData.size, avgP.f0()),
+                        stringResource(R.string.week_avg, avg.f0(), targets.kcal.f0(), avgP.f0(), targets.protein.f0(), withData.size) +
+                            (if (withData.size < 3) " " + stringResource(R.string.week_too_few) else ""),
                         style = MaterialTheme.typography.bodyMedium,
                     )
                     Spacer(Modifier.height(8.dp))
@@ -462,7 +466,8 @@ fun TodayScreen(
             food = null,
             onDismiss = { editing = null },
             onConfirm = { vm.updateGrams(e, it); editing = null },
-            time = if (mealTimesOn) java.time.Instant.ofEpochMilli(e.createdAt).atZone(java.time.ZoneId.systemDefault()).toLocalTime().withSecond(0).withNano(0) else null,
+            // Snacks have their own time; other meals change it in the meal header.
+            time = if (mealTimesOn && e.meal == 3) java.time.Instant.ofEpochMilli(e.createdAt).atZone(java.time.ZoneId.systemDefault()).toLocalTime().withSecond(0).withNano(0) else null,
             onConfirmAt = { g, t -> vm.updateGrams(e, g, t); editing = null },
             extraAction = {
                 TextButton(onClick = { vm.deleteEntry(e); editing = null }) {
@@ -523,12 +528,21 @@ private fun MealSection(
     onEntry: (DiaryEntry) -> Unit,
     onDeleteAll: () -> Unit,
     onDelete: (DiaryEntry) -> Unit,
+    time: java.time.LocalTime? = null,
+    onTime: (java.time.LocalTime) -> Unit = {},
 ) {
     val kcal = entries.sumOf { it.kcal }
+    val context = LocalContext.current
     var menu by remember { mutableStateOf(false) }
     Section(
         title = mealName(meal),
         trailing = {
+            // One time for the whole meal: tap to change it for all its foods.
+            time?.let { t ->
+                TextButton(onClick = {
+                    android.app.TimePickerDialog(context, { _, h, m -> onTime(java.time.LocalTime.of(h, m)) }, t.hour, t.minute, true).show()
+                }) { Text("%02d:%02d ✎".format(t.hour, t.minute), style = MaterialTheme.typography.labelLarge.merge(Numbers)) }
+            }
             if (entries.isNotEmpty()) {
                 Text(
                     "${kcal.f0()} ${stringResource(R.string.unit_kcal)}",

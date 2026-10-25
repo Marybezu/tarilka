@@ -137,7 +137,16 @@ class GemmaEngine(
         )
     }
 
-    private fun ask(e: Engine, image: File, prompt: String, constrained: Boolean): String =
+    /** A typed list like "two cutlets and some mashed potato" → foods in English with grams. No image: a few seconds. */
+    suspend fun parseText(text: String): List<DetectedFood> {
+        val prompt = TEXT_PROMPT + "\n" + text.take(500)
+        val raw = withEngine { e ->
+            runCatching { ask(e, null, prompt, constrained = true) }.getOrElse { ask(e, null, prompt, constrained = false) }
+        }
+        return parseFoods(raw)
+    }
+
+    private fun ask(e: Engine, image: File?, prompt: String, constrained: Boolean): String =
         e.createConversation(
             ConversationConfig(
                 systemInstruction = Contents.of(SYSTEM_PHOTO),
@@ -148,7 +157,7 @@ class GemmaEngine(
                 enableResponseFormat = constrained,
             ),
         ).use { conv ->
-            val contents = Contents.of(Content.ImageFile(image.absolutePath), Content.Text(prompt))
+            val contents = if (image != null) Contents.of(Content.ImageFile(image.absolutePath), Content.Text(prompt)) else Contents.of(Content.Text(prompt))
             if (constrained) {
                 conv.sendMessage(contents, responseFormat = ResponseFormat.json(SCHEMA)).toString()
             } else {
@@ -177,6 +186,11 @@ class GemmaEngine(
         private const val SYSTEM_PHOTO =
             "You are a careful nutrition assistant. You identify foods in meal photos and estimate portion sizes. " +
                 "You always answer with valid JSON only."
+
+        private const val TEXT_PROMPT = """The person wrote what they ate, maybe in Ukrainian. List each food in English with its weight in grams.
+Use the amount they gave; if none, estimate a usual portion (one cutlet about 80 g, one slice of bread about 35 g, one egg about 50 g, a bowl of soup about 300 g).
+Use short common names. Answer with ONLY JSON: {"items":[{"name":"boiled potatoes","grams":150,"confidence":"high"}]}
+What they ate:"""
 
         /** What the person says the food is on: gives the model a real size to compare with. */
         private val PLATES = listOf(

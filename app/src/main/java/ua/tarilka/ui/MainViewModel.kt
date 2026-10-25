@@ -446,8 +446,22 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
 
     /** The time offered for a new entry: now for today, a usual time of that meal for past days. */
     fun defaultTime(meal: Int): LocalTime =
-        if (day.value == LocalDate.now()) LocalTime.now().withSecond(0).withNano(0)
+        mealTimeOf(meal) ?: if (day.value == LocalDate.now()) LocalTime.now().withSecond(0).withNano(0)
         else MEAL_TIMES.getOrElse(meal) { LocalTime.NOON }
+
+    /** Breakfast, lunch and dinner have one time for all their foods (snacks keep their own). */
+    fun mealTimeOf(meal: Int): LocalTime? = if (meal == 3) null else entries.value.firstOrNull { it.meal == meal }?.let {
+        java.time.Instant.ofEpochMilli(it.createdAt).atZone(java.time.ZoneId.systemDefault()).toLocalTime().withSecond(0).withNano(0)
+    }
+
+    /** Moves every food of a meal on the shown day to [time]. */
+    fun setMealTime(meal: Int, time: LocalTime) = viewModelScope.launch {
+        entries.value.filter { it.meal == meal }.forEachIndexed { i, e ->
+            val updated = e.copy(createdAt = millis(LocalDate.ofEpochDay(e.day), time) + i)
+            db.diary().update(updated)
+            sync { health.deleteMeal(e); health.writeMeal(updated) }
+        }
+    }
 
     private fun millis(d: LocalDate, t: LocalTime) = d.atTime(t).atZone(java.time.ZoneId.systemDefault()).toInstant().toEpochMilli()
 
@@ -460,6 +474,8 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
             val d = LocalDate.ofEpochDay(e.day)
             val at = when {
                 time != null -> millis(d, time) + i // + i keeps several items of one meal apart
+                // Joining a meal that already has a time: same time as its other foods.
+                e.meal != 3 && d == day.value -> mealTimeOf(e.meal)?.let { millis(d, it) + i } ?: if (d == LocalDate.now()) System.currentTimeMillis() + i else millis(d, MEAL_TIMES.getOrElse(e.meal) { LocalTime.NOON }) + i
                 d == LocalDate.now() -> System.currentTimeMillis() + i
                 else -> millis(d, MEAL_TIMES.getOrElse(e.meal) { LocalTime.NOON }) + i
             }

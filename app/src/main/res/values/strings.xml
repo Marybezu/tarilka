@@ -346,4 +346,22 @@
     <string name="reasons_noticed">Most often: %1$s. Hard to stop: %2$d.</string>
     <string name="reasons_tips">What helps:\n• before eating, name what you feel: hunger, tiredness, sadness, boredom, stress?\n• a 10–15 minute pause: a walk, a call, a glass of water; the wave usually passes;\n• regular meals during the day, no strict restriction;\n• after a slip, no guilt: one evening does not cancel the week.</string>
     <string name="fastfood_tips">What helps:\n• keep a simple quick home option at hand;\n• when eating out, a smaller portion and no sugary drink;\n• add vegetables or a salad.</string>
+    <string name="reminders_title">Reminders</string>
+    <string name="reminders_hint">All off; switch on only what you need. They come only when useful: if a meal is already logged, there is no reminder. The lock screen shows only Reminder, no details.</string>
+    <string name="remind_meal">Time to log %1$s.</string>
+    <string name="remind_water">%1$s of %2$s l so far. Time for a glass of water.</string>
+    <string name="remind_sleep">Time to wind down for sleep: dim the lights, put the phone away.</string>
+    <string name="remind_weekly">Your weekly summary is ready: Today → calendar at the top → Summaries.</string>
+    <string name="remind_public">Reminder</string>
+    <string name="remind_water_title">Fluids</string>
+    <string name="remind_water_hint">At 12, 16 and 19 o\'clock, only if you drank clearly less than expected by then.</string>
+    <string name="remind_sleep_title">Wind down for sleep</string>
+    <string name="remind_weekly_title">Weekly summary</string>
+    <string name="remind_weekly_hint">Sundays at 19:00.</string>
+    <string name="notif_denied">Notifications are not allowed. You can allow them in phone settings: Apps → Tarilka → Notifications.</string>
+    <string-array name="remind_meals">
+        <item>breakfast</item>
+        <item>lunch</item>
+        <item>dinner</item>
+    </string-array>
 </resources>

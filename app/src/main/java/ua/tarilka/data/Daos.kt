@@ -90,6 +90,9 @@ interface DiaryDao {
     @Delete
     suspend fun deleteMany(entries: List<DiaryEntry>)
 
+    @Query("SELECT COUNT(*) FROM diary WHERE day = :day AND meal = :meal")
+    suspend fun countMeal(day: Long, meal: Int): Int
+
     @Query("UPDATE diary SET reason = :reason, hunger = :hunger, hardToStop = :hardToStop WHERE id IN (:ids)")
     suspend fun setReason(ids: List<Long>, reason: Int?, hunger: Int?, hardToStop: Boolean)
 
@@ -152,6 +155,9 @@ interface FluidDao {
 
     @Insert
     suspend fun insert(entry: FluidEntry): Long
+
+    @Query("SELECT COALESCE(SUM(ml), 0) FROM fluids WHERE day = :day")
+    suspend fun mlOnce(day: Long): Double
 
     @Query("SELECT * FROM fluids ORDER BY day, createdAt")
     suspend fun allOnce(): List<FluidEntry>

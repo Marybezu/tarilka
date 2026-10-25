@@ -346,4 +346,22 @@
     <string name="reasons_noticed">Найчастіше: %1$s. «Важко було зупинитися»: %2$d.</string>
     <string name="reasons_tips">Що допомагає:\n• перед їжею назвати свій стан: голод, втома, сум, нудьга, стрес?\n• пауза 10–15 хвилин: прогулянка, дзвінок, склянка води — хвиля зазвичай спадає;\n• регулярне харчування вдень, без жорстких обмежень;\n• після зриву без провини: один вечір не скасовує тиждень.</string>
     <string name="fastfood_tips">Що допомагає:\n• мати під рукою простий домашній варіант на швидку руку;\n• у закладі брати меншу порцію й без солодкого напою;\n• додати овочі чи салат.</string>
+    <string name="reminders_title">Нагадування</string>
+    <string name="reminders_hint">Усі вимкнені, вмикайте лише потрібні. Приходять тільки коли мають сенс: якщо прийом уже записано, нагадування не буде. На заблокованому екрані видно лише «Нагадування», без подробиць.</string>
+    <string name="remind_meal">Час записати %1$s.</string>
+    <string name="remind_water">Випито %1$s з %2$s л. Час для склянки води.</string>
+    <string name="remind_sleep">Час поступово готуватися до сну: приглушіть світло, відкладіть телефон.</string>
+    <string name="remind_weekly">Підсумок тижня готовий: «Сьогодні» → календар угорі → «Підсумки».</string>
+    <string name="remind_public">Нагадування</string>
+    <string name="remind_water_title">Рідина</string>
+    <string name="remind_water_hint">О 12, 16 і 19 годині, лише якщо випито помітно менше, ніж мало б бути.</string>
+    <string name="remind_sleep_title">Готуватися до сну</string>
+    <string name="remind_weekly_title">Підсумок тижня</string>
+    <string name="remind_weekly_hint">Щонеділі о 19:00.</string>
+    <string name="notif_denied">Сповіщення не дозволені. Їх можна дозволити в налаштуваннях телефону: Застосунки → Тарілка → Сповіщення.</string>
+    <string-array name="remind_meals">
+        <item>сніданок</item>
+        <item>обід</item>
+        <item>вечерю</item>
+    </string-array>
 </resources>

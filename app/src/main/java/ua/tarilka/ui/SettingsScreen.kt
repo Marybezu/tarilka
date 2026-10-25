@@ -74,6 +74,7 @@ fun SettingsScreen(vm: MainViewModel, ai: AiViewModel, padding: PaddingValues) {
         }
         item { ActivitySection(vm) }
         item { SelfSection(vm) }
+        item { RemindersSection() }
         item { ModelSection(ai) }
         item { MissingSection(vm) }
         item { DataSection(vm) }
@@ -274,6 +275,75 @@ private fun ActivitySection(vm: MainViewModel) {
                 Text(stringResource(R.string.hc_unavailable), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
+    }
+}
+
+/** Optional reminders; each one asks for the notification permission only when switched on. */
+@Composable
+private fun RemindersSection() {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val prefs = (context.applicationContext as ua.tarilka.TarilkaApp).prefs
+    var meals by remember { mutableStateOf((0..2).map { prefs.mealReminder(it) }) }
+    var water by remember { mutableStateOf(prefs.waterReminder) }
+    var sleep by remember { mutableStateOf(prefs.sleepReminder) }
+    var weekly by remember { mutableStateOf(prefs.weeklyReminder) }
+    var denied by remember { mutableStateOf(false) }
+    var pending by remember { mutableStateOf<(() -> Unit)?>(null) }
+    val permission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { ok ->
+        if (ok) pending?.invoke() else denied = true
+        pending = null
+    }
+    fun apply() = ua.tarilka.notify.Reminders.schedule(context)
+    /** Runs [turnOn] once notifications are allowed. */
+    fun whenAllowed(turnOn: () -> Unit) {
+        val granted = androidx.core.content.ContextCompat.checkSelfPermission(
+            context, android.Manifest.permission.POST_NOTIFICATIONS,
+        ) == android.content.pm.PackageManager.PERMISSION_GRANTED
+        if (granted) { turnOn(); denied = false } else { pending = turnOn; permission.launch(android.Manifest.permission.POST_NOTIFICATIONS) }
+    }
+    fun pickTime(initial: java.time.LocalTime, onPicked: (java.time.LocalTime) -> Unit) {
+        android.app.TimePickerDialog(context, { _, h, m -> onPicked(java.time.LocalTime.of(h, m)) }, initial.hour, initial.minute, true).show()
+    }
+    val defaults = listOf(java.time.LocalTime.of(9, 0), java.time.LocalTime.of(14, 0), java.time.LocalTime.of(19, 0))
+
+    Section(title = stringResource(R.string.reminders_title)) {
+        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            Text(stringResource(R.string.reminders_hint), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            for (meal in 0..2) {
+                val t = meals[meal]
+                fun set(v: java.time.LocalTime?) {
+                    prefs.setMealReminder(meal, v)
+                    meals = meals.toMutableList().also { it[meal] = v }
+                    apply()
+                }
+                TimeSwitchRow(mealName(meal), t, onTime = { pickTime(t ?: defaults[meal], ::set) }) { on ->
+                    if (on) whenAllowed { set(defaults[meal]) } else set(null)
+                }
+            }
+            SwitchRow(stringResource(R.string.remind_water_title), stringResource(R.string.remind_water_hint), water) { on ->
+                fun set(v: Boolean) { prefs.waterReminder = v; water = v; apply() }
+                if (on) whenAllowed { set(true) } else set(false)
+            }
+            TimeSwitchRow(stringResource(R.string.remind_sleep_title), sleep, onTime = { pickTime(sleep ?: java.time.LocalTime.of(22, 30)) { prefs.sleepReminder = it; sleep = it; apply() } }) { on ->
+                fun set(v: java.time.LocalTime?) { prefs.sleepReminder = v; sleep = v; apply() }
+                if (on) whenAllowed { set(java.time.LocalTime.of(22, 30)) } else set(null)
+            }
+            SwitchRow(stringResource(R.string.remind_weekly_title), stringResource(R.string.remind_weekly_hint), weekly) { on ->
+                fun set(v: Boolean) { prefs.weeklyReminder = v; weekly = v; apply() }
+                if (on) whenAllowed { set(true) } else set(false)
+            }
+            if (denied) Text(stringResource(R.string.notif_denied), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error)
+        }
+    }
+}
+
+/** A reminder with a time: tap the time to change it. */
+@Composable
+private fun TimeSwitchRow(title: String, time: java.time.LocalTime?, onTime: () -> Unit, onChange: (Boolean) -> Unit) {
+    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
+        Text(title, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
+        if (time != null) TextButton(onClick = onTime) { Text("%02d:%02d".format(time.hour, time.minute)) }
+        androidx.compose.material3.Switch(checked = time != null, onCheckedChange = onChange)
     }
 }
 

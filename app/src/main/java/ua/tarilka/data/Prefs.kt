@@ -81,6 +81,25 @@ class Prefs(context: Context) {
         o.keys().asSequence().associate { it.toLong() to o.getLong(it) }
     }.getOrDefault(emptyMap())
 
+    // ---- reminders (all off by default); a time is stored as minutes after midnight, -1 = off ----
+
+    private fun time(key: String): java.time.LocalTime? =
+        sp.getInt(key, -1).takeIf { it >= 0 }?.let { java.time.LocalTime.of(it / 60, it % 60) }
+    private fun setTime(key: String, t: java.time.LocalTime?) =
+        sp.edit().putInt(key, t?.let { it.hour * 60 + it.minute } ?: -1).apply()
+
+    fun mealReminder(meal: Int) = time("remindMeal$meal")
+    fun setMealReminder(meal: Int, t: java.time.LocalTime?) = setTime("remindMeal$meal", t)
+    var sleepReminder: java.time.LocalTime?
+        get() = time("remindSleep")
+        set(v) = setTime("remindSleep", v)
+    var waterReminder: Boolean
+        get() = sp.getBoolean("remindWater", false)
+        set(v) = sp.edit().putBoolean("remindWater", v).apply()
+    var weeklyReminder: Boolean
+        get() = sp.getBoolean("remindWeekly", false)
+        set(v) = sp.edit().putBoolean("remindWeekly", v).apply()
+
     /** 0 = follow system, 1 = light, 2 = dark */
     var themeMode: Int
         get() = sp.getInt("themeMode", 0)

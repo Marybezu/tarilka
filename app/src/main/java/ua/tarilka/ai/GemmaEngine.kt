@@ -7,12 +7,15 @@ import com.google.ai.edge.litertlm.Contents
 import com.google.ai.edge.litertlm.ConversationConfig
 import com.google.ai.edge.litertlm.Engine
 import com.google.ai.edge.litertlm.EngineConfig
+import com.google.ai.edge.litertlm.ResponseFormat
 import com.google.ai.edge.litertlm.SamplerConfig
+import com.google.ai.edge.litertlm.ThinkingConfig
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
+import org.json.JSONObject
 import java.io.File
 
 /** One food the model saw on the plate. Nutrients are the model's own estimate (fallback only). */
@@ -27,10 +30,17 @@ data class DetectedFood(
     val confidence: String,
 )
 
+/** What the model answered, kept so a failed recognition can be explained. */
+data class PhotoResult(val foods: List<DetectedFood>, val raw: String, val backend: String)
+
 /** Runs Gemma 4 fully on the phone via LiteRT-LM. Nothing leaves the device. */
 class GemmaEngine(private val context: Context, private val models: ModelStore) {
     private var engine: Engine? = null
     private var loadedPath: String? = null
+
+    /** "GPU" or "CPU": which processor the model ended up on. */
+    var backend: String = "?"
+        private set
 
     /** One user of the native engine at a time: loading, inference and release never overlap. */
     private val mutex = Mutex()
@@ -41,7 +51,8 @@ class GemmaEngine(private val context: Context, private val models: ModelStore) 
         engine?.takeIf { loadedPath == path }?.let { return it }
         engine?.close()
         engine = null
-        val created = runCatching { create(path, gpu = true) }.getOrElse { create(path, gpu = false) }
+        val created = runCatching { create(path, gpu = true).also { backend = "GPU" } }
+            .getOrElse { create(path, gpu = false).also { backend = "CPU" } }
         engine = created
         loadedPath = path
         return created
@@ -71,27 +82,36 @@ class GemmaEngine(private val context: Context, private val models: ModelStore) 
         }
     }
 
-    suspend fun analyzePhoto(image: File, note: String?, knownNames: List<String>): List<DetectedFood> {
-        val text = withEngine { e ->
-            e.createConversation(
-                ConversationConfig(
-                    systemInstruction = Contents.of(SYSTEM_PHOTO),
-                    samplerConfig = SamplerConfig(topK = 20, topP = 0.9, temperature = 0.2),
-                ),
-            ).use { conv ->
-                val prompt = buildString {
-                    append(PHOTO_PROMPT)
-                    if (knownNames.isNotEmpty()) {
-                        append("\nWhen a food matches one of these database names, copy that name exactly into name_en: ")
-                        append(knownNames.joinToString("; "))
-                    }
-                    if (!note.isNullOrBlank()) append("\nThe user says about this meal: ").append(note.trim())
-                }
-                conv.sendMessage(Contents.of(Content.ImageFile(image.absolutePath), Content.Text(prompt))).toString()
+    suspend fun analyzePhoto(image: File, note: String?): PhotoResult {
+        val prompt = buildString {
+            append(PHOTO_PROMPT)
+            if (!note.isNullOrBlank()) append("\nThe person says about this meal: ").append(note.trim())
+        }
+        val raw = withEngine { e ->
+            // Constrained decoding makes the small model answer in valid JSON; fall back if unsupported.
+            runCatching { ask(e, image, prompt, constrained = true) }.getOrElse { ask(e, image, prompt, constrained = false) }
+        }
+        return PhotoResult(parseFoods(raw), raw, backend)
+    }
+
+    private fun ask(e: Engine, image: File, prompt: String, constrained: Boolean): String =
+        e.createConversation(
+            ConversationConfig(
+                systemInstruction = Contents.of(SYSTEM_PHOTO),
+                samplerConfig = SamplerConfig(topK = 20, topP = 0.9, temperature = 0.2),
+                // No hidden "thinking": it would use up the output before the list is written.
+                thinkingConfig = ThinkingConfig(enableThinking = false),
+                maxOutputToken = 1024,
+                enableResponseFormat = constrained,
+            ),
+        ).use { conv ->
+            val contents = Contents.of(Content.ImageFile(image.absolutePath), Content.Text(prompt))
+            if (constrained) {
+                conv.sendMessage(contents, responseFormat = ResponseFormat.json(SCHEMA)).toString()
+            } else {
+                conv.sendMessage(contents).toString()
             }
         }
-        return parseFoods(text)
-    }
 
     /** Short, friendly advice based on the day's numbers. */
     suspend fun advice(summary: String, ukrainian: Boolean): String = withEngine { e ->
@@ -99,6 +119,8 @@ class GemmaEngine(private val context: Context, private val models: ModelStore) 
             ConversationConfig(
                 systemInstruction = Contents.of(if (ukrainian) SYSTEM_ADVICE_UK else SYSTEM_ADVICE_EN),
                 samplerConfig = SamplerConfig(topK = 40, topP = 0.95, temperature = 0.6),
+                thinkingConfig = ThinkingConfig(enableThinking = false),
+                maxOutputToken = 400,
             ),
         ).use { conv -> conv.sendMessage(summary).toString().trim() }
     }
@@ -108,13 +130,19 @@ class GemmaEngine(private val context: Context, private val models: ModelStore) 
             "You are a careful nutrition assistant. You identify foods in meal photos and estimate portion sizes. " +
                 "You always answer with valid JSON only."
 
+        private const val SCHEMA = """{"type":"object","properties":{"items":{"type":"array","items":{"type":"object",
+"properties":{"name_en":{"type":"string"},"name_uk":{"type":"string"},"grams":{"type":"number"},
+"kcal_per_100g":{"type":"number"},"protein_per_100g":{"type":"number"},"fat_per_100g":{"type":"number"},
+"carbs_per_100g":{"type":"number"},"confidence":{"type":"string","enum":["high","medium","low"]}},
+"required":["name_en","name_uk","grams"]}}},"required":["items"]}"""
+
         private const val PHOTO_PROMPT = """Look at this photo of a meal. List every distinct food or dish you can see.
 For each one estimate the edible weight in grams. Use the plate (a dinner plate is about 26 cm wide), bowls, cutlery and hands for scale.
 Prefer simple, common names, e.g. "buckwheat, cooked", "chicken breast, cooked", "borscht", "tomato", "rye bread".
 Also give your best estimate of nutrients per 100 g.
-Answer with ONLY a JSON array, no other text, in this exact form:
-[{"name_en":"...","name_uk":"... (in Ukrainian)","grams":150,"kcal_per_100g":120,"protein_per_100g":5,"fat_per_100g":3,"carbs_per_100g":18,"confidence":"high"}]
-confidence is "high", "medium" or "low". If there is no food in the photo answer [] ."""
+Answer with ONLY JSON, no other text, in this exact form:
+{"items":[{"name_en":"...","name_uk":"... (in Ukrainian)","grams":150,"kcal_per_100g":120,"protein_per_100g":5,"fat_per_100g":3,"carbs_per_100g":18,"confidence":"high"}]}
+confidence is "high", "medium" or "low". If there is no food in the photo answer {"items":[]} ."""
 
         private const val SYSTEM_ADVICE_UK =
             "Ти доброзичливий помічник з харчування. Відповідай українською, коротко: 2–4 пункти, кожен одним реченням. " +
@@ -126,13 +154,19 @@ confidence is "high", "medium" or "low". If there is no food in the photo answer
                 "Take into account what and when the person ate, how much they drank and how many steps they walked. Give practical suggestions with concrete foods. Do not diagnose, do not suggest fasting or extreme diets, " +
                 "do not judge. If the numbers look unsafe (very low intake or very fast weight loss), gently suggest seeing a doctor."
 
+        /** Accepts {"items":[...]}, a bare [...] or even a cut-off answer (objects are read one by one). */
         fun parseFoods(raw: String): List<DetectedFood> {
-            val start = raw.indexOf('[')
-            val end = raw.lastIndexOf(']')
-            if (start < 0 || end <= start) return emptyList()
-            val arr = runCatching { JSONArray(raw.substring(start, end + 1)) }.getOrNull() ?: return emptyList()
-            return (0 until arr.length()).mapNotNull { i ->
-                val o = arr.optJSONObject(i) ?: return@mapNotNull null
+            val text = raw.replace("```json", "").replace("```", "")
+            val objects: List<JSONObject> = run {
+                runCatching { JSONObject(text.substring(text.indexOf('{'), text.lastIndexOf('}') + 1)).getJSONArray("items") }
+                    .recoverCatching { JSONArray(text.substring(text.indexOf('['), text.lastIndexOf(']') + 1)) }
+                    .map { a -> (0 until a.length()).mapNotNull { a.optJSONObject(it) } }
+                    .getOrElse {
+                        Regex("\\{[^{}]*\"name_(?:en|uk)\"[^{}]*\\}").findAll(text)
+                            .mapNotNull { m -> runCatching { JSONObject(m.value) }.getOrNull() }.toList()
+                    }
+            }
+            return objects.mapNotNull { o ->
                 val en = o.optString("name_en").trim()
                 val uk = o.optString("name_uk").trim()
                 if (en.isEmpty() && uk.isEmpty()) return@mapNotNull null

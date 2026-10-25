@@ -73,13 +73,21 @@ fun HistoryScreen(vm: MainViewModel, onBack: () -> Unit, onOpen: (LocalDate) -> 
                         val parts = buildList {
                             if (d.fluidMl > 0) add("💧 ${(d.fluidMl / 1000).f1()} ${stringResource(R.string.unit_l)}")
                             d.weight?.let { add("⚖ ${it.f1()} ${stringResource(R.string.kg)}") }
-                            if (d.note) add("📝")
+
                         }
                         if (parts.isNotEmpty()) {
                             Text(
                                 parts.joinToString("   "),
                                 style = MaterialTheme.typography.bodySmall.merge(Numbers),
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                        d.note?.let {
+                            Text(
+                                "📝 $it",
+                                style = MaterialTheme.typography.bodySmall,
+                                maxLines = 3,
+                                overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
                             )
                         }
                     }

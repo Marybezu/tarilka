@@ -75,6 +75,9 @@ fun TodayScreen(
     val steps by vm.steps.collectAsState()
     val stepsEnabled by vm.stepsEnabled.collectAsState()
     val weight by vm.latestWeight.collectAsState()
+    val stepsFromHc by vm.stepsFromHc.collectAsState()
+    val trend by vm.weeklyTrend.collectAsState()
+    var weightDialog by remember { mutableStateOf(false) }
     val note by vm.note.collectAsState()
     var noteDialog by remember { mutableStateOf(false) }
     val macros = LocalMacroColors.current
@@ -146,6 +149,21 @@ fun TodayScreen(
                         "👣 " + stringResource(R.string.steps_line, steps!!.toInt(), kcal.f0()),
                         style = MaterialTheme.typography.bodyMedium.merge(Numbers),
                     )
+                    Text(
+                        stringResource(if (stepsFromHc) R.string.steps_from_hc else R.string.steps_from_sensor),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+                Spacer(Modifier.height(8.dp))
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        "⚖ " + (weight?.let { "${it.f1()} ${stringResource(R.string.kg)}" } ?: "—") +
+                            (trend?.let { "  ·  " + stringResource(R.string.trend_week, (if (it > 0) "+" else "") + it.f1()) } ?: ""),
+                        style = MaterialTheme.typography.bodyMedium.merge(Numbers),
+                        modifier = Modifier.weight(1f),
+                    )
+                    TextButton(onClick = { weightDialog = true }) { Text(stringResource(R.string.weight_record)) }
                 }
             }
         }
@@ -223,6 +241,22 @@ fun TodayScreen(
                 }
             }
         }
+    }
+
+    if (weightDialog) {
+        var text by remember { mutableStateOf("") }
+        androidx.compose.material3.AlertDialog(
+            onDismissRequest = { weightDialog = false },
+            title = { Text(stringResource(R.string.weight_today)) },
+            text = { Field(stringResource(R.string.kg), text, { text = it }) },
+            confirmButton = {
+                TextButton(
+                    enabled = text.toNumber()?.let { it in 25.0..350.0 } == true,
+                    onClick = { text.toNumber()?.let { vm.saveWeight(it) }; weightDialog = false },
+                ) { Text(stringResource(R.string.save)) }
+            },
+            dismissButton = { TextButton(onClick = { weightDialog = false }) { Text(stringResource(R.string.cancel)) } },
+        )
     }
 
     if (noteDialog) {

@@ -10,7 +10,7 @@
     <string name="meal_breakfast">Сніданок</string>
     <string name="meal_lunch">Обід</string>
     <string name="meal_dinner">Вечеря</string>
-    <string name="meal_snack">Перекуси</string>
+    <string name="meal_snack">Перекус</string>
 
     <string name="today">Сьогодні</string>
     <string name="yesterday">Вчора</string>
@@ -211,4 +211,9 @@
     <string name="cooked_weight_hint">Інгредієнти важать %1$s г. Якщо страва уварилася або вбрала воду, зважте її та впишіть вагу для точних цифр.</string>
     <string name="source_recipe_user">Ваш рецепт</string>
     <string name="export_retry">Поки обирали файл, застосунок перезапустився, тому нічого не збережено. Спробуйте експорт ще раз.</string>
+    <string name="ai_diagnostics">%1$s · %2$d с</string>
+    <string name="portion">порція</string>
+    <string name="weight_record">Записати вагу</string>
+    <string name="steps_from_hc">Health Connect</string>
+    <string name="steps_from_sensor">датчик телефону, з першого відкриття за день</string>
 </resources>

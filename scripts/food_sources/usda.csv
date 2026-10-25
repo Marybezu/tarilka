@@ -27,7 +27,7 @@ b06;bread;Сухарі;Rusks / croutons;30;жменя;handful;Croutons, plain
 b07;bread;Круасан;Croissant, butter;60;шт;piece;Croissants, butter
 v01;veg;Картопля варена;Potatoes, boiled;200;порція;serving;Potatoes, boiled, cooked without skin, flesh, without salt
 v02;veg;Картопля запечена;Potatoes, baked with skin;200;шт;piece;Potatoes, baked, flesh and skin, without salt
-v03;veg;Картопляне пюре;Mashed potatoes with milk and butter;200;порція;serving;Potatoes, mashed, home-prepared, whole milk and butter added
+v03;veg;Картопляне пюре (картопля товчена);Mashed potatoes with milk and butter;200;порція;serving;Potatoes, mashed, home-prepared, whole milk and butter added
 v04;veg;Картопля фрі;French fries;120;порція;serving;Fast foods, potato, french fried in vegetable oil
 v05;veg;Картопля сира;Potatoes, raw;;;;Potatoes, flesh and skin, raw
 v06;veg;Капуста білокачанна;Cabbage, raw;100;порція;serving;Cabbage, raw
@@ -88,7 +88,7 @@ m02;meat;Куряча грудка сира;Chicken breast, raw;;;;Chicken, broi
 m03;meat;Куряче стегно без шкіри;Chicken thigh, skinless, cooked;100;шт;piece;Chicken, broilers or fryers, thigh, meat only, cooked, roasted
 m04;meat;Куряче стегно зі шкірою;Chicken thigh with skin, cooked;120;шт;piece;Chicken, broilers or fryers, thigh, meat and skin, cooked, roasted
 m05;meat;Курячі крильця;Chicken wings, cooked;35;шт;piece;Chicken, broilers or fryers, wing, meat and skin, cooked, roasted
-m06;meat;Курка запечена зі шкірою;Roast chicken with skin;200;порція;serving;Chicken, broilers or fryers, meat and skin, cooked, roasted
+m06;meat;Курка запечена зі шкірою (курятина);Roast chicken with skin;200;порція;serving;Chicken, broilers or fryers, meat and skin, cooked, roasted
 m07;meat;Індичка, грудка;Turkey breast, cooked;150;порція;serving;Turkey, retail parts, breast, meat only, cooked, roasted
 m08;meat;Свинина пісна (вирізка);Pork tenderloin, cooked;150;порція;serving;Pork, fresh, loin, tenderloin, separable lean only, cooked, roasted
 m09;meat;Свинина корейка;Pork loin, cooked;150;порція;serving;Pork, fresh, loin, whole, separable lean and fat, cooked, roasted
@@ -117,8 +117,8 @@ d16;dairy;Моцарела;Mozzarella;30;порція;serving;Cheese, mozzarella
 d17;dairy;Бринза / фета;Feta / brynza;30;порція;serving;Cheese, feta
 e01;eggs;Яйце куряче варене;Egg, boiled;50;шт;piece;Egg, whole, cooked, hard-boiled
 e02;eggs;Яйце куряче сире;Egg, raw;50;шт;piece;Egg, whole, raw, fresh
-e03;eggs;Яєчня;Fried egg;46;шт;piece;Egg, whole, cooked, fried
-e04;eggs;Омлет / скрембл;Omelette / scrambled eggs;150;порція;serving;Egg, whole, cooked, scrambled
+e03;eggs;Яєчня (яйце смажене);Fried egg;46;шт;piece;Egg, whole, cooked, fried
+e04;eggs;Омлет / скрембл (яйця);Omelette / scrambled eggs;150;порція;serving;Egg, whole, cooked, scrambled
 l01;legumes;Квасоля червона варена;Red kidney beans, cooked;150;порція;serving;Beans, kidney, red, mature seeds, cooked, boiled, without salt
 l02;legumes;Квасоля біла варена;White beans, cooked;150;порція;serving;Beans, white, mature seeds, cooked, boiled, without salt
 l03;legumes;Сочевиця варена;Lentils, cooked;150;порція;serving;Lentils, mature seeds, cooked, boiled, without salt
@@ -185,7 +185,7 @@ g38;grains;Рисова локшина варена;Rice noodles, cooked;200;т�
 g39;grains;Гречка зелена (сира);Green buckwheat, raw;;;;Buckwheat
 b08;bread;Багет;Baguette;60;шматок;piece;Bread, french or vienna (includes sourdough)
 b09;bread;Хліб багатозерновий;Multigrain bread;30;скибка;slice;Bread, multi-grain (includes whole-grain)
-b10;bread;Тост пшеничний;White toast;25;скибка;slice;Bread, white, commercially prepared, toasted
+b10;bread;Тост (хліб підсмажений);White toast;25;скибка;slice;Bread, white, commercially prepared, toasted
 b11;bread;Булочка для бургера;Hamburger bun;50;шт;piece;Rolls, hamburger or hotdog, plain
 b12;bread;Тортилья пшенична;Flour tortilla;45;шт;piece;Tortillas, ready-to-bake or -fry, flour, refrigerated
 b13;bread;Бублик;Bagel;100;шт;piece;Bagels, plain, enriched, with calcium propionate (includes onion, poppy, sesame)

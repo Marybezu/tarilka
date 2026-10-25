@@ -38,6 +38,9 @@ data class PhotoUi(
     val items: List<ReviewItem> = emptyList(),
     val error: String? = null,
     val seconds: Int = 0,
+    /** Shown when nothing was recognized, to see what went wrong. */
+    val raw: String = "",
+    val backend: String = "",
 )
 
 class AiViewModel(app: Application) : AndroidViewModel(app) {
@@ -115,11 +118,9 @@ class AiViewModel(app: Application) : AndroidViewModel(app) {
             val img = PhotoUtil.prepare(getApplication(), uri)
             _photo.update { it.copy(preview = PhotoUtil.thumbnail(img)) }
             val foods = tapp.db.foods().allOnce()
-            // Only ready-to-eat foods (those with a typical portion) to keep the prompt short.
-            val names = foods.filter { it.code != null && it.portionG != null && it.category !in setOf("sauces", "fats") }
-                .map { it.nameEn }
-            val detected = gemma.analyzePhoto(img, _photo.value.note, names)
-            val items = detected.map { d ->
+            val result = gemma.analyzePhoto(img, _photo.value.note)
+            _photo.update { it.copy(raw = result.raw.take(600), backend = result.backend) }
+            val items = result.foods.map { d ->
                 val match = FoodMatcher.best(d.nameEn, d.nameUk, foods)
                 ReviewItem(detected = d, food = match?.food, grams = d.grams)
             }

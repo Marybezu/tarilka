@@ -86,4 +86,17 @@ class LogicTest {
         assertEquals(2, back.size)
         assertEquals(300.0, cooked!!, 0.01)
     }
+
+    @Test
+    fun parsesModelAnswers() {
+        val p = ua.tarilka.ai.GemmaEngine.Companion
+        val obj = """{"items":[{"name_en":"fried egg","name_uk":"яєчня","grams":120}]}"""
+        assertEquals(1, p.parseFoods(obj).size)
+        val fenced = "```json\n[{\"name_en\":\"toast\",\"name_uk\":\"тост\",\"grams\":60}]\n```"
+        assertEquals("toast", p.parseFoods(fenced).single().nameEn)
+        // An answer cut off in the middle still gives the complete items.
+        val cut = """{"items":[{"name_en":"spinach","name_uk":"шпинат","grams":80},{"name_en":"mushro"""
+        assertEquals("spinach", p.parseFoods(cut).single().nameEn)
+        assertTrue(p.parseFoods("I see a plate").isEmpty())
+    }
 }

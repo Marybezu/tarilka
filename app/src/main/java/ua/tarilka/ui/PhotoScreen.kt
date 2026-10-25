@@ -1,6 +1,7 @@
 package ua.tarilka.ui
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -117,9 +118,12 @@ fun PhotoScreen(
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
             item {
-                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    modifier = Modifier.horizontalScroll(androidx.compose.foundation.rememberScrollState()),
+                ) {
                     (0..3).forEach { m ->
-                        FilterChip(meal == m, { meal = m }, { Text(mealName(m)) })
+                        FilterChip(meal == m, { meal = m }, { Text(mealName(m), maxLines = 1, softWrap = false) })
                     }
                 }
             }
@@ -181,9 +185,21 @@ fun PhotoScreen(
             if (ui.analyzed) {
                 if (ui.items.isEmpty()) {
                     item { Text(stringResource(R.string.no_food_found)) }
+                    item {
+                        // Diagnostics: which processor ran the model and what it answered.
+                        Text(
+                            stringResource(R.string.ai_diagnostics, ui.backend, ui.seconds) + "\n" + ui.raw.ifBlank { "—" },
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
                 } else {
                     item {
-                        Text(stringResource(R.string.review_hint), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(
+                            stringResource(R.string.review_hint) + "  (" + stringResource(R.string.ai_diagnostics, ui.backend, ui.seconds) + ")",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
                     }
                 }
                 itemsIndexed(ui.items) { i, item ->

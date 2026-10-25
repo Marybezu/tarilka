@@ -54,7 +54,7 @@ b06;bread;Сухарі;Rusks / croutons;407;11.9;6.6;73.5;5.1;0;30;жменя;ha
 b07;bread;Круасан;Croissant, butter;406;8.2;21;45.8;2.6;0;60;шт;piece;USDA;Croissants, butter
 b08;bread;Багет;Baguette;272;10.75;2.42;51.88;2.2;0;60;шматок;piece;USDA;Bread, french or vienna (includes sourdough)
 b09;bread;Хліб багатозерновий;Multigrain bread;265;13.36;4.23;43.34;7.4;0;30;скибка;slice;USDA;Bread, multi-grain (includes whole-grain)
-b10;bread;Тост пшеничний;White toast;290;9;4;54.5;2.9;0;25;скибка;slice;USDA;Bread, white, commercially prepared, toasted
+b10;bread;Тост (хліб підсмажений);White toast;290;9;4;54.5;2.9;0;25;скибка;slice;USDA;Bread, white, commercially prepared, toasted
 b11;bread;Булочка для бургера;Hamburger bun;279;9.77;3.91;50.12;1.8;0;50;шт;piece;USDA;Rolls, hamburger or hotdog, plain
 b12;bread;Тортилья пшенична;Flour tortilla;306;8.2;7.99;49.38;3.5;0;45;шт;piece;USDA;Tortillas, ready-to-bake or -fry, flour, refrigerated
 b13;bread;Бублик;Bagel;264;10.56;1.32;52.38;1.6;0;100;шт;piece;USDA;Bagels, plain, enriched, with calcium propionate (includes onion, poppy, sesame)
@@ -71,7 +71,7 @@ b23;bread;Батон нарізний;Sliced white loaf (baton);260;7.5;2.9;51;2
 b24;bread;Хліб «Бородинський»;Borodinsky rye bread;203;6.8;1.3;41;6;0;30;скибка;slice;LABEL;
 v01;veg;Картопля варена;Potatoes, boiled;86;1.71;0.1;20.01;1.8;0;200;порція;serving;USDA;Potatoes, boiled, cooked without skin, flesh, without salt
 v02;veg;Картопля запечена;Potatoes, baked with skin;93;2.5;0.13;21.15;2.2;0;200;шт;piece;USDA;Potatoes, baked, flesh and skin, without salt
-v03;veg;Картопляне пюре;Mashed potatoes with milk and butter;113;1.86;4.22;16.81;1.5;0;200;порція;serving;USDA;Potatoes, mashed, home-prepared, whole milk and butter added
+v03;veg;Картопляне пюре (картопля товчена);Mashed potatoes with milk and butter;113;1.86;4.22;16.81;1.5;0;200;порція;serving;USDA;Potatoes, mashed, home-prepared, whole milk and butter added
 v04;veg;Картопля фрі;French fries;312;3.43;14.73;41.44;3.8;0;120;порція;serving;USDA;Fast foods, potato, french fried in vegetable oil
 v05;veg;Картопля сира;Potatoes, raw;77;2.05;0.09;17.49;2.1;0;;;;USDA;Potatoes, flesh and skin, raw
 v06;veg;Капуста білокачанна;Cabbage, raw;25;1.28;0.1;5.8;2.5;0;100;порція;serving;USDA;Cabbage, raw
@@ -214,7 +214,7 @@ m02;meat;Куряча грудка сира;Chicken breast, raw;120;22.5;2.62;0;
 m03;meat;Куряче стегно без шкіри;Chicken thigh, skinless, cooked;179;24.76;8.15;0;0;0;100;шт;piece;USDA;Chicken, broilers or fryers, thigh, meat only, cooked, roasted
 m04;meat;Куряче стегно зі шкірою;Chicken thigh with skin, cooked;232;23.26;14.71;0;0;0;120;шт;piece;USDA;Chicken, broilers or fryers, thigh, meat and skin, cooked, roasted
 m05;meat;Курячі крильця;Chicken wings, cooked;254;23.79;16.87;0;0;0;35;шт;piece;USDA;Chicken, broilers or fryers, wing, meat and skin, cooked, roasted
-m06;meat;Курка запечена зі шкірою;Roast chicken with skin;239;27.3;13.6;0;0;0;200;порція;serving;USDA;Chicken, broilers or fryers, meat and skin, cooked, roasted
+m06;meat;Курка запечена зі шкірою (курятина);Roast chicken with skin;239;27.3;13.6;0;0;0;200;порція;serving;USDA;Chicken, broilers or fryers, meat and skin, cooked, roasted
 m07;meat;Індичка, грудка;Turkey breast, cooked;136;29.51;1.97;0;0;0;150;порція;serving;USDA;Turkey, retail parts, breast, meat only, cooked, roasted
 m08;meat;Свинина пісна (вирізка);Pork tenderloin, cooked;143;26.17;3.51;0;0;0;150;порція;serving;USDA;Pork, fresh, loin, tenderloin, separable lean only, cooked, roasted
 m09;meat;Свинина корейка;Pork loin, cooked;248;27.09;14.65;0;0;0;150;порція;serving;USDA;Pork, fresh, loin, whole, separable lean and fat, cooked, roasted
@@ -358,8 +358,8 @@ d60;dairy;Морозиво пломбір 12%;Plombir ice cream 12%;227;3.2;12;2
 d61;dairy;Ряжанка 2,5%;Ryazhenka 2.5%;54;2.9;2.5;4.2;0;0;250;склянка;glass;LABEL;
 e01;eggs;Яйце куряче варене;Egg, boiled;155;12.58;10.61;1.12;0;0;50;шт;piece;USDA;Egg, whole, cooked, hard-boiled
 e02;eggs;Яйце куряче сире;Egg, raw;143;12.56;9.51;0.72;0;0;50;шт;piece;USDA;Egg, whole, raw, fresh
-e03;eggs;Яєчня;Fried egg;196;13.61;14.84;0.83;0;0;46;шт;piece;USDA;Egg, whole, cooked, fried
-e04;eggs;Омлет / скрембл;Omelette / scrambled eggs;149;9.99;10.98;1.61;0;0;150;порція;serving;USDA;Egg, whole, cooked, scrambled
+e03;eggs;Яєчня (яйце смажене);Fried egg;196;13.61;14.84;0.83;0;0;46;шт;piece;USDA;Egg, whole, cooked, fried
+e04;eggs;Омлет / скрембл (яйця);Omelette / scrambled eggs;149;9.99;10.98;1.61;0;0;150;порція;serving;USDA;Egg, whole, cooked, scrambled
 e05;eggs;Яйце пашот;Poached egg;143;12.51;9.47;0.71;0;0;50;шт;piece;USDA;Egg, whole, cooked, poached
 e06;eggs;Яєчний білок;Egg white;52;10.9;0.17;0.73;0;0;33;шт;piece;USDA;Egg, white, raw, fresh
 e07;eggs;Яєчний жовток;Egg yolk;322;15.86;26.54;3.59;0;0;17;шт;piece;USDA;Egg, yolk, raw, fresh

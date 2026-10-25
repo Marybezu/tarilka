@@ -97,6 +97,8 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     val healthSync: StateFlow<Boolean> = _healthSync.asStateFlow()
     private val _steps = MutableStateFlow<Long?>(null)
     val steps: StateFlow<Long?> = _steps.asStateFlow()
+    /** Where the shown steps come from: Health Connect (true) or the phone's sensor (false). */
+    val stepsFromHc = MutableStateFlow(false)
 
     val healthAvailable: Boolean get() = health.available
     val stepSensorPresent: Boolean get() = stepSensor.present
@@ -123,11 +125,9 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         val d = day.value
         val fromHc = runCatching { health.steps(d) }.getOrNull()
         val fromSensor = if (d == LocalDate.now()) runCatching { stepSensor.today() }.getOrNull() else null
-        _steps.value = when {
-            fromHc != null && fromHc > 0 -> fromHc
-            fromSensor != null -> fromSensor
-            else -> fromHc
-        }
+        val useHc = fromHc != null && (fromHc > 0 || fromSensor == null)
+        _steps.value = if (useHc) fromHc else fromSensor
+        stepsFromHc.value = useHc
     }
 
     fun setStepsEnabled(on: Boolean) {
@@ -181,7 +181,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
 
     // ---- history: one row per day that has anything logged ----
 
-    data class HistoryDay(val day: LocalDate, val kcal: Double, val fluidMl: Double, val weight: Double?, val note: Boolean)
+    data class HistoryDay(val day: LocalDate, val kcal: Double, val fluidMl: Double, val weight: Double?, val note: String?)
 
     val history: StateFlow<List<HistoryDay>> = today.flatMapLatest { t ->
         val to = t.toEpochDay()
@@ -192,9 +192,9 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
             val f = food.associateBy { it.day }
             val w = fluid.associateBy { it.day }
             val kg = weight.associateBy { it.day }
-            val n = notes.map { it.day }.toSet()
-            (f.keys + w.keys + kg.keys.filter { it >= from } + n).sortedDescending().map { d ->
-                HistoryDay(LocalDate.ofEpochDay(d), f[d]?.kcal ?: 0.0, w[d]?.ml ?: 0.0, kg[d]?.kg, d in n)
+            val n = notes.associate { it.day to it.text }
+            (f.keys + w.keys + kg.keys.filter { it >= from } + n.keys).sortedDescending().map { d ->
+                HistoryDay(LocalDate.ofEpochDay(d), f[d]?.kcal ?: 0.0, w[d]?.ml ?: 0.0, kg[d]?.kg, n[d])
             }
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())

@@ -56,6 +56,17 @@ class HealthSync(private val context: Context) {
         }.getOrNull()
     }
 
+    /** Steps from the first to the last day (inclusive), or null when unavailable. */
+    suspend fun steps(from: LocalDate, to: LocalDate): Long? {
+        val c = client ?: return null
+        if (!canReadSteps()) return null
+        val zone = ZoneId.systemDefault()
+        val end = minOf(to.plusDays(1).atStartOfDay(zone).toInstant(), Instant.now())
+        return runCatching {
+            c.aggregate(AggregateRequest(setOf(StepsRecord.COUNT_TOTAL), TimeRangeFilter.between(from.atStartOfDay(zone).toInstant(), end)))[StepsRecord.COUNT_TOTAL]
+        }.getOrNull()
+    }
+
     suspend fun writeMeal(e: DiaryEntry) {
         val c = client ?: return
         if (!canWrite()) return

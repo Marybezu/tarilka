@@ -20,6 +20,7 @@ import ua.tarilka.data.DayTotal
 import ua.tarilka.data.DiaryEntry
 import ua.tarilka.data.FluidEntry
 import ua.tarilka.data.Food
+import ua.tarilka.data.Habits
 import ua.tarilka.data.Nutrition
 import ua.tarilka.data.Profile
 import ua.tarilka.data.Targets
@@ -241,118 +242,110 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         fluids.value.maxByOrNull { it.createdAt }?.let { deleteFluid(it) }
     }
 
-    /** Plain-text summary of the 7 days ending at the selected day, for the AI's weekly advice. */
-    suspend fun weekSummary(): String {
-        val end = day.value
-        val from = end.minusDays(6)
-        val entries = db.diary().range(from.toEpochDay(), end.toEpochDay()).groupBy { it.day }
-        val fluidsByDay = db.fluids().totalsOnce(from.toEpochDay(), end.toEpochDay()).associate { it.day to it.ml }
-        val stepsByDay = if (prefs.stepsEnabled) {
-            (0L..6L).associate { i -> from.plusDays(i).toEpochDay() to runCatching { health.steps(from.plusDays(i)) }.getOrNull() }
-        } else emptyMap()
+    // ---- habits and summaries ----
+
+    private val foodsById: StateFlow<Map<Long, Food>> = db.foods().all().map { list -> list.associateBy { it.id } }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyMap())
+
+    /** Patterns for the 7 days ending at the selected day (the "Week" card). */
+    val weekHabits: StateFlow<Habits?> = combine(
+        day.flatMapLatest { db.diary().rangeFlow(it.minusDays(6).toEpochDay(), it.toEpochDay()) },
+        foodsById,
+    ) { list, foods -> Habits.of(list, foods, 7).takeIf { it.days >= 2 } }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    enum class Period(val days: Int) { WEEK(7), MONTH(30), YEAR(365) }
+
+    suspend fun habitsFor(period: Period): Habits {
+        val end = LocalDate.now()
+        val list = db.diary().range(end.minusDays(period.days - 1L).toEpochDay(), end.toEpochDay())
+        return Habits.of(list, foodsById.value.ifEmpty { db.foods().allOnce().associateBy { it.id } }, period.days)
+    }
+
+    /** Plain-text summary of a period ending today, compared with the period before, for the AI. */
+    suspend fun periodSummary(period: Period): String {
+        val n = period.days.toLong()
+        val end = LocalDate.now()
+        val from = end.minusDays(n - 1)
+        val prevFrom = from.minusDays(n)
+        val foods = foodsById.value.ifEmpty { db.foods().allOnce().associateBy { it.id } }
+        val all = db.diary().range(prevFrom.toEpochDay(), end.toEpochDay())
+        val (cur, prev) = all.partition { it.day >= from.toEpochDay() }
+        val h = Habits.of(cur, foods, period.days)
+        val hp = Habits.of(prev, foods, period.days)
+        val fluidsByDay = db.fluids().totalsOnce(prevFrom.toEpochDay(), end.toEpochDay()).associate { it.day to it.ml }
         val tg = targets.value
-        val p = profile.value
         val time = java.time.format.DateTimeFormatter.ofPattern("HH:mm")
         val zone = java.time.ZoneId.systemDefault()
+        fun Double.r() = toInt()
+        fun avgFluid(a: LocalDate, b: LocalDate) =
+            fluidsByDay.filterKeys { it in a.toEpochDay()..b.toEpochDay() }.values.let { if (it.isEmpty()) null else it.average().r() }
+        val steps = if (prefs.stepsEnabled) health.steps(from, end) else null
+        val prevSteps = if (prefs.stepsEnabled) health.steps(prevFrom, from.minusDays(1)) else null
+        val periodName = period.name.lowercase()
         return buildString {
-            appendLine("The person's last 7 days (${from} to ${end}).")
+            appendLine("Summary of the person's last $periodName ($from to $end), compared with the $periodName before.")
             appendLine(
-                "Daily targets: ${tg.kcal.toInt()} kcal, protein ${tg.protein.toInt()} g, fat ${tg.fat.toInt()} g, " +
-                    "carbs ${tg.carbs.toInt()} g, fiber ${tg.fiber.toInt()} g, fluids ${tg.waterMl.toInt()} ml. Goal: ${p.goal.name.lowercase()} weight.",
+                "Daily targets: ${tg.kcal.r()} kcal, protein ${tg.protein.r()} g, fat ${tg.fat.r()} g, carbs ${tg.carbs.r()} g, " +
+                    "fiber ${tg.fiber.r()} g, fluids ${tg.waterMl.r()} ml. Goal: ${profile.value.goal.name.lowercase()} weight.",
             )
-            for (i in 0L..6L) {
-                val d = from.plusDays(i)
-                val list = entries[d.toEpochDay()].orEmpty()
-                val name = d.dayOfWeek.getDisplayName(java.time.format.TextStyle.SHORT, java.util.Locale.ENGLISH)
-                val extra = buildString {
-                    fluidsByDay[d.toEpochDay()]?.let { append(", drinks ${it.toInt()} ml") }
-                    stepsByDay[d.toEpochDay()]?.let { append(", steps $it") }
+            when (period) {
+                Period.WEEK -> for (i in 0L..6L) {
+                    val d = from.plusDays(i)
+                    val list = cur.filter { it.day == d.toEpochDay() }
+                    val name = d.dayOfWeek.getDisplayName(java.time.format.TextStyle.SHORT, java.util.Locale.ENGLISH)
+                    val drinks = fluidsByDay[d.toEpochDay()]?.let { ", drinks ${it.r()} ml" } ?: ""
+                    if (list.isEmpty()) { appendLine("- $name $d: nothing logged$drinks"); continue }
+                    val t = Totals.of(list)
+                    val times = list.map { java.time.Instant.ofEpochMilli(it.createdAt).atZone(zone).toLocalTime().format(time) }.distinct()
+                    appendLine("- $name $d: ${t.kcal.r()} kcal, protein ${t.protein.r()} g, fiber ${t.fiber.r()} g; logged at ${times.joinToString()}$drinks")
                 }
-                if (list.isEmpty()) { appendLine("- $name $d: no food logged$extra"); continue }
-                val t = Totals.of(list)
-                val times = list.map { java.time.Instant.ofEpochMilli(it.createdAt).atZone(zone).toLocalTime().format(time) }.distinct()
-                appendLine(
-                    "- $name $d: ${t.kcal.toInt()} kcal, protein ${t.protein.toInt()} g, fat ${t.fat.toInt()} g, " +
-                        "carbs ${t.carbs.toInt()} g, fiber ${t.fiber.toInt()} g; ate at ${times.joinToString()}$extra",
-                )
+                Period.MONTH -> for (w in 0 until 4) {
+                    val a = from.plusDays(w * 7L)
+                    val b = if (w == 3) end else a.plusDays(6)
+                    val hw = Habits.of(cur.filter { it.day in a.toEpochDay()..b.toEpochDay() }, foods, (b.toEpochDay() - a.toEpochDay() + 1).toInt())
+                    appendLine("- $a to $b: ${hw.days} days logged, average ${hw.kcalAvg.r()} kcal, protein ${hw.proteinAvg.r()} g")
+                }
+                Period.YEAR -> cur.groupBy { LocalDate.ofEpochDay(it.day).withDayOfMonth(1) }.toSortedMap().forEach { (m, list) ->
+                    val hm = Habits.of(list, foods, m.lengthOfMonth())
+                    val kg = weights.value.filter { LocalDate.ofEpochDay(it.day).withDayOfMonth(1) == m }.map { it.kg }
+                    appendLine(
+                        "- ${m.year}-${"%02d".format(m.monthValue)}: ${hm.days} days logged, average ${hm.kcalAvg.r()} kcal, protein ${hm.proteinAvg.r()} g" +
+                            (if (kg.isNotEmpty()) ", weight ${"%.1f".format(java.util.Locale.ROOT, kg.average())} kg" else ""),
+                    )
+                }
             }
-            val recent = weights.value.filter { it.day in end.minusDays(27).toEpochDay()..end.toEpochDay() }
+            fun line(label: String, now: String, before: String) = appendLine("$label: $now (previous $periodName: $before)")
+            line("Days with food logged", "${h.days}", "${hp.days}")
+            if (h.days > 0) {
+                line("Average per logged day", "${h.kcalAvg.r()} kcal, protein ${h.proteinAvg.r()} g, fiber ${h.fiberAvg.r()} g", if (hp.days > 0) "${hp.kcalAvg.r()} kcal, protein ${hp.proteinAvg.r()} g" else "no data")
+                line("Sweets and sugary drinks", "${h.sweetsPct.r()} % of calories, ${h.sweetFreeDays} of ${h.days} days without", if (hp.days > 0) "${hp.sweetsPct.r()} %" else "no data")
+                line("Vegetables and fruit", "${h.vegFruitG.r()} g a day (WHO: 400 g or more)", if (hp.days > 0) "${hp.vegFruitG.r()} g" else "no data")
+                line("Calories logged after 22:00", "${h.latePct.r()} %", if (hp.days > 0) "${hp.latePct.r()} %" else "no data")
+                line("Alcohol", "${"%.1f".format(java.util.Locale.ROOT, h.alcoholPerWeek)} standard drinks a week", "%.1f".format(java.util.Locale.ROOT, hp.alcoholPerWeek))
+                line("Days with fast food", "${h.fastFoodDays}", "${hp.fastFoodDays}")
+            }
+            line("Average drinks (water etc.) on days with any", avgFluid(from, end)?.let { "$it ml" } ?: "none logged", avgFluid(prevFrom, from.minusDays(1))?.let { "$it ml" } ?: "none")
+            if (steps != null) line("Average steps a day", "${steps / n}", prevSteps?.let { "${it / n}" } ?: "no data")
+            val recent = weights.value.filter { it.day in minOf(prevFrom, end.minusDays(27)).toEpochDay()..end.toEpochDay() }
             if (recent.isNotEmpty()) {
-                appendLine("Weight, last 4 weeks: " + recent.joinToString { "${LocalDate.ofEpochDay(it.day)} ${it.kg} kg" })
-                Nutrition.weeklyTrend(recent)?.let { tr ->
-                    val pct = tr / recent.last().kg * 100
-                    appendLine("Weight trend: ${"%+.2f".format(java.util.Locale.ROOT, tr)} kg per week (${"%+.1f".format(java.util.Locale.ROOT, pct)} % of body weight).")
+                if (period != Period.YEAR) appendLine("Weight: " + recent.takeLast(20).joinToString { "${LocalDate.ofEpochDay(it.day)} ${it.kg} kg" })
+                Nutrition.weeklyTrend(recent.filter { it.day >= end.minusDays(27).toEpochDay() })?.let { tr ->
+                    appendLine(
+                        "Weight trend, last 4 weeks: ${"%+.2f".format(java.util.Locale.ROOT, tr)} kg a week " +
+                            "(${"%+.1f".format(java.util.Locale.ROOT, tr / recent.last().kg * 100)} % of body weight).",
+                    )
                 }
             }
+            appendLine("Techniques you may suggest (pick 1–2 that fit what you see, explain simply):")
+            Habits.TECHNIQUES.forEach { appendLine("- $it") }
             append(
-                "Look at the whole week, not single days: point out patterns (late meals, days far over or under the target, " +
-                    "protein, fiber, drinks, activity) and how the weight change fits the food. Give 3–5 short practical suggestions. " +
-                    "Days with no food logged were probably just not recorded. Do not set weight targets or suggest diets. " +
-                    "If weight falls faster than about 1 % of body weight per week, or food is very low, gently suggest seeing a doctor.",
+                "Write a kind, encouraging summary: first what went well or improved, then 2–3 patterns worth attention, " +
+                    "then the techniques. Compare with the previous $periodName where it helps. Days with nothing logged were probably just not recorded. " +
+                    "Never shame. Do not set weight targets or suggest diets. Suggest seeing a doctor or a specialist only if weight falls faster " +
+                    "than about 1 % of body weight a week, the average is under 1200 kcal, or a quarter or more of calories are eaten late on most days.",
             )
         }
-    }
-
-    // ---- batch delete with a short undo ----
-
-    private var undoAction: (suspend () -> Unit)? = null
-    /** How many items the last batch delete removed; the UI offers "Undo" while this is set. */
-    val undoCount = MutableStateFlow<Int?>(null)
-
-    private fun offerUndo(count: Int, restore: suspend () -> Unit) {
-        undoAction = restore
-        undoCount.value = count
-    }
-
-    fun undo() = viewModelScope.launch {
-        undoAction?.invoke()
-        undoAction = null
-        undoCount.value = null
-    }
-
-    fun undoShown() { undoCount.value = null }
-
-    fun deleteMeal(meal: Int) = viewModelScope.launch {
-        val list = entries.value.filter { it.meal == meal }
-        if (list.isEmpty()) return@launch
-        db.diary().deleteMany(list)
-        sync { list.forEach { health.deleteMeal(it) } }
-        offerUndo(list.size) {
-            db.diary().insertAll(list)
-            sync { list.forEach { health.writeMeal(it) } }
-        }
-    }
-
-    fun deleteFluidsOfDay() = viewModelScope.launch {
-        val list = fluids.value
-        if (list.isEmpty()) return@launch
-        db.fluids().deleteMany(list)
-        sync { list.forEach { health.deleteFluid(it) } }
-        offerUndo(list.size) {
-            db.fluids().insertAll(list)
-            sync { list.forEach { health.writeFluid(it) } }
-        }
-    }
-
-    /**
-     * Clears the diary (food, drinks, weight, notes). With [everything] also own foods, recipes,
-     * favorites, the profile and the not-found list. The AI model and app settings stay.
-     */
-    fun clearData(everything: Boolean, alsoHealthConnect: Boolean) = viewModelScope.launch {
-        db.diary().deleteAll()
-        db.fluids().deleteAll()
-        db.weights().deleteAll()
-        db.notes().deleteAll()
-        if (everything) {
-            db.foods().deleteCustom()
-            db.foods().setFavorites(emptyList())
-            prefs.clearPersonal()
-            java.io.File(getApplication<Application>().cacheDir, "photos").deleteRecursively()
-        }
-        undoAction = null
-        undoCount.value = null
-        if (alsoHealthConnect) tapp.scope.launch { runCatching { health.deleteAllOwn() } }
-        dataMessage.value = getApplication<Application>().getString(ua.tarilka.R.string.clear_done)
     }
 
     fun saveFood(food: Food) = viewModelScope.launch {

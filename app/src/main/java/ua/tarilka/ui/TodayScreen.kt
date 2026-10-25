@@ -19,6 +19,8 @@ import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.foundation.layout.Box
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.foundation.background
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material.icons.filled.Star
@@ -81,6 +83,7 @@ fun TodayScreen(
     val weight by vm.latestWeight.collectAsState()
     val stepsFromHc by vm.stepsFromHc.collectAsState()
     val trend by vm.weeklyTrend.collectAsState()
+    val habits by vm.weekHabits.collectAsState()
     var weightDialog by remember { mutableStateOf(false) }
     val note by vm.note.collectAsState()
     var noteDialog by remember { mutableStateOf(false) }
@@ -143,7 +146,12 @@ fun TodayScreen(
                             unit = stringResource(R.string.unit_l), decimals = true,
                         )
                     }
-                    Spacer(Modifier.width(12.dp))
+                    Spacer(Modifier.width(8.dp))
+                    if (fluids.isNotEmpty()) {
+                        androidx.compose.material3.FilledTonalIconButton(onClick = vm::removeLastFluid) {
+                            Text("−", style = MaterialTheme.typography.titleLarge)
+                        }
+                    }
                     FilledTonalButton(onClick = { vm.addFluid(250.0) }) { Text(stringResource(R.string.plus_ml, 250)) }
                 }
                 if (stepsEnabled && steps != null) {
@@ -214,6 +222,7 @@ fun TodayScreen(
                     onPhoto = { onPhoto(meal) },
                     onEntry = { editing = it },
                     onDeleteAll = { vm.deleteMeal(meal) },
+                    onDelete = { vm.deleteEntry(it) },
                 )
             }
         }
@@ -243,6 +252,11 @@ fun TodayScreen(
                     )
                     Spacer(Modifier.height(8.dp))
                     WeekBars(day, week, targets.kcal)
+                    habits?.let {
+                        Spacer(Modifier.height(10.dp))
+                        HabitChips(it)
+                    }
+                    TextButton(onClick = onHistory) { Text(stringResource(R.string.summaries_link)) }
                 }
             }
         }
@@ -358,6 +372,7 @@ private fun MealSection(
     onPhoto: () -> Unit,
     onEntry: (DiaryEntry) -> Unit,
     onDeleteAll: () -> Unit,
+    onDelete: (DiaryEntry) -> Unit,
 ) {
     val kcal = entries.sumOf { it.kcal }
     var menu by remember { mutableStateOf(false) }
@@ -384,11 +399,31 @@ private fun MealSection(
             }
         },
     ) {
-        entries.forEach { e ->
+        entries.forEach { e -> androidx.compose.runtime.key(e.id) {
+            // Swipe left to delete; "Undo" appears at the bottom.
+            val swipe = androidx.compose.material3.rememberSwipeToDismissBoxState(
+                confirmValueChange = { v ->
+                    if (v == androidx.compose.material3.SwipeToDismissBoxValue.EndToStart) { onDelete(e); true } else false
+                },
+            )
+            androidx.compose.material3.SwipeToDismissBox(
+                state = swipe,
+                enableDismissFromStartToEnd = false,
+                backgroundContent = {
+                    Box(
+                        Modifier
+                            .fillMaxSize()
+                            .background(MaterialTheme.colorScheme.errorContainer)
+                            .padding(end = 16.dp),
+                        contentAlignment = Alignment.CenterEnd,
+                    ) { Icon(Icons.Filled.Delete, stringResource(R.string.delete), tint = MaterialTheme.colorScheme.onErrorContainer) }
+                },
+            ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
                     .fillMaxWidth()
+                    .background(MaterialTheme.colorScheme.surfaceContainerLow)
                     .clickable { onEntry(e) }
                     .padding(vertical = 6.dp),
             ) {
@@ -410,7 +445,8 @@ private fun MealSection(
                 }
                 Text(e.kcal.f0(), style = MaterialTheme.typography.bodyLarge.merge(Numbers))
             }
-        }
+            }
+        } }
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(top = 4.dp)) {
             OutlinedButton(onClick = onAdd) {
                 Icon(Icons.Filled.Add, null, Modifier.size(18.dp))

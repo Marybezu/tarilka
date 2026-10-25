@@ -160,13 +160,13 @@ class GemmaEngine(
     suspend fun warmUp() = runCatching { withEngine { } }
 
     /** Short, friendly advice based on the day's numbers. */
-    suspend fun advice(summary: String, ukrainian: Boolean): String = withEngine { e ->
+    suspend fun advice(summary: String, ukrainian: Boolean, maxTokens: Int = 400): String = withEngine { e ->
         e.createConversation(
             ConversationConfig(
                 systemInstruction = Contents.of(if (ukrainian) SYSTEM_ADVICE_UK else SYSTEM_ADVICE_EN),
                 samplerConfig = SamplerConfig(topK = 40, topP = 0.95, temperature = 0.6),
                 thinkingConfig = ThinkingConfig(enableThinking = false),
-                maxOutputToken = 400,
+                maxOutputToken = maxTokens,
             ),
         ).use { conv -> conv.sendMessage(summary).toString().trim() }
     }

@@ -233,4 +233,24 @@
     <string name="clear_all_text">The diary, your foods and recipes, favorites, profile and the Not found list will be deleted. Only the AI model, language and theme stay. This cannot be undone.</string>
     <string name="clear_hc">Also delete Tarilka\'s records from Health Connect</string>
     <string name="export_first">Make a backup first</string>
+    <string name="copy">Copy</string>
+    <string name="summaries_link">Summaries for the week, month, year</string>
+    <string name="summaries_title">Summaries</string>
+    <string name="period_week">Week</string>
+    <string name="period_month">Month</string>
+    <string name="period_year">Year</string>
+    <string name="summaries_avg">On average %1$s kcal, protein %2$s g · days logged: %3$d</string>
+    <string name="summaries_few">Not enough entries yet: at least 2 days are needed.</string>
+    <string name="ai_summary">AI summary</string>
+    <string name="habit_veg">🥦 Vegetables and fruit: %1$s g/day</string>
+    <string name="habit_veg_info">Average vegetables and fruit a day (potatoes not counted). The WHO recommends at least 400 g. Easiest: vegetables with every main meal and fruit as a snack.</string>
+    <string name="habit_sweets">🍬 Without sweets: %1$d of %2$d days</string>
+    <string name="habit_sweets_info">Sweets, pastries and sugary drinks (juice included) gave %1$s%% of calories. The WHO recommends under 10%%, ideally under 5%%. Don\'t ban sweets: plan a portion, keep them out of sight, swap sugary drinks for water.</string>
+    <string name="habit_late">🌙 After 22:00: %1$s%% of calories</string>
+    <string name="habit_late_none">🌙 Nothing after 22:00</string>
+    <string name="habit_late_info">Share of calories logged after 22:00. A quarter of the day or more is worth attention. What helps most: regular meals during the day (no gaps over 4 hours), protein at dinner and a planned evening snack. The time of logging is used, so a dinner logged late counts too.</string>
+    <string name="habit_alcohol">🍷 Alcohol: %1$s drinks/week</string>
+    <string name="habit_alcohol_info">A standard drink has 10 g of alcohol: about 250 ml of beer, 100 ml of wine or 30 ml of spirits. There is no safe amount, so less is better. Alcohol-free days and a glass of water between drinks help.</string>
+    <string name="habit_fastfood">🍔 Fast food: %1$d days</string>
+    <string name="habit_fastfood_info">Days with fast food: pizza, burgers, shawarma and so on. Now and then is fine. If often, keep a simple quick home option at hand.</string>
 </resources>

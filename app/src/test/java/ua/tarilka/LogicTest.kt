@@ -124,4 +124,28 @@ class LogicTest {
         assertTrue(!l.looksRussian("Їжте більше білка і клітковини"))
         assertEquals("grilled fish", l.safeUk("рыба на гриле", "grilled fish"))
     }
+
+    @Test
+    fun habitsAreCounted() {
+        fun food(id: Long, code: String, cat: String, kcal: Double) =
+            ua.tarilka.data.Food(id = id, code = code, category = cat, nameUk = code, nameEn = code, kcal = kcal, protein = 0.0, fat = 0.0, carbs = 0.0, fiber = 0.0, source = "USDA")
+        val foods = listOf(food(1, "f01", "fruit", 50.0), food(2, "s01", "sweets", 500.0), food(3, "v01", "veg", 80.0), food(4, "dr07", "drinks", 85.0))
+            .associateBy { it.id }
+        val zone = java.time.ZoneOffset.UTC
+        fun at(day: Long, hour: Int) = java.time.LocalDate.ofEpochDay(day).atTime(hour, 0).toInstant(zone).toEpochMilli()
+        fun e(day: Long, foodId: Long, grams: Double, hour: Int = 12) = ua.tarilka.data.DiaryEntry(
+            day = day, meal = 0, foodId = foodId, nameUk = "", nameEn = "", grams = grams,
+            kcal = foods.getValue(foodId).kcal * grams / 100, protein = 0.0, fat = 0.0, carbs = 0.0, fiber = 0.0, createdAt = at(day, hour),
+        )
+        val h = ua.tarilka.data.Habits.of(
+            listOf(e(1, 1, 400.0), e(1, 3, 500.0), e(2, 2, 40.0, hour = 23), e(2, 4, 200.0)),
+            foods, 7, zone,
+        )
+        assertEquals(2, h.days)
+        assertEquals(1, h.sweetFreeDays)
+        assertEquals(200.0, h.vegFruitG, 0.01) // potatoes are not counted
+        assertEquals(200.0 / (200 + 400 + 200 + 170) * 100, h.latePct, 0.01)
+        assertEquals(2.12, h.alcoholPerWeek, 0.01) // 200 g of dry red wine = 21.2 g of alcohol
+        assertEquals(ua.tarilka.data.Habits.Level.WATCH, h.sweetsLevel)
+    }
 }

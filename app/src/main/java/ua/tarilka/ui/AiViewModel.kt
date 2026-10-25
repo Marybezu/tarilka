@@ -166,28 +166,31 @@ class AiViewModel(app: Application) : AndroidViewModel(app) {
 
     // ---- advice ----
 
-    private val _weekAdvice = MutableStateFlow<String?>(null)
-    val weekAdvice: StateFlow<String?> = _weekAdvice.asStateFlow()
-    private val _weekLoading = MutableStateFlow(false)
-    val weekLoading: StateFlow<Boolean> = _weekLoading.asStateFlow()
+    /** Week / month / year summary shown in History. */
+    private val _summary = MutableStateFlow<String?>(null)
+    val summary: StateFlow<String?> = _summary.asStateFlow()
+    private val _summaryLoading = MutableStateFlow(false)
+    val summaryLoading: StateFlow<Boolean> = _summaryLoading.asStateFlow()
 
-    fun requestAdvice(summary: String, ukrainian: Boolean) = ask(summary, ukrainian, _advice, _adviceLoading)
-
-    /** The summary is built by the caller (it needs the diary), so it is passed as a function. */
-    fun requestWeekAdvice(summary: suspend () -> String, ukrainian: Boolean) = viewModelScope.launch {
-        _weekLoading.value = true
-        ask(summary(), ukrainian, _weekAdvice, _weekLoading)
+    fun requestAdvice(summary: String, ukrainian: Boolean) = viewModelScope.launch {
+        ask(summary, ukrainian, _advice, _adviceLoading, 400)
     }
 
-    fun clearWeekAdvice() { _weekAdvice.value = null }
+    /** The text for the model is built by the caller (it needs the diary), so it is passed as a function. */
+    fun requestSummary(text: suspend () -> String, ukrainian: Boolean) = viewModelScope.launch {
+        _summaryLoading.value = true
+        ask(text(), ukrainian, _summary, _summaryLoading, 600)
+    }
 
-    private fun ask(summary: String, ukrainian: Boolean, out: MutableStateFlow<String?>, loading: MutableStateFlow<Boolean>) = viewModelScope.launch {
+    fun clearSummary() { _summary.value = null }
+
+    private suspend fun ask(summary: String, ukrainian: Boolean, out: MutableStateFlow<String?>, loading: MutableStateFlow<Boolean>, maxTokens: Int) {
         loading.value = true
         out.value = runCatching {
-            var text = gemma.advice(summary, ukrainian)
+            var text = gemma.advice(summary, ukrainian, maxTokens)
             // The small model sometimes slips into Russian or another alphabet: ask once more, then show nothing.
             val lang = ua.tarilka.data.Lang
-            if (!lang.isClean(text, ukrainian)) text = gemma.advice(summary, ukrainian)
+            if (!lang.isClean(text, ukrainian)) text = gemma.advice(summary, ukrainian, maxTokens)
             if (lang.isClean(text, ukrainian)) text else null
         }.getOrElse { "⚠ ${it.message}" }
         loading.value = false

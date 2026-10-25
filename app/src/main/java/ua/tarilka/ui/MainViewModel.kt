@@ -270,6 +270,15 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     val note: StateFlow<String> = day.flatMapLatest { d -> db.notes().forDay(d.toEpochDay()).map { it?.text ?: "" } }
         .stateIn(viewModelScope, SharingStarted.Eagerly, "")
 
+    /** Adds a line to today's note (e.g. a self-check result the person chose to keep). */
+    fun appendNoteToday(line: String) {
+        viewModelScope.launch {
+            val d = LocalDate.now().toEpochDay()
+            val old = db.notes().forDay(d).first()?.text?.takeIf { it.isNotBlank() }
+            db.notes().upsert(ua.tarilka.data.DayNote(d, listOfNotNull(old, line).joinToString("\n").take(1000)))
+        }
+    }
+
     fun saveNote(text: String) = viewModelScope.launch {
         val d = day.value.toEpochDay()
         if (text.isBlank()) db.notes().delete(d) else db.notes().upsert(ua.tarilka.data.DayNote(d, text.trim()))

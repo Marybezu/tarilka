@@ -82,7 +82,12 @@ fun SettingsScreen(vm: MainViewModel, ai: AiViewModel, padding: PaddingValues) {
         item { LanguageSection() }
         item {
             Section(title = stringResource(R.string.about)) {
+                val context = androidx.compose.ui.platform.LocalContext.current
+                val title = stringResource(R.string.feedback_title)
+                val body = stringResource(R.string.feedback_body, Feedback.version(context))
                 Text(stringResource(R.string.about_text), style = MaterialTheme.typography.bodySmall)
+                OutlinedButton(onClick = { Feedback.open(context, title, body) }) { Text(stringResource(R.string.feedback)) }
+                Text(stringResource(R.string.feedback_hint), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
     }
@@ -550,6 +555,7 @@ private fun PasswordField(label: String, value: String, onChange: (String) -> Un
 }
 
 /** Foods people searched for and didn't find; shown only when there are some. */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun MissingSection(vm: MainViewModel) {
     val missing by vm.missing.collectAsState()
@@ -563,7 +569,11 @@ private fun MissingSection(vm: MainViewModel) {
                 return@Column
             }
             Text(text, style = MaterialTheme.typography.bodyMedium)
-            Row {
+            val context = androidx.compose.ui.platform.LocalContext.current
+            val issueTitle = stringResource(R.string.missing_issue_title)
+            val issueBody = stringResource(R.string.missing_issue_body, Feedback.version(context), text)
+            androidx.compose.foundation.layout.FlowRow {
+                TextButton(onClick = { Feedback.open(context, issueTitle, issueBody) }) { Text(stringResource(R.string.send_list)) }
                 TextButton(onClick = { clipboard.setText(androidx.compose.ui.text.AnnotatedString(text)) }) {
                     Text(stringResource(R.string.copy_list))
                 }

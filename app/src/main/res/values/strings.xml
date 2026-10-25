@@ -218,7 +218,7 @@
     <string name="steps_from_sensor">phone sensor, since first opened today</string>
     <string name="portion_typical">Typical weight of one serving or piece. If you know the exact weight, type it in.</string>
     <string name="missing_title">Not found in the database</string>
-    <string name="missing_hint">Foods you searched for, or the AI saw in a photo, that are not in the database (times in brackets). Kept only on this phone. You can add any of them yourself: Foods → New food. To get them into the database for everyone, copy the list and send it to the app\'s authors.</string>
+    <string name="missing_hint">Foods you searched for, or the AI saw in a photo, that are not in the database (times in brackets). Kept only on this phone. You can add any of them yourself: Foods → New food. To get them into the database for everyone, tap Send the list.</string>
     <string name="copy_list">Copy list</string>
     <string name="missing_empty">Empty for now. Searches in Add, or foods the AI saw in a photo, that are not in the database will appear here.</string>
     <string name="more">More</string>
@@ -365,4 +365,20 @@
         <item>dinner</item>
     </string-array>
     <string name="delete_record">Delete this record</string>
+    <string name="feedback">Send feedback</string>
+    <string name="feedback_title">Feedback</string>
+    <string name="feedback_body">Version: %1$s\n\nWhat happened or what you would like:\n\n</string>
+    <string name="feedback_hint">Opens the app\'s GitHub page (an account is needed). You see and can edit everything before sending; nothing from your diary is added.</string>
+    <string name="send_list">Send the list</string>
+    <string name="missing_issue_title">Not found in the database</string>
+    <string name="missing_issue_body">Version: %1$s\n\nFoods that were not found (times in brackets):\n%2$s</string>
+    <string name="audit_save">Save to today\'s note</string>
+    <string name="audit_saved">Saved in the note</string>
+    <string name="audit_note">AUDIT-C: %1$d of 12, %2$s</string>
+    <string-array name="audit_levels">
+        <item>no alcohol</item>
+        <item>lower risk</item>
+        <item>increased risk</item>
+        <item>high risk</item>
+    </string-array>
 </resources>

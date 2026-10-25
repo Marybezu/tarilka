@@ -274,7 +274,7 @@ fun TodayScreen(
                     WeekBars(day, week, targets.kcal)
                     habits?.let {
                         Spacer(Modifier.height(10.dp))
-                        HabitChips(it, sex = profile.sex)
+                        HabitChips(it, sex = profile.sex, onSaveNote = vm::appendNoteToday)
                     }
                     TextButton(onClick = onHistory) { Text(stringResource(R.string.summaries_link)) }
                 }

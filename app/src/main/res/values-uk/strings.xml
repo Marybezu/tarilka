@@ -218,7 +218,7 @@
     <string name="steps_from_sensor">датчик телефону, з першого відкриття за день</string>
     <string name="portion_typical">Типова вага однієї порції чи штуки. Якщо знаєте точну, впишіть свою.</string>
     <string name="missing_title">Не знайдено в базі</string>
-    <string name="missing_hint">Продукти, які ви шукали або які ШІ побачив на фото, але їх немає в базі (у дужках скільки разів). Зберігається лише на телефоні. Будь-який із них можна додати самостійно: «Продукти» → «Новий продукт». Якщо хочете, щоб він зʼявився в базі для всіх, скопіюйте список і надішліть авторам застосунку.</string>
+    <string name="missing_hint">Продукти, які ви шукали або які ШІ побачив на фото, але їх немає в базі (у дужках скільки разів). Зберігається лише на телефоні. Будь-який можна додати самостійно: «Продукти» → «Новий продукт». Щоб він зʼявився в базі для всіх, натисніть «Надіслати список».</string>
     <string name="copy_list">Скопіювати список</string>
     <string name="missing_empty">Поки порожньо. Тут зʼявиться те, що ви шукали в «Додати» або що ШІ побачив на фото, але не знайшов у базі.</string>
     <string name="more">Ще</string>
@@ -365,4 +365,20 @@
         <item>вечерю</item>
     </string-array>
     <string name="delete_record">Видалити цей запис</string>
+    <string name="feedback">Написати відгук</string>
+    <string name="feedback_title">Відгук</string>
+    <string name="feedback_body">Версія: %1$s\n\nЩо сталося або що хотілося б:\n\n</string>
+    <string name="feedback_hint">Відкриється сторінка застосунку на GitHub (потрібен акаунт). Ви побачите й зможете змінити все перед відправкою, дані щоденника туди не потрапляють.</string>
+    <string name="send_list">Надіслати список</string>
+    <string name="missing_issue_title">Не знайдено в базі</string>
+    <string name="missing_issue_body">Версія: %1$s\n\nПродукти, яких не знайшлося (у дужках скільки разів):\n%2$s</string>
+    <string name="audit_save">Зберегти в нотатку дня</string>
+    <string name="audit_saved">Збережено в нотатці</string>
+    <string name="audit_note">AUDIT-C: %1$d з 12, %2$s</string>
+    <string-array name="audit_levels">
+        <item>без алкоголю</item>
+        <item>низький ризик</item>
+        <item>підвищений ризик</item>
+        <item>високий ризик</item>
+    </string-array>
 </resources>

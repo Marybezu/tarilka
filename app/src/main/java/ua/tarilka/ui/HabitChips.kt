@@ -36,7 +36,12 @@ private class HabitInfo(val title: String, val parts: List<String>, val audit: B
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun HabitChips(h: Habits, modifier: Modifier = Modifier, sex: ua.tarilka.data.Sex = ua.tarilka.data.Sex.FEMALE) {
+fun HabitChips(
+    h: Habits,
+    modifier: Modifier = Modifier,
+    sex: ua.tarilka.data.Sex = ua.tarilka.data.Sex.FEMALE,
+    onSaveNote: ((String) -> Unit)? = null,
+) {
     var info by remember { mutableStateOf<HabitInfo?>(null) }
     var audit by remember { mutableStateOf(false) }
     val p = h.prev?.takeIf { it.days >= 2 }
@@ -142,7 +147,7 @@ fun HabitChips(h: Habits, modifier: Modifier = Modifier, sex: ua.tarilka.data.Se
             } else null,
         )
     }
-    if (audit) AuditCDialog(sex) { audit = false }
+    if (audit) AuditCDialog(sex, onSaveNote) { audit = false }
 }
 
 @Composable

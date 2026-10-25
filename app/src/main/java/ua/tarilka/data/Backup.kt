@@ -303,6 +303,8 @@ object Backup {
                 }
             }
         }
+        // The cycle settings belong to the replaced cycle records.
+        prefs.clearCycle()
         o.optJSONObject("settings")?.let { st ->
             st.optInt("cycleTypical", -1).let { prefs.setCycleTypical(if (it in 15..60) it else -1) }
             st.optJSONObject("stepLog")?.let { log ->

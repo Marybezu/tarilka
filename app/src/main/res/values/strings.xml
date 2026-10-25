@@ -514,7 +514,7 @@
         <item>obesity class II</item>
         <item>obesity class III</item>
     </string-array>
-    <string name="cycle_long_gap">There were more than 60 days between the last two starts. If you did not miss an entry, a gap that long is worth discussing with a doctor. If you did, mark the missed start on its past date.</string>
+    <string name="cycle_long_gap">There were more than 60 days between two of the recent starts. If you did not miss an entry, a gap that long is worth discussing with a doctor. If you did, mark the missed start on its past date.</string>
     <string name="ai_busy">The AI is still finishing the previous request. Try again in a minute.</string>
     <string name="meal_time_fixed">Time: %1$s, as for the whole meal (change it in the meal\'s header).</string>
     <string name="clear_done_hc_failed">Data deleted in Tarilka, but Health Connect did not allow deleting everything: check Tarilka\'s permissions in Health Connect.</string>

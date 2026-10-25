@@ -162,10 +162,11 @@ private fun ProfileSection(profile: Profile, onSave: (Profile) -> Unit) {
             val limit = if (weightN != null && heightN != null && heightN > 0 && ageN != null) {
                 ua.tarilka.data.Nutrition.limitFor(sex, pregnant, ageN, ua.tarilka.data.Nutrition.bmi(weightN, heightN))
             } else null
-            if (limit != null && goal == Goal.LOSE) goal = Goal.MAINTAIN
+            // Shown and saved as "Maintain" while a limit applies; the choice itself is kept (half-typed values pass).
+            val shown = if (limit != null && goal == Goal.LOSE) Goal.MAINTAIN else goal
             FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                FilterChip(goal == Goal.LOSE, { goal = Goal.LOSE }, { Text(stringResource(R.string.goal_lose)) }, enabled = limit == null)
-                FilterChip(goal == Goal.MAINTAIN, { goal = Goal.MAINTAIN }, { Text(stringResource(R.string.goal_maintain)) })
+                FilterChip(shown == Goal.LOSE, { goal = Goal.LOSE }, { Text(stringResource(R.string.goal_lose)) }, enabled = limit == null)
+                FilterChip(shown == Goal.MAINTAIN, { goal = Goal.MAINTAIN }, { Text(stringResource(R.string.goal_maintain)) })
                 FilterChip(goal == Goal.GAIN, { goal = Goal.GAIN }, { Text(stringResource(R.string.goal_gain)) })
             }
             limit?.let { Text(stringResource(limitText(it)), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant) }
@@ -177,7 +178,7 @@ private fun ProfileSection(profile: Profile, onSave: (Profile) -> Unit) {
                     onSave(
                         Profile(
                             sex = sex, age = ageN!!, heightCm = heightN!!, weightKg = weightN!!,
-                            activity = activity, goal = goal,
+                            activity = activity, goal = if (limit != null && goal == Goal.LOSE) Goal.MAINTAIN else goal,
                             customKcal = custom.toNumber()?.toInt()?.takeIf { it in 800..6000 },
                             pregnant = sex == Sex.FEMALE && pregnant,
                         ),

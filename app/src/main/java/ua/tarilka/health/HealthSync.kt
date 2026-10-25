@@ -229,8 +229,11 @@ class HealthSync(private val context: Context) {
         val c = client ?: return false
         val have = granted()
         val range = TimeRangeFilter.before(Instant.now().plusSeconds(2 * 86_400))
+        val types = listOf(NutritionRecord::class, HydrationRecord::class, WeightRecord::class)
+        // No write permission at all: the app never wrote anything, so there is nothing to delete.
+        if (types.none { HealthPermission.getWritePermission(it) in have }) return true
         var ok = true
-        listOf(NutritionRecord::class, HydrationRecord::class, WeightRecord::class).forEach { type ->
+        types.forEach { type ->
             if (HealthPermission.getWritePermission(type) !in have) { ok = false; return@forEach }
             if (runCatching { c.deleteRecords(type, range) }.isFailure) ok = false
         }

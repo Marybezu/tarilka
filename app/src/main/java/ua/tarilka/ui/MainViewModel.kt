@@ -294,7 +294,8 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
             // Steps decide; workouts can only raise the level. Steps alone never mean "physical work" (4).
             val avg = steps.average()
             val level = maxOf(when { avg < 5_000 -> 0; avg < 7_500 -> 1; avg < 10_000 -> 2; else -> 3 }, byMinutes)
-            level.takeIf { it != p.activity }
+            // Steps can't tell physical work (4) from an active day (3): don't suggest lowering from 4.
+            level.takeIf { it != p.activity && !(p.activity == 4 && level == 3) }
         } else {
             // Without enough step data nothing says the person moves less: only suggest more.
             byMinutes.takeIf { it > p.activity }

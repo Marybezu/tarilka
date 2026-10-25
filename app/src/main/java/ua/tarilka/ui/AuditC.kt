@@ -56,8 +56,11 @@ fun AuditCDialog(sex: Sex, onSaveNote: ((String) -> Unit)? = null, onDismiss: ()
                                 selected = answers[qi] == i,
                                 enabled = !never,
                                 onClick = {
+                                    val was = answers[qi]
                                     answers[qi] = i
                                     if (qi == 0 && i == 0) { answers[1] = 0; answers[2] = 0 }
+                                    // Changed from "Never": the other two need real answers again.
+                                    if (qi == 0 && i != 0 && was == 0) { answers[1] = null; answers[2] = null }
                                 },
                                 label = { Text(label) },
                             )

@@ -44,6 +44,15 @@ data class Habits(
     val sleepNights: Int = 0,
     /** Nights under 6 hours. */
     val shortNights: Int = 0,
+    /** Days with a bowel record, days with a movement, hard and loose days. */
+    val bowelDays: Int = 0,
+    val bowelMoveDays: Int = 0,
+    val bowelHard: Int = 0,
+    val bowelLoose: Int = 0,
+    /** WHO activity minutes a week (moderate ×1, vigorous ×2) and strength days a week, from typed-in workouts. */
+    val workoutCount: Int = 0,
+    val activeMinPerWeek: Double = 0.0,
+    val strengthPerWeek: Double = 0.0,
     /** The period before, for trend arrows; set by the caller. */
     val prev: Habits? = null,
 ) {
@@ -73,6 +82,16 @@ data class Habits(
     val sleepLevel get() = sleepAvg?.let { level(it >= 7, it >= 6) } ?: Level.OK
     /** Hard-to-stop episodes twice a week or more are worth attention; eating for other reasons now and then is normal. */
     val reasonsLevel get() = if (perWeek(hardToStop) >= 2) Level.WATCH else level(notHungerTotal == 0 && hardToStop == 0, true)
+
+    /** Under 3 movements a week is constipation by the usual definition; loose stools on several days are worth noticing too. */
+    val bowelLevel get() = when {
+        bowelDays == 0 -> Level.OK
+        bowelMoveDays * 7.0 / bowelDays < 3 || bowelLoose * 7.0 / bowelDays >= 3 -> Level.WATCH
+        bowelHard > 0 || bowelLoose > 0 -> Level.OK
+        else -> Level.GOOD
+    }
+    /** WHO: 150–300 minutes of moderate activity a week (or half as much vigorous). */
+    val activityLevel get() = level(activeMinPerWeek >= 150, activeMinPerWeek >= 75)
 
     /** Hours of sleep, % of calories, drinks a week…: compare with the period before. +1 more, −1 less, 0 about the same or unknown. */
     fun trend(value: (Habits) -> Double?, minDiff: Double): Int {
@@ -129,6 +148,8 @@ data class Habits(
             periodDays: Int,
             zone: ZoneId = ZoneId.systemDefault(),
             sleep: Map<Long, Double> = emptyMap(),
+            bowel: List<BowelEntry> = emptyList(),
+            workouts: List<WorkoutEntry> = emptyList(),
         ): Habits {
             fun food(e: DiaryEntry) = e.foodId?.let(foods::get)
             fun sweet(e: DiaryEntry) = food(e)?.let(::isSweet) == true
@@ -168,6 +189,15 @@ data class Habits(
                     val k = list.sumOf { it.kcal }
                     k > 0 && list.filter(::isLate).sumOf { it.kcal } >= k / 4
                 },
+                bowelDays = bowel.size,
+                bowelMoveDays = bowel.count { it.count > 0 },
+                bowelHard = bowel.count { it.form == 0 },
+                bowelLoose = bowel.count { it.form == 2 },
+                workoutCount = workouts.size,
+                // Over the logged days (like the other weekly rates), at least a week.
+                activeMinPerWeek = workouts.sumOf(Workouts::whoMinutes) * 7.0 / maxOf(days, 7).coerceAtMost(periodDays),
+                strengthPerWeek = workouts.filter { it.type == Workouts.STRENGTH }.map { it.day }.distinct().size * 7.0 /
+                    maxOf(days, 7).coerceAtMost(periodDays),
                 sleepNights = sleep.size,
                 shortNights = sleep.values.count { it < 6 },
             )

@@ -42,6 +42,8 @@ data class PhotoUi(
     val raw: String = "",
     val backend: String = "",
     val loadSec: Int = 0,
+    /** Personal correction applied to the AI's grams (1.0 = none). */
+    val factor: Double = 1.0,
     val analyzeSec: Int = 0,
 )
 
@@ -124,14 +126,17 @@ class AiViewModel(app: Application) : AndroidViewModel(app) {
             val img = PhotoUtil.prepare(getApplication(), uri)
             _photo.update { it.copy(preview = PhotoUtil.thumbnail(img)) }
             val foods = tapp.db.foods().allOnce()
-            val result = gemma.analyzePhoto(img, _photo.value.note)
+            val result = gemma.analyzePhoto(img, _photo.value.note, tapp.prefs.plateSize)
+            val factor = tapp.prefs.gramsFactor()
             _photo.update {
-                it.copy(raw = result.raw.take(600), backend = result.backend, loadSec = result.loadSec, analyzeSec = result.analyzeSec)
+                it.copy(raw = result.raw.take(600), backend = result.backend, loadSec = result.loadSec, analyzeSec = result.analyzeSec, factor = factor)
             }
             val items = result.foods.map { d ->
                 val match = FoodMatcher.best(d.nameEn, d.nameUk, foods)
                 // Not in the database: off until the person picks the right food with "Replace".
-                ReviewItem(detected = d, food = match?.food, grams = d.grams, include = match != null)
+                // Adjusted to how this person usually corrects the AI's portions (rounded to 5 g).
+                val grams = (kotlin.math.round(d.grams * factor / 5) * 5).coerceAtLeast(5.0)
+                ReviewItem(detected = d, food = match?.food, grams = grams, include = match != null)
             }
             // Unknown foods go to the "Not found" list in Options, like empty searches.
             items.filter { it.food == null }.forEach { tapp.prefs.recordMissing(it.detected.nameEn) }
@@ -145,6 +150,11 @@ class AiViewModel(app: Application) : AndroidViewModel(app) {
             _photo.update { it.copy(working = false) }
         }
     }
+
+    /** Plate size for the next photo (remembered): 0 small, 1 dinner, 2 large, 3 bowl. */
+    var plate: Int
+        get() = tapp.prefs.plateSize
+        set(v) { tapp.prefs.plateSize = v }
 
     fun setGrams(i: Int, grams: Double) = updateItem(i) { it.copy(grams = grams) }
     fun setInclude(i: Int, on: Boolean) = updateItem(i) { it.copy(include = on) }
@@ -160,9 +170,12 @@ class AiViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     /** Only foods from the database are saved: the numbers never come from the model. */
-    fun entriesFor(day: Long, meal: Int): List<DiaryEntry> = _photo.value.items
-        .filter { it.include && it.grams > 0 && it.food != null }
-        .map { DiaryEntry.of(it.food!!, it.grams, day, meal, fromAi = true) }
+    fun entriesFor(day: Long, meal: Int): List<DiaryEntry> {
+        val chosen = _photo.value.items.filter { it.include && it.grams > 0 && it.food != null }
+        // Learn from the corrections: final grams against what the model itself said.
+        chosen.filter { it.detected.confidence != "manual" && it.detected.grams > 0 }.forEach { tapp.prefs.addGramsRatio(it.grams / it.detected.grams) }
+        return chosen.map { DiaryEntry.of(it.food!!, it.grams, day, meal, fromAi = true) }
+    }
 
     // ---- advice ----
 

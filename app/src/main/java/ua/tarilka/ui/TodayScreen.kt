@@ -88,6 +88,13 @@ fun TodayScreen(
     val sleep by vm.sleep.collectAsState()
     val sleepOn by vm.sleepEnabled.collectAsState()
     var sleepDialog by remember { mutableStateOf(false) }
+    val bowelOn by vm.bowelEnabled.collectAsState()
+    val bowel by vm.bowel.collectAsState()
+    var bowelDialog by remember { mutableStateOf(false) }
+    val workoutsOn by vm.workoutsEnabled.collectAsState()
+    val workouts by vm.workouts.collectAsState()
+    var workoutDialog by remember { mutableStateOf(false) }
+    val activityHint by vm.activityHint.collectAsState()
     var stepsDialog by remember { mutableStateOf(false) }
     val stepsGoal by vm.stepsGoal.collectAsState()
     var weightDialog by remember { mutableStateOf(false) }
@@ -183,6 +190,32 @@ fun TodayScreen(
                     )
                     TextButton(onClick = { weightDialog = true }) { Text(stringResource(R.string.weight_record)) }
                 }
+                if (workoutsOn) {
+                    val types = androidx.compose.ui.res.stringArrayResource(R.array.workout_types)
+                    val levels = androidx.compose.ui.res.stringArrayResource(R.array.workout_intensity)
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            "🏃 " + (if (workouts.isEmpty()) stringResource(R.string.workouts_title) + " —" else workouts.map { workoutLine(it, types, levels) }.joinToString("; ")),
+                            style = MaterialTheme.typography.bodyMedium,
+                            modifier = Modifier.weight(1f),
+                        )
+                        TextButton(onClick = { workoutDialog = true }) { Text(stringResource(R.string.add)) }
+                    }
+                }
+                if (bowelOn) {
+                    val forms = androidx.compose.ui.res.stringArrayResource(R.array.bowel_forms)
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            "🌿 " + stringResource(R.string.bowel_short) + ": " + (bowel?.let { b ->
+                                (if (b.count == 0) stringResource(R.string.bowel_none) else if (b.count >= 3) "3+" else "${b.count}") +
+                                    (b.form?.let { " · " + forms.getOrElse(it) { "" } } ?: "")
+                            } ?: "—"),
+                            style = MaterialTheme.typography.bodyMedium,
+                            modifier = Modifier.weight(1f),
+                        )
+                        TextButton(onClick = { bowelDialog = true }) { Text(stringResource(R.string.record)) }
+                    }
+                }
                 if (sleepOn) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
@@ -204,6 +237,14 @@ fun TodayScreen(
             Section(title = stringResource(R.string.recommendations)) {
                 Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     tips.forEach { TipRow(it) }
+                    activityHint?.let { level ->
+                        val name = stringResource(listOf(R.string.activity_0, R.string.activity_1, R.string.activity_2, R.string.activity_3, R.string.activity_4)[level])
+                        Text(stringResource(R.string.activity_hint, name), style = MaterialTheme.typography.bodyMedium)
+                        Row {
+                            TextButton(onClick = { vm.applyActivityHint(level) }) { Text(stringResource(R.string.update)) }
+                            TextButton(onClick = vm::dismissActivityHint) { Text(stringResource(R.string.not_now)) }
+                        }
+                    }
                     if (model is ModelStore.State.Ready && entries.isNotEmpty()) {
                         Spacer(Modifier.height(4.dp))
                         when {
@@ -308,6 +349,25 @@ fun TodayScreen(
     }
 
     if (stepsDialog) StepsDialog(vm) { stepsDialog = false }
+
+    if (bowelDialog) {
+        BowelDialog(
+            initial = bowel,
+            onSave = { c, f -> vm.saveBowel(c, f); bowelDialog = false },
+            onDelete = { vm.deleteBowel(); bowelDialog = false },
+            onDismiss = { bowelDialog = false },
+        )
+    }
+
+    if (workoutDialog) {
+        WorkoutDialog(
+            today = workouts,
+            weightKg = weight ?: profile.weightKg,
+            onAdd = vm::addWorkout,
+            onDelete = vm::deleteWorkout,
+            onDismiss = { workoutDialog = false },
+        )
+    }
 
     if (sleepDialog) {
         SleepDialog(

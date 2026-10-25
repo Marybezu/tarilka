@@ -110,6 +110,47 @@ data class SleepEntry(
     val quality: Int? = null,
 )
 
+/** Bowel movements for a day (optional): how many times, and the form in plain words. */
+@Entity(tableName = "bowel")
+data class BowelEntry(
+    @PrimaryKey val day: Long,
+    val count: Int,
+    /** Bristol scale in three words: 0 hard (types 1–2), 1 normal (3–5), 2 loose (6–7). */
+    val form: Int? = null,
+)
+
+/** A workout typed in by hand (optional). */
+@Entity(tableName = "workouts", indices = [Index("day")])
+data class WorkoutEntry(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val day: Long,
+    /** See [Workouts.TYPES]. */
+    val type: Int,
+    val minutes: Int,
+    /** 0 light, 1 moderate, 2 vigorous */
+    val intensity: Int,
+    val createdAt: Long = System.currentTimeMillis(),
+)
+
+object Workouts {
+    /** walking, running, cycling, strength, yoga/stretching, swimming, other */
+    val TYPES = listOf("walking", "running", "cycling", "strength", "yoga", "swimming", "other")
+    const val STRENGTH = 3
+
+    /** MET by type and intensity (Compendium of Physical Activities, rounded). */
+    private val MET = listOf(
+        listOf(2.8, 3.5, 5.0), listOf(7.0, 9.8, 11.5), listOf(4.0, 6.8, 10.0), listOf(3.5, 5.0, 6.0),
+        listOf(2.5, 3.0, 4.0), listOf(5.0, 7.0, 9.8), listOf(3.0, 4.5, 7.0),
+    )
+
+    /** Rough energy use, shown for information only: never added to the day's food budget. */
+    fun kcal(w: WorkoutEntry, weightKg: Double): Double =
+        (MET.getOrNull(w.type) ?: MET.last()).getOrElse(w.intensity) { 4.5 } * weightKg * w.minutes / 60.0
+
+    /** Minutes that count toward the WHO 150–300 a week: moderate ×1, vigorous ×2, light not counted. */
+    fun whoMinutes(w: WorkoutEntry): Int = when (w.intensity) { 1 -> w.minutes; 2 -> w.minutes * 2; else -> 0 }
+}
+
 object Reasons {
     const val HUNGER = 0
     const val STRESS = 1

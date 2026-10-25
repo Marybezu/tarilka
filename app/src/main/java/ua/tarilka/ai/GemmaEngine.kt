@@ -120,9 +120,9 @@ class GemmaEngine(
         }
     }
 
-    suspend fun analyzePhoto(image: File, note: String?): PhotoResult {
+    suspend fun analyzePhoto(image: File, note: String?, plate: Int = 1): PhotoResult {
         val prompt = buildString {
-            append(PHOTO_PROMPT)
+            append(PHOTO_PROMPT.replace("{PLATE}", PLATES.getOrElse(plate) { PLATES[1] }))
             if (!note.isNullOrBlank()) append("\nThe person says about this meal: ").append(note.trim())
         }
         val start = System.currentTimeMillis()
@@ -178,6 +178,14 @@ class GemmaEngine(
             "You are a careful nutrition assistant. You identify foods in meal photos and estimate portion sizes. " +
                 "You always answer with valid JSON only."
 
+        /** What the person says the food is on: gives the model a real size to compare with. */
+        private val PLATES = listOf(
+            "the food is on a small plate about 20 cm wide",
+            "the food is on a dinner plate about 26 cm wide",
+            "the food is on a large plate about 30 cm wide",
+            "the food is in a bowl about 15 cm wide (about 400 ml)",
+        )
+
         private const val SCHEMA = """{"type":"object","properties":{"items":{"type":"array","items":{"type":"object",
 "properties":{"name":{"type":"string"},"grams":{"type":"number"},"confidence":{"type":"string","enum":["high","medium","low"]}},
 "required":["name","grams"]}}},"required":["items"]}"""
@@ -185,7 +193,7 @@ class GemmaEngine(
         // No long list of example foods: the small model tends to "see" whatever the prompt names.
         private const val PHOTO_PROMPT = """Look at this photo of a meal and list each distinct food that is clearly visible, in English.
 Do not list anything you cannot see. Do not miss meat, fish, cutlets, bread, cheese or sauces.
-Estimate the edible weight of each in grams. For scale: a dinner plate is about 26 cm wide, a slice of bread or toast
+Estimate the edible weight of each in grams. For scale: {PLATE}, a slice of bread or toast
 weighs about 35 g, one egg about 50 g, half an avocado about 70 g, a tablespoon of sauce about 15 g.
 Use short common names, for example "boiled egg" or "rye bread".
 Answer with ONLY JSON: {"items":[{"name":"boiled egg","grams":100,"confidence":"high"}]}

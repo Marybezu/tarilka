@@ -188,4 +188,22 @@ class LogicTest {
         // A small glass on 5 days: frequent, orange.
         assertEquals(ua.tarilka.data.Habits.Level.WATCH, ua.tarilka.data.Habits.of((1L..5L).map { glass(it, 100.0) }, foods, 7).alcoholLevel)
     }
+
+    @Test
+    fun bowelAndWorkouts() {
+        val e = ua.tarilka.data.DiaryEntry(day = 1, meal = 0, foodId = null, nameUk = "", nameEn = "", grams = 100.0, kcal = 100.0, protein = 0.0, fat = 0.0, carbs = 0.0, fiber = 0.0)
+        val food = (1L..7L).map { e.copy(day = it) }
+        val bowel = listOf(ua.tarilka.data.BowelEntry(1, 1, 1), ua.tarilka.data.BowelEntry(3, 0), ua.tarilka.data.BowelEntry(5, 1, 0))
+        val W = ua.tarilka.data.WorkoutEntry(day = 1, type = 0, minutes = 30, intensity = 1)
+        val workouts = listOf(W, W.copy(day = 3, type = 1, intensity = 2), W.copy(day = 5, type = 3, minutes = 40), W.copy(day = 6, intensity = 0))
+        val h = ua.tarilka.data.Habits.of(food, emptyMap(), 7, bowel = bowel, workouts = workouts)
+        assertEquals(2, h.bowelMoveDays)
+        assertEquals(1, h.bowelHard)
+        // 2 movements in 3 recorded days ≈ 4.7 a week: fine, but one hard day → amber
+        assertEquals(ua.tarilka.data.Habits.Level.OK, h.bowelLevel)
+        // 30 + 30×2 + 40 = 130 WHO minutes; the light walk does not count
+        assertEquals(130.0, h.activeMinPerWeek, 0.01)
+        assertEquals(1.0, h.strengthPerWeek, 0.01)
+        assertEquals(ua.tarilka.data.Habits.Level.OK, h.activityLevel)
+    }
 }

@@ -54,6 +54,19 @@ class Prefs(context: Context) {
     val sleepEnabled: StateFlow<Boolean> = _sleepEnabled.asStateFlow()
     fun setSleepEnabled(on: Boolean) { sp.edit().putBoolean("sleepEnabled", on).apply(); _sleepEnabled.value = on }
 
+    private val _bowelEnabled = MutableStateFlow(sp.getBoolean("bowelEnabled", false))
+    val bowelEnabled: StateFlow<Boolean> = _bowelEnabled.asStateFlow()
+    fun setBowelEnabled(on: Boolean) { sp.edit().putBoolean("bowelEnabled", on).apply(); _bowelEnabled.value = on }
+
+    private val _workoutsEnabled = MutableStateFlow(sp.getBoolean("workoutsEnabled", false))
+    val workoutsEnabled: StateFlow<Boolean> = _workoutsEnabled.asStateFlow()
+    fun setWorkoutsEnabled(on: Boolean) { sp.edit().putBoolean("workoutsEnabled", on).apply(); _workoutsEnabled.value = on }
+
+    /** When the "update your activity level?" hint was last dismissed (epoch day). */
+    var activityHintDismissed: Long
+        get() = sp.getLong("activityHintDismissed", 0)
+        set(v) = sp.edit().putLong("activityHintDismissed", v).apply()
+
     private val _reasonsEnabled = MutableStateFlow(sp.getBoolean("reasonsEnabled", false))
     /** Ask "why do I eat?" after adding food. */
     val reasonsEnabled: StateFlow<Boolean> = _reasonsEnabled.asStateFlow()
@@ -99,6 +112,28 @@ class Prefs(context: Context) {
     var weeklyReminder: Boolean
         get() = sp.getBoolean("remindWeekly", false)
         set(v) = sp.edit().putBoolean("remindWeekly", v).apply()
+
+    /** Plate size for photos: 0 small, 1 dinner, 2 large, 3 bowl. */
+    var plateSize: Int
+        get() = sp.getInt("plateSize", 1)
+        set(v) = sp.edit().putInt("plateSize", v).apply()
+
+    /**
+     * How the person corrects the AI's grams: final ÷ suggested, last 30 foods.
+     * The median becomes a personal factor for the next photos.
+     */
+    fun addGramsRatio(r: Double) {
+        val list = (gramsRatios() + r.coerceIn(0.2, 3.0)).takeLast(30)
+        sp.edit().putString("gramsRatios", list.joinToString(",")).apply()
+    }
+    fun gramsRatios(): List<Double> = sp.getString("gramsRatios", "")!!.split(',').mapNotNull { it.toDoubleOrNull() }
+
+    /** 1.0 until there are 5 corrections; never below ×0.5 or above ×1.5. */
+    fun gramsFactor(): Double {
+        val r = gramsRatios().sorted()
+        if (r.size < 5) return 1.0
+        return r[r.size / 2].coerceIn(0.5, 1.5)
+    }
 
     /** 0 = follow system, 1 = light, 2 = dark */
     var themeMode: Int

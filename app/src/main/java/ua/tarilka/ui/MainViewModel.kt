@@ -54,6 +54,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         }
         refreshSteps()
         refreshSleep()
+        checkActivity()
     }
     val query = MutableStateFlow("")
 
@@ -98,7 +99,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     /** Water entries plus drinks logged as food. */
     val fluidMl: StateFlow<Double> = combine(
         fluids,
-        day.flatMapLatest { db.fluids().drinksFromDiary(it.toEpochDay(), ua.tarilka.data.FluidRules.ALCOHOL, ua.tarilka.data.FluidRules.MILK_DRINKS) },
+        day.flatMapLatest { db.fluids().drinksFromDiary(it.toEpochDay(), ua.tarilka.data.FluidRules.ALCOHOL, ua.tarilka.data.FluidRules.MILK_DRINKS, ua.tarilka.data.FluidRules.SOUPS) },
     ) { f, drinks -> f.sumOf { it.ml } + drinks }
         .stateIn(viewModelScope, SharingStarted.Eagerly, 0.0)
 
@@ -174,6 +175,62 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         if (!prefs.sleepEnabled.value) return emptyMap()
         val hc = runCatching { health.sleepByDay(from, to) }.getOrDefault(emptyMap())
         return hc + db.sleep().range(from.toEpochDay(), to.toEpochDay()).associate { it.day to it.hours }
+    }
+
+    // ---- bowel movements and workouts (both optional) ----
+
+    val bowelEnabled: StateFlow<Boolean> = prefs.bowelEnabled
+    fun setBowelEnabled(on: Boolean) = prefs.setBowelEnabled(on)
+    val workoutsEnabled: StateFlow<Boolean> = prefs.workoutsEnabled
+    fun setWorkoutsEnabled(on: Boolean) = prefs.setWorkoutsEnabled(on)
+
+    val bowel: StateFlow<ua.tarilka.data.BowelEntry?> = day.flatMapLatest { db.bowel().forDay(it.toEpochDay()) }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    fun saveBowel(count: Int, form: Int?) = viewModelScope.launch {
+        db.bowel().upsert(ua.tarilka.data.BowelEntry(day.value.toEpochDay(), count, form.takeIf { count > 0 }))
+    }
+
+    fun deleteBowel() = viewModelScope.launch { db.bowel().delete(day.value.toEpochDay()) }
+
+    val workouts: StateFlow<List<ua.tarilka.data.WorkoutEntry>> = day.flatMapLatest { db.workouts().forDay(it.toEpochDay()) }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+
+    fun addWorkout(type: Int, minutes: Int, intensity: Int) = viewModelScope.launch {
+        db.workouts().insert(ua.tarilka.data.WorkoutEntry(day = day.value.toEpochDay(), type = type, minutes = minutes, intensity = intensity, createdAt = timestampFor(day.value)))
+    }
+
+    fun deleteWorkout(w: ua.tarilka.data.WorkoutEntry) = viewModelScope.launch { db.workouts().delete(w) }
+
+    /**
+     * A suggested activity level for the profile when 3+ weeks of steps and workouts clearly
+     * differ from it; null when they match, data is short, or the hint was dismissed lately.
+     */
+    val activityHint = MutableStateFlow<Int?>(null)
+
+    fun checkActivity() = viewModelScope.launch {
+        val p = profile.value
+        if (!p.isSet || LocalDate.now().toEpochDay() - prefs.activityHintDismissed < 30) { activityHint.value = null; return@launch }
+        val end = LocalDate.now().minusDays(1)
+        val from = end.minusDays(27)
+        val steps = if (prefs.stepsEnabled) stepsByDay(from, end).values.filter { it > 0 } else emptyList()
+        val minutes = db.workouts().range(from.toEpochDay(), end.toEpochDay()).sumOf(ua.tarilka.data.Workouts::whoMinutes) / 4.0
+        if (steps.size < 21 && minutes == 0.0) { activityHint.value = null; return@launch }
+        val avg = if (steps.isEmpty()) 0.0 else steps.average()
+        var level = when { avg < 5_000 -> 0; avg < 7_500 -> 1; avg < 10_000 -> 2; avg < 12_500 -> 3; else -> 4 }
+        if (minutes >= 150) level = maxOf(level, 2)
+        if (minutes >= 300) level = maxOf(level, 3)
+        activityHint.value = level.takeIf { it != p.activity }
+    }
+
+    fun applyActivityHint(level: Int) {
+        prefs.saveProfile(profile.value.copy(activity = level))
+        activityHint.value = null
+    }
+
+    fun dismissActivityHint() {
+        prefs.activityHintDismissed = LocalDate.now().toEpochDay()
+        activityHint.value = null
     }
 
     // ---- "why I eat" ----
@@ -295,7 +352,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
             db.diary().totals(from, to),
             combine(
                 db.fluids().totals(from, to),
-                db.fluids().drinksFromDiaryRange(from, to, ua.tarilka.data.FluidRules.ALCOHOL, ua.tarilka.data.FluidRules.MILK_DRINKS),
+                db.fluids().drinksFromDiaryRange(from, to, ua.tarilka.data.FluidRules.ALCOHOL, ua.tarilka.data.FluidRules.MILK_DRINKS, ua.tarilka.data.FluidRules.SOUPS),
             ) { a, b -> (a + b).groupBy { it.day }.mapValues { (d, l) -> ua.tarilka.data.DayFluid(d, l.sumOf { it.ml }) } },
             db.weights().all(), db.notes().all(),
         ) { food, w, weight, notes ->
@@ -411,6 +468,8 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         db.weights().deleteAll()
         db.notes().deleteAll()
         db.sleep().deleteAll()
+        db.bowel().deleteAll()
+        db.workouts().deleteAll()
         if (everything) {
             db.foods().deleteCustom()
             db.foods().setFavorites(emptyList())
@@ -433,14 +492,16 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         // Two weeks: the one before gives the alcohol trend.
         day.flatMapLatest { db.diary().rangeFlow(it.minusDays(13).toEpochDay(), it.toEpochDay()) },
         foodsById,
-        day.flatMapLatest { db.sleep().rangeFlow(it.minusDays(6).toEpochDay(), it.toEpochDay()) },
-        hcSleep,
-        prefs.sleepEnabled,
-    ) { list, foods, manual, hc, sleepOn ->
-        val sleepMap = if (sleepOn) hc + manual.associate { it.day to it.hours } else emptyMap()
-        val (cur, prev) = list.partition { it.day > day.value.minusDays(7).toEpochDay() }
-        Habits.of(cur, foods, 7, sleep = sleepMap)
-            .copy(prev = Habits.of(prev, foods, 7))
+        combine(day.flatMapLatest { db.sleep().rangeFlow(it.minusDays(6).toEpochDay(), it.toEpochDay()) }, hcSleep, prefs.sleepEnabled) { manual, hc, on ->
+            if (on) hc + manual.associate { it.day to it.hours } else emptyMap()
+        },
+        day.flatMapLatest { db.bowel().rangeFlow(it.minusDays(13).toEpochDay(), it.toEpochDay()) },
+        day.flatMapLatest { db.workouts().rangeFlow(it.minusDays(13).toEpochDay(), it.toEpochDay()) },
+    ) { list, foods, sleepMap, bowel, workouts ->
+        val split = day.value.minusDays(7).toEpochDay()
+        val (cur, prev) = list.partition { it.day > split }
+        Habits.of(cur, foods, 7, sleep = sleepMap, bowel = bowel.filter { it.day > split }, workouts = workouts.filter { it.day > split })
+            .copy(prev = Habits.of(prev, foods, 7, bowel = bowel.filter { it.day <= split }, workouts = workouts.filter { it.day <= split }))
             .takeIf { it.days >= 2 }
     }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
@@ -453,9 +514,12 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         val foods = foodsById.value.ifEmpty { db.foods().allOnce().associateBy { it.id } }
         val (cur, prev) = db.diary().range(from.minusDays(period.days.toLong()).toEpochDay(), end.toEpochDay())
             .partition { it.day >= from.toEpochDay() }
-        val sleep = sleepRange(from.minusDays(period.days.toLong()), end)
-        return Habits.of(cur, foods, period.days, sleep = sleep.filterKeys { it >= from.toEpochDay() })
-            .copy(prev = Habits.of(prev, foods, period.days, sleep = sleep.filterKeys { it < from.toEpochDay() }))
+        val start = from.minusDays(period.days.toLong())
+        val sleep = sleepRange(start, end)
+        val bowel = db.bowel().range(start.toEpochDay(), end.toEpochDay()).partition { it.day >= from.toEpochDay() }
+        val workouts = db.workouts().range(start.toEpochDay(), end.toEpochDay()).partition { it.day >= from.toEpochDay() }
+        return Habits.of(cur, foods, period.days, sleep = sleep.filterKeys { it >= from.toEpochDay() }, bowel = bowel.first, workouts = workouts.first)
+            .copy(prev = Habits.of(prev, foods, period.days, sleep = sleep.filterKeys { it < from.toEpochDay() }, bowel = bowel.second, workouts = workouts.second))
     }
 
     /** Plain-text summary of a period ending today, compared with the period before, for the AI. */
@@ -468,12 +532,14 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         val all = db.diary().range(prevFrom.toEpochDay(), end.toEpochDay())
         val (cur, prev) = all.partition { it.day >= from.toEpochDay() }
         val sleepAll = sleepRange(prevFrom, end)
-        val h = Habits.of(cur, foods, period.days, sleep = sleepAll.filterKeys { it >= from.toEpochDay() })
-        val hp = Habits.of(prev, foods, period.days, sleep = sleepAll.filterKeys { it < from.toEpochDay() })
+        val bowelAll = db.bowel().range(prevFrom.toEpochDay(), end.toEpochDay()).partition { it.day >= from.toEpochDay() }
+        val workAll = db.workouts().range(prevFrom.toEpochDay(), end.toEpochDay()).partition { it.day >= from.toEpochDay() }
+        val h = Habits.of(cur, foods, period.days, sleep = sleepAll.filterKeys { it >= from.toEpochDay() }, bowel = bowelAll.first, workouts = workAll.first)
+        val hp = Habits.of(prev, foods, period.days, sleep = sleepAll.filterKeys { it < from.toEpochDay() }, bowel = bowelAll.second, workouts = workAll.second)
         // Water entries plus drinks logged as food, as on the Today screen.
         val fluidsByDay = (
             db.fluids().totalsOnce(prevFrom.toEpochDay(), end.toEpochDay()) +
-                db.fluids().drinksFromDiaryRange(prevFrom.toEpochDay(), end.toEpochDay(), ua.tarilka.data.FluidRules.ALCOHOL, ua.tarilka.data.FluidRules.MILK_DRINKS).first()
+                db.fluids().drinksFromDiaryRange(prevFrom.toEpochDay(), end.toEpochDay(), ua.tarilka.data.FluidRules.ALCOHOL, ua.tarilka.data.FluidRules.MILK_DRINKS, ua.tarilka.data.FluidRules.SOUPS).first()
             ).groupBy { it.day }.mapValues { (_, l) -> l.sumOf { it.ml } }
         val tg = targets.value
         val time = java.time.format.DateTimeFormatter.ofPattern("HH:mm")
@@ -534,6 +600,20 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
             }
             if (h.sleepAvg != null || hp.sleepAvg != null) {
                 line("Average sleep", h.sleepAvg?.let { "%.1f h".format(java.util.Locale.ROOT, it) } ?: "not recorded", hp.sleepAvg?.let { "%.1f h".format(java.util.Locale.ROOT, it) } ?: "not recorded")
+            }
+            if (h.bowelDays > 0) {
+                line(
+                    "Bowel movements (typed in)",
+                    "on ${h.bowelMoveDays} of ${h.bowelDays} recorded days; hard ${h.bowelHard} days, loose ${h.bowelLoose} days",
+                    if (hp.bowelDays > 0) "on ${hp.bowelMoveDays} of ${hp.bowelDays} days; hard ${hp.bowelHard}, loose ${hp.bowelLoose}" else "not recorded",
+                )
+            }
+            if (h.workoutCount > 0 || hp.workoutCount > 0) {
+                line(
+                    "Workouts (WHO minutes a week: moderate ×1, vigorous ×2; target 150–300; strength days target 2)",
+                    "${h.activeMinPerWeek.toInt()} min, strength ${"%.1f".format(java.util.Locale.ROOT, h.strengthPerWeek)} days a week",
+                    "${hp.activeMinPerWeek.toInt()} min, strength ${"%.1f".format(java.util.Locale.ROOT, hp.strengthPerWeek)} days",
+                )
             }
             if (h.reasonMeals > 0) {
                 val why = h.notHunger.entries.sortedByDescending { it.value }.joinToString { "${ua.tarilka.data.Reasons.EN.getOrElse(it.key) { "other" }} ${it.value}" }

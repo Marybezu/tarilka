@@ -6,8 +6,8 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 
 @Database(
-    entities = [Food::class, DiaryEntry::class, WeightEntry::class, FluidEntry::class, DayNote::class, SleepEntry::class],
-    version = 3,
+    entities = [Food::class, DiaryEntry::class, WeightEntry::class, FluidEntry::class, DayNote::class, SleepEntry::class, BowelEntry::class, WorkoutEntry::class],
+    version = 4,
     exportSchema = true,
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -17,12 +17,26 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun fluids(): FluidDao
     abstract fun notes(): NoteDao
     abstract fun sleep(): SleepDao
+    abstract fun bowel(): BowelDao
+    abstract fun workouts(): WorkoutDao
 
     companion object {
         fun create(context: Context): AppDatabase =
             Room.databaseBuilder(context, AppDatabase::class.java, "tarilka.db")
-                .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
+                .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
                 .build()
+
+        /** Bowel movements and workouts (both optional). Existing data is kept. */
+        private val MIGRATION_3_4 = object : androidx.room.migration.Migration(3, 4) {
+            override fun migrate(db: androidx.sqlite.db.SupportSQLiteDatabase) {
+                db.execSQL("CREATE TABLE IF NOT EXISTS bowel (day INTEGER NOT NULL, count INTEGER NOT NULL, form INTEGER, PRIMARY KEY(day))")
+                db.execSQL(
+                    "CREATE TABLE IF NOT EXISTS workouts (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, day INTEGER NOT NULL, " +
+                        "type INTEGER NOT NULL, minutes INTEGER NOT NULL, intensity INTEGER NOT NULL, createdAt INTEGER NOT NULL)",
+                )
+                db.execSQL("CREATE INDEX IF NOT EXISTS index_workouts_day ON workouts(day)")
+            }
+        }
 
         /** "Why I eat" on diary entries, and sleep. Existing data is kept. */
         private val MIGRATION_2_3 = object : androidx.room.migration.Migration(2, 3) {

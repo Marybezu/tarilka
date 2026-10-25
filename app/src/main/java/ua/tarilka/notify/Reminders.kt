@@ -94,7 +94,7 @@ object Reminders {
             }
             WATER -> {
                 val drunk = app.db.fluids().mlOnce(today) +
-                    app.db.fluids().drinksFromDiary(today, FluidRules.ALCOHOL, FluidRules.MILK_DRINKS).first()
+                    app.db.fluids().drinksFromDiary(today, FluidRules.ALCOHOL, FluidRules.MILK_DRINKS, FluidRules.SOUPS).first()
                 val target = Nutrition.targets(app.prefs.profile.value, app.db.weights().allOnce().lastOrNull()?.kg).waterMl
                 // Expected by now, spread over 8:00–22:00; remind only when clearly behind.
                 val hour = LocalTime.now().hour + LocalTime.now().minute / 60.0

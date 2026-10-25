@@ -130,6 +130,21 @@ fun PhotoScreen(
             }
             if (!ui.working && !ui.analyzed) {
                 item {
+                    // The model judges portions by the plate; telling it the real size helps the most.
+                    var plate by remember { mutableStateOf(ai.plate) }
+                    Column {
+                        Text(stringResource(R.string.plate_size), style = MaterialTheme.typography.bodyMedium)
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(6.dp),
+                            modifier = Modifier.horizontalScroll(androidx.compose.foundation.rememberScrollState()),
+                        ) {
+                            listOf(R.string.plate_small, R.string.plate_dinner, R.string.plate_large, R.string.plate_bowl).forEachIndexed { i, res ->
+                                FilterChip(plate == i, { plate = i; ai.plate = i }, { Text(stringResource(res), maxLines = 1, softWrap = false) })
+                            }
+                        }
+                    }
+                }
+                item {
                     OutlinedTextField(
                         value = ui.note,
                         onValueChange = ai::setNote,
@@ -197,7 +212,8 @@ fun PhotoScreen(
                 } else {
                     item {
                         Text(
-                            stringResource(R.string.review_hint) + "  (" + stringResource(R.string.ai_diagnostics, ui.backend, ui.loadSec, ui.analyzeSec) + ")",
+                            stringResource(R.string.review_hint) + "  (" + stringResource(R.string.ai_diagnostics, ui.backend, ui.loadSec, ui.analyzeSec) + ")" +
+                                (if (ui.factor != 1.0) "\n" + stringResource(R.string.grams_factor, ui.factor.f1()) else ""),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )

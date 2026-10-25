@@ -381,4 +381,50 @@
         <item>increased risk</item>
         <item>high risk</item>
     </string-array>
+    <string name="update">Update</string>
+    <string name="not_now">Not now</string>
+    <string name="minutes_n">%1$d min</string>
+    <string name="plate_size">The food is on:</string>
+    <string name="plate_small">Small plate ~20 cm</string>
+    <string name="plate_dinner">Dinner plate ~26 cm</string>
+    <string name="plate_large">Large plate ~30 cm</string>
+    <string name="plate_bowl">Bowl</string>
+    <string name="grams_factor">Grams adjusted to your corrections: ×%1$s</string>
+    <string name="bowel_title">Bowel today</string>
+    <string name="bowel_none">none</string>
+    <string name="bowel_form">What was it like? (optional)</string>
+    <string name="bowel_short">Bowel</string>
+    <string name="bowel_hint">A row on Today: how many times and what it was like, in two taps. Helps to see the link with fibre, fluids and movement.</string>
+    <string name="workouts_title">Workouts</string>
+    <string name="workouts_hint">A row on Today: what, how many minutes and how hard. The badge compares with the WHO recommendations.</string>
+    <string name="workout_kcal_note">Calories are a rough estimate for information; they are not added to the day\'s food target, as fitness estimates usually run high.</string>
+    <string name="habit_activity">🏃 Activity: %1$s min/week</string>
+    <string name="habit_activity_info">Workout minutes a week: moderate count as they are, vigorous double, light not counted. The WHO recommends 150–300 minutes of moderate activity a week and strength exercise on at least 2 days.</string>
+    <string name="activity_noticed">Strength training: %1$s days/week.</string>
+    <string name="activity_tips">What helps:\n• start with 10 minutes: they count too;\n• brisk walking is the easiest moderate activity;\n• strength twice a week: squats, wall push-ups, bands;\n• plan set days and times, like an appointment.</string>
+    <string name="habit_bowel">🌿 Bowel: %1$d of %2$d days</string>
+    <string name="habit_bowel_info">Days with a bowel movement out of the recorded ones. Anything from 3 times a week to 3 times a day is considered normal; being regular and effortless matters more.</string>
+    <string name="bowel_noticed">Hard: %1$d days, loose: %2$d days. Fibre on average %3$s g a day.</string>
+    <string name="bowel_tips">What helps:\n• 25–30 g of fibre a day, increased gradually: vegetables, fruit, whole grains, pulses;\n• enough fluids, especially with more fibre;\n• daily movement;\n• don\'t put off the urge; a calm moment after breakfast.</string>
+    <string name="bowel_help">See a doctor if there is blood or black stool, strong pain, unexplained weight loss, or changes lasting more than 2–3 weeks. Loose stools with fever or signs of dehydration are a reason too.</string>
+    <string name="activity_hint">From your steps and workouts in recent weeks, your activity is closer to "%1$s" than the profile says. Update? Your daily target depends on it.</string>
+    <string-array name="bowel_forms">
+        <item>hard</item>
+        <item>normal</item>
+        <item>loose</item>
+    </string-array>
+    <string-array name="workout_types">
+        <item>Walking</item>
+        <item>Running</item>
+        <item>Cycling</item>
+        <item>Strength</item>
+        <item>Yoga, stretching</item>
+        <item>Swimming</item>
+        <item>Other</item>
+    </string-array>
+    <string-array name="workout_intensity">
+        <item>light</item>
+        <item>moderate</item>
+        <item>vigorous</item>
+    </string-array>
 </resources>

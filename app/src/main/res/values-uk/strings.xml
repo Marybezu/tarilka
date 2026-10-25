@@ -381,4 +381,50 @@
         <item>підвищений ризик</item>
         <item>високий ризик</item>
     </string-array>
+    <string name="update">Оновити</string>
+    <string name="not_now">Не зараз</string>
+    <string name="minutes_n">%1$d хв</string>
+    <string name="plate_size">На чому їжа:</string>
+    <string name="plate_small">Мала тарілка ~20 см</string>
+    <string name="plate_dinner">Звичайна ~26 см</string>
+    <string name="plate_large">Велика ~30 см</string>
+    <string name="plate_bowl">Миска</string>
+    <string name="grams_factor">Грами підлаштовано під ваші виправлення: ×%1$s</string>
+    <string name="bowel_title">Кишківник сьогодні</string>
+    <string name="bowel_none">не було</string>
+    <string name="bowel_form">Яким був стілець? (необовʼязково)</string>
+    <string name="bowel_short">Кишківник</string>
+    <string name="bowel_hint">Рядок на екрані «Сьогодні»: скільки разів і яким був стілець, у два дотики. Допомагає побачити звʼязок із клітковиною, рідиною й рухом.</string>
+    <string name="workouts_title">Тренування</string>
+    <string name="workouts_hint">Рядок на екрані «Сьогодні»: що, скільки хвилин і наскільки інтенсивно. Плашка порівнює з рекомендаціями ВООЗ.</string>
+    <string name="workout_kcal_note">Калорії — приблизна оцінка для інформації, до денної норми їжі вони не додаються: фітнес-підрахунки зазвичай їх завищують.</string>
+    <string name="habit_activity">🏃 Активність: %1$s хв/тиж</string>
+    <string name="habit_activity_info">Хвилини тренувань за тиждень: помірні рахуються як є, інтенсивні — вдвічі, легкі не рахуються. ВООЗ радить 150–300 хвилин помірної активності на тиждень і силові вправи щонайменше 2 дні.</string>
+    <string name="activity_noticed">Силові тренування: %1$s дн./тиж.</string>
+    <string name="activity_tips">Що допомагає:\n• почати з 10 хвилин — вони теж рахуються;\n• швидка ходьба — найпростіша помірна активність;\n• силові 2 рази на тиждень: присідання, віджимання від стіни, гумки;\n• запланувати конкретні дні й час, як зустріч.</string>
+    <string name="habit_bowel">🌿 Кишківник: %1$d з %2$d дн.</string>
+    <string name="habit_bowel_info">Скільки днів зі стільцем із записаних. Нормою вважають від 3 разів на тиждень до 3 разів на день; важливіше, щоб було без зусиль і регулярно.</string>
+    <string name="bowel_noticed">Тверде: %1$d дн., рідке: %2$d дн. Клітковини в середньому %3$s г на день.</string>
+    <string name="bowel_tips">Що допомагає:\n• клітковина 25–30 г на день, додавати поступово: овочі, фрукти, цільнозернове, бобові;\n• достатньо рідини, особливо разом із клітковиною;\n• рух щодня;\n• не відкладати позив, мати спокійний час після сніданку.</string>
+    <string name="bowel_help">Зверніться до лікаря, якщо є кров або чорний стілець, сильний біль, втрата ваги без причини, або зміни тривають понад 2–3 тижні. Рідкий стілець із температурою чи ознаками зневоднення — теж привід звернутися.</string>
+    <string name="activity_hint">За кроками й тренуваннями останніх тижнів ваша активність ближча до рівня «%1$s», ніж у профілі. Оновити? Від цього залежить денна норма.</string>
+    <string-array name="bowel_forms">
+        <item>тверде</item>
+        <item>норма</item>
+        <item>рідке</item>
+    </string-array>
+    <string-array name="workout_types">
+        <item>Ходьба</item>
+        <item>Біг</item>
+        <item>Велосипед</item>
+        <item>Силове</item>
+        <item>Йога, розтяжка</item>
+        <item>Плавання</item>
+        <item>Інше</item>
+    </string-array>
+    <string-array name="workout_intensity">
+        <item>легко</item>
+        <item>помірно</item>
+        <item>інтенсивно</item>
+    </string-array>
 </resources>

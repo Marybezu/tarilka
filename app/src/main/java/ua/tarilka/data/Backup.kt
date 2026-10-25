@@ -113,6 +113,19 @@ object Backup {
                     put(JSONObject().put("day", LocalDate.ofEpochDay(it.day).toString()).put("hours", it.hours).put("quality", it.quality ?: JSONObject.NULL))
                 }
             })
+            .put("bowel", JSONArray().apply {
+                db.bowel().allOnce().forEach {
+                    put(JSONObject().put("day", LocalDate.ofEpochDay(it.day).toString()).put("count", it.count).put("form", it.form ?: JSONObject.NULL))
+                }
+            })
+            .put("workouts", JSONArray().apply {
+                db.workouts().allOnce().forEach {
+                    put(
+                        JSONObject().put("day", LocalDate.ofEpochDay(it.day).toString()).put("type", it.type)
+                            .put("minutes", it.minutes).put("intensity", it.intensity).put("createdAt", it.createdAt),
+                    )
+                }
+            })
             .put("weights", JSONArray().apply {
                 db.weights().allOnce().forEach {
                     put(JSONObject().put("day", LocalDate.ofEpochDay(it.day).toString()).put("kg", it.kg))
@@ -145,6 +158,8 @@ object Backup {
             db.foods().deleteCustom()
             db.notes().deleteAll()
             db.sleep().deleteAll()
+            db.bowel().deleteAll()
+            db.workouts().deleteAll()
 
             val idMap = mutableMapOf<Long, Long>()
             o.optJSONArray("customFoods")?.let { arr ->
@@ -226,6 +241,26 @@ object Backup {
                         SleepEntry(LocalDate.parse(e.getString("day")).toEpochDay(), e.getDouble("hours"), e.optInt("quality", -1).takeIf { it in 0..2 }),
                     )
                 }
+            }
+            o.optJSONArray("bowel")?.let { arr ->
+                for (i in 0 until arr.length()) {
+                    val e = arr.getJSONObject(i)
+                    db.bowel().upsert(
+                        BowelEntry(LocalDate.parse(e.getString("day")).toEpochDay(), e.getInt("count").coerceIn(0, 3), e.optInt("form", -1).takeIf { it in 0..2 }),
+                    )
+                }
+            }
+            o.optJSONArray("workouts")?.let { arr ->
+                db.workouts().insertAll((0 until arr.length()).map { i ->
+                    val e = arr.getJSONObject(i)
+                    WorkoutEntry(
+                        day = LocalDate.parse(e.getString("day")).toEpochDay(),
+                        type = e.optInt("type", Workouts.TYPES.size - 1).coerceIn(0, Workouts.TYPES.size - 1),
+                        minutes = e.optInt("minutes", 30).coerceIn(1, 600),
+                        intensity = e.optInt("intensity", 1).coerceIn(0, 2),
+                        createdAt = e.optLong("createdAt", System.currentTimeMillis()),
+                    )
+                })
             }
             o.optJSONArray("weights")?.let { arr ->
                 for (i in 0 until arr.length()) {

@@ -134,24 +134,25 @@ interface FluidDao {
      * and milk drinks; not spirits, beer or wine, and not dry powders.
      */
     @Query(
-        """SELECT COALESCE(SUM(d.grams), 0) FROM diary d JOIN foods f ON f.id = d.foodId
+        """SELECT COALESCE(SUM(CASE WHEN f.code IN (:soups) THEN d.grams * 0.8 ELSE d.grams END), 0) FROM diary d JOIN foods f ON f.id = d.foodId
            WHERE d.day = :day AND f.kcal < 150 AND (
-             (f.category = 'drinks' AND f.code NOT IN (:alcohol)) OR f.code IN (:milkDrinks))"""
+             (f.category = 'drinks' AND f.code NOT IN (:alcohol)) OR f.code IN (:milkDrinks) OR f.code IN (:soups))"""
     )
     fun drinksFromDiary(
         day: Long,
         alcohol: List<String>,
         milkDrinks: List<String>,
+        soups: List<String>,
     ): Flow<Double>
 
     /** Drinks logged as food, per day (same rules as [drinksFromDiary]). */
     @Query(
-        """SELECT d.day AS day, SUM(d.grams) AS ml FROM diary d JOIN foods f ON f.id = d.foodId
+        """SELECT d.day AS day, SUM(CASE WHEN f.code IN (:soups) THEN d.grams * 0.8 ELSE d.grams END) AS ml FROM diary d JOIN foods f ON f.id = d.foodId
            WHERE d.day BETWEEN :from AND :to AND f.kcal < 150 AND (
-             (f.category = 'drinks' AND f.code NOT IN (:alcohol)) OR f.code IN (:milkDrinks))
+             (f.category = 'drinks' AND f.code NOT IN (:alcohol)) OR f.code IN (:milkDrinks) OR f.code IN (:soups))
            GROUP BY d.day"""
     )
-    fun drinksFromDiaryRange(from: Long, to: Long, alcohol: List<String>, milkDrinks: List<String>): Flow<List<DayFluid>>
+    fun drinksFromDiaryRange(from: Long, to: Long, alcohol: List<String>, milkDrinks: List<String>, soups: List<String>): Flow<List<DayFluid>>
 
     @Insert
     suspend fun insert(entry: FluidEntry): Long
@@ -226,10 +227,63 @@ interface SleepDao {
     suspend fun deleteAll()
 }
 
+@Dao
+interface BowelDao {
+    @Query("SELECT * FROM bowel WHERE day = :day")
+    fun forDay(day: Long): Flow<BowelEntry?>
+
+    @Query("SELECT * FROM bowel WHERE day BETWEEN :from AND :to ORDER BY day")
+    fun rangeFlow(from: Long, to: Long): Flow<List<BowelEntry>>
+
+    @Query("SELECT * FROM bowel WHERE day BETWEEN :from AND :to ORDER BY day")
+    suspend fun range(from: Long, to: Long): List<BowelEntry>
+
+    @Query("SELECT * FROM bowel ORDER BY day")
+    suspend fun allOnce(): List<BowelEntry>
+
+    @Upsert
+    suspend fun upsert(entry: BowelEntry)
+
+    @Query("DELETE FROM bowel WHERE day = :day")
+    suspend fun delete(day: Long)
+
+    @Query("DELETE FROM bowel")
+    suspend fun deleteAll()
+}
+
+@Dao
+interface WorkoutDao {
+    @Query("SELECT * FROM workouts WHERE day = :day ORDER BY createdAt")
+    fun forDay(day: Long): Flow<List<WorkoutEntry>>
+
+    @Query("SELECT * FROM workouts WHERE day BETWEEN :from AND :to ORDER BY day")
+    fun rangeFlow(from: Long, to: Long): Flow<List<WorkoutEntry>>
+
+    @Query("SELECT * FROM workouts WHERE day BETWEEN :from AND :to ORDER BY day")
+    suspend fun range(from: Long, to: Long): List<WorkoutEntry>
+
+    @Query("SELECT * FROM workouts ORDER BY day, createdAt")
+    suspend fun allOnce(): List<WorkoutEntry>
+
+    @Insert
+    suspend fun insert(entry: WorkoutEntry): Long
+
+    @Insert
+    suspend fun insertAll(entries: List<WorkoutEntry>)
+
+    @Delete
+    suspend fun delete(entry: WorkoutEntry)
+
+    @Query("DELETE FROM workouts")
+    suspend fun deleteAll()
+}
+
 object FluidRules {
     val ALCOHOL = listOf("dr06", "dr07", "dr08", "dr09", "dr23", "dr24", "dr25")
     val MILK_DRINKS = listOf(
         "d01", "d02", "d03", "d04", "d05", "d06", "d21", "d41", "d51", "d52", "d53", "d54", "d58", "d61",
         "l15", "n20",
     )
+    /** Soups and borscht: about 80 % of their weight is water. */
+    val SOUPS = listOf("u01", "u02", "u03", "u04", "u05", "u06", "u07", "u32", "u33", "u34", "u35", "u36", "u37", "u73", "u74")
 }

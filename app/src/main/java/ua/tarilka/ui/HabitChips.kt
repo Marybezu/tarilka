@@ -108,6 +108,23 @@ fun HabitChips(
                 stringResource(R.string.reasons_tips), if (h.hardToStop > 0) stringResource(R.string.eating_help) else null,
             )
         }
+        if (h.workoutCount > 0 || p?.workoutCount?.let { it > 0 } == true) {
+            Habit(
+                stringResource(R.string.habit_activity, h.activeMinPerWeek.f0()), h.activityLevel,
+                h.trend({ it.activeMinPerWeek }, 20.0), p?.let { stringResource(R.string.minutes_n, it.activeMinPerWeek.toInt()) },
+                stringResource(R.string.habit_activity_info), stringResource(R.string.activity_noticed, h.strengthPerWeek.f1()),
+                stringResource(R.string.activity_tips),
+            )
+        }
+        if (h.bowelDays > 0) {
+            Habit(
+                stringResource(R.string.habit_bowel, h.bowelMoveDays, h.bowelDays), h.bowelLevel,
+                h.trend({ if (it.bowelDays > 0) it.bowelMoveDays * 7.0 / it.bowelDays else null }, 1.0),
+                p?.takeIf { it.bowelDays > 0 }?.let { "${it.bowelMoveDays} / ${it.bowelDays}" },
+                stringResource(R.string.habit_bowel_info), stringResource(R.string.bowel_noticed, h.bowelHard, h.bowelLoose, h.fiberAvg.f0()),
+                stringResource(R.string.bowel_tips), if (h.bowelLevel == Level.WATCH) stringResource(R.string.bowel_help) else null,
+            )
+        }
         if (h.alcoholPerWeek > 0) {
             val noticed = buildList {
                 if (h.alcoholPerWeek > 7) add(stringResource(R.string.alcohol_many))

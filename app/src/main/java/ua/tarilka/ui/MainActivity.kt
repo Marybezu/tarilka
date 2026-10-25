@@ -106,6 +106,12 @@ private fun AppRoot() {
                 pop()
             },
             onCreateFood = { push(Overlay.EditFood(null)) },
+            mealTime = if (vm.mealTimes.collectAsState().value) vm.defaultTime(top.meal) else null,
+            onPickedAt = { food, grams, time ->
+                vm.addFood(food, grams, top.meal, time)
+                vm.query.value = ""
+                pop()
+            },
         )
 
         is Overlay.Photo -> PhotoScreen(

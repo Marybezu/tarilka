@@ -394,6 +394,8 @@ private fun SelfSection(vm: MainViewModel) {
                 if (on && vm.healthAvailable) sleepLauncher.launch(setOf(ua.tarilka.health.HealthSync.READ_SLEEP))
             }
             SwitchRow(stringResource(R.string.reasons_title), stringResource(R.string.reasons_hint), reasonsOn) { vm.setReasonsEnabled(it) }
+            val timesOn by vm.mealTimes.collectAsState()
+            SwitchRow(stringResource(R.string.meal_times_title), stringResource(R.string.meal_times_hint), timesOn) { vm.setMealTimes(it) }
             val workoutsOn by vm.workoutsEnabled.collectAsState()
             SwitchRow(stringResource(R.string.workouts_title), stringResource(R.string.workouts_hint), workoutsOn) { vm.setWorkoutsEnabled(it) }
             val cycleOn by vm.cycleEnabled.collectAsState()

@@ -248,7 +248,7 @@
     <string name="habit_sweets_info">Sweets, pastries and sugary drinks (juice included). The WHO recommends they give under 10% of calories, ideally under 5%.</string>
     <string name="habit_late">🌙 After 22:00: %1$s%% of calories</string>
     <string name="habit_late_none">🌙 Nothing after 22:00</string>
-    <string name="habit_late_info">Share of calories logged after 22:00. The time of logging is used, so a dinner logged late counts too.</string>
+    <string name="habit_late_info">Share of calories eaten after 22:00, by the time of the meal; you can set or correct it by tapping an entry.</string>
     <string name="habit_alcohol">🍷 Alcohol: %1$s drinks/week · %2$d days</string>
     <string name="habit_alcohol_info">A standard drink has 10 g of alcohol: about 250 ml of beer, 100 ml of wine or 30 ml of spirits. There is no safe amount of alcohol (WHO), so less is better.</string>
     <string name="habit_fastfood">🍔 Fast food: %1$d days</string>
@@ -469,4 +469,7 @@
         <item>moderate</item>
         <item>strong</item>
     </string-array>
+    <string name="meal_time">Time: %1$s ✎</string>
+    <string name="meal_times_title">Track meal times</string>
+    <string name="meal_times_hint">When adding food you can set and correct the time of the meal. The late-eating badge and the AI\'s advice on meal rhythm use it. When off, time is neither shown nor used.</string>
 </resources>

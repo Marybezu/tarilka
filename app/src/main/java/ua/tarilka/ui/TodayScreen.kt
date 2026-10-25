@@ -95,6 +95,7 @@ fun TodayScreen(
     val workouts by vm.workouts.collectAsState()
     var workoutDialog by remember { mutableStateOf(false) }
     val activityHint by vm.activityHint.collectAsState()
+    val mealTimesOn by vm.mealTimes.collectAsState()
     val cycle by vm.cycle.collectAsState()
     var cycleDialog by remember { mutableStateOf(false) }
     var stepsDialog by remember { mutableStateOf(false) }
@@ -286,7 +287,7 @@ fun TodayScreen(
                                 TextButton(onClick = ai::clearAdvice) { Text(stringResource(R.string.hide)) }
                             }
                             else -> FilledTonalButton(onClick = {
-                                val summary = adviceSummary(context, day, entries, totals, targets, tips, fluidMl, steps, note)
+                                val summary = adviceSummary(context, day, entries, totals, targets, tips, fluidMl, steps, note, mealTimesOn)
                                 ai.requestAdvice(summary, isUkrainian())
                             }) {
                                 Icon(Icons.Filled.Star, null, Modifier.size(18.dp))
@@ -443,6 +444,8 @@ fun TodayScreen(
             food = null,
             onDismiss = { editing = null },
             onConfirm = { vm.updateGrams(e, it); editing = null },
+            time = if (mealTimesOn) java.time.Instant.ofEpochMilli(e.createdAt).atZone(java.time.ZoneId.systemDefault()).toLocalTime().withSecond(0).withNano(0) else null,
+            onConfirmAt = { g, t -> vm.updateGrams(e, g, t); editing = null },
             extraAction = {
                 TextButton(onClick = { vm.deleteEntry(e); editing = null }) {
                     Text(stringResource(R.string.delete), color = MaterialTheme.colorScheme.error)
@@ -650,15 +653,16 @@ private fun adviceSummary(
     fluidMl: Double,
     steps: Long?,
     note: String,
+    withTimes: Boolean = true,
 ): String = buildString {
     val time = java.time.format.DateTimeFormatter.ofPattern("HH:mm")
     val isToday = day == LocalDate.now()
     val dayWord = if (isToday) "today" else "on ${day} (a past day)"
     if (isToday) appendLine("Current time: ${java.time.LocalTime.now().format(time)}.")
-    appendLine("Foods eaten $dayWord (time, name, amount):")
+    appendLine("Foods eaten $dayWord (" + (if (withTimes) "time, " else "") + "name, amount):")
     entries.forEach {
         val t = java.time.Instant.ofEpochMilli(it.createdAt).atZone(java.time.ZoneId.systemDefault()).toLocalTime().format(time)
-        appendLine("- $t ${it.nameEn} (${it.nameUk}), ${it.grams.f0()} g, ${it.kcal.f0()} kcal")
+        appendLine("- " + (if (withTimes) "$t " else "") + "${it.nameEn} (${it.nameUk}), ${it.grams.f0()} g, ${it.kcal.f0()} kcal")
     }
     appendLine("Fluids $dayWord: ${fluidMl.f0()} ml (target ${targets.waterMl.f0()} ml).")
     if (steps != null) appendLine("Steps $dayWord: $steps.")

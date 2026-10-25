@@ -173,6 +173,17 @@ fun sourceLabel(source: String): String = stringResource(
     },
 )
 
+/** "Time: 19:40 ✎" — tap to pick another time of the meal. */
+@Composable
+fun TimeRow(time: java.time.LocalTime, onChange: (java.time.LocalTime) -> Unit) {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    TextButton(onClick = {
+        android.app.TimePickerDialog(context, { _, h, m -> onChange(java.time.LocalTime.of(h, m)) }, time.hour, time.minute, true).show()
+    }) {
+        Text(stringResource(R.string.meal_time, "%02d:%02d".format(time.hour, time.minute)))
+    }
+}
+
 /** Ask how many grams; shows the resulting nutrients live. */
 @Composable
 fun GramsDialog(
@@ -182,9 +193,13 @@ fun GramsDialog(
     onDismiss: () -> Unit,
     onConfirm: (Double) -> Unit,
     extraAction: (@Composable () -> Unit)? = null,
+    /** When set, a "Time" row is shown and [onConfirmAt] gets the chosen time. */
+    time: java.time.LocalTime? = null,
+    onConfirmAt: ((Double, java.time.LocalTime) -> Unit)? = null,
 ) {
     var text by remember { mutableStateOf(initial?.f0() ?: "") }
     val grams = text.toNumber()
+    var at by remember { mutableStateOf(time) }
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(title) },
@@ -215,6 +230,7 @@ fun GramsDialog(
                     Row {
                     }
                 }
+                at?.let { t -> TimeRow(t) { at = it } }
                 if (food != null && grams != null) {
                     Spacer(Modifier.height(12.dp))
                     val k = grams / 100
@@ -223,7 +239,11 @@ fun GramsDialog(
             }
         },
         confirmButton = {
-            TextButton(enabled = grams != null && grams > 0, onClick = { grams?.let(onConfirm) }) {
+            TextButton(enabled = grams != null && grams > 0, onClick = {
+                val g = grams ?: return@TextButton
+                val t = at
+                if (t != null && onConfirmAt != null) onConfirmAt(g, t) else onConfirm(g)
+            }) {
                 Text(stringResource(R.string.save))
             }
         },

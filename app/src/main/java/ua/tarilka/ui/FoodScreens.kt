@@ -107,6 +107,9 @@ fun AddFoodScreen(
     onPicked: (Food, Double) -> Unit,
     askGrams: Boolean = true,
     onCreateFood: () -> Unit,
+    /** When set, the grams dialog also asks the time of the meal. */
+    mealTime: java.time.LocalTime? = null,
+    onPickedAt: ((Food, Double, java.time.LocalTime) -> Unit)? = null,
 ) {
     val query by vm.query.collectAsState()
     val results by vm.searchResults.collectAsState()
@@ -170,6 +173,8 @@ fun AddFoodScreen(
             food = f,
             onDismiss = { chosen = null },
             onConfirm = { g -> chosen = null; onPicked(f, g) },
+            time = mealTime,
+            onConfirmAt = onPickedAt?.let { cb -> { g: Double, t: java.time.LocalTime -> chosen = null; cb(f, g, t) } },
         )
     }
 }

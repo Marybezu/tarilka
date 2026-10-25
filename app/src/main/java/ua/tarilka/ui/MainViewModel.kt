@@ -431,23 +431,42 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     fun shiftDay(by: Long) { day.value = day.value.plusDays(by) }
     fun today() { day.value = LocalDate.now() }
 
-    fun addFood(food: Food, grams: Double, meal: Int) = addEntries(listOf(DiaryEntry.of(food, grams, day.value.toEpochDay(), meal)))
+    val mealTimes: StateFlow<Boolean> = prefs.mealTimes
+    fun setMealTimes(on: Boolean) = prefs.setMealTimes(on)
 
-    fun addEntries(list: List<DiaryEntry>) = viewModelScope.launch {
-        val saved = list.map { e ->
-            val withTime = e.copy(createdAt = timestampFor(LocalDate.ofEpochDay(e.day)))
+    /** The time offered for a new entry: now for today, a usual time of that meal for past days. */
+    fun defaultTime(meal: Int): LocalTime =
+        if (day.value == LocalDate.now()) LocalTime.now().withSecond(0).withNano(0)
+        else MEAL_TIMES.getOrElse(meal) { LocalTime.NOON }
+
+    private fun millis(d: LocalDate, t: LocalTime) = d.atTime(t).atZone(java.time.ZoneId.systemDefault()).toInstant().toEpochMilli()
+
+    fun addFood(food: Food, grams: Double, meal: Int, time: LocalTime? = null) =
+        addEntries(listOf(DiaryEntry.of(food, grams, day.value.toEpochDay(), meal)), time)
+
+    /** [time] = when it was eaten (chosen by the person); otherwise now, or the meal's usual time on a past day. */
+    fun addEntries(list: List<DiaryEntry>, time: LocalTime? = null) = viewModelScope.launch {
+        val saved = list.mapIndexed { i, e ->
+            val d = LocalDate.ofEpochDay(e.day)
+            val at = when {
+                time != null -> millis(d, time) + i // + i keeps several items of one meal apart
+                d == LocalDate.now() -> System.currentTimeMillis() + i
+                else -> millis(d, MEAL_TIMES.getOrElse(e.meal) { LocalTime.NOON }) + i
+            }
+            val withTime = e.copy(createdAt = at)
             withTime.copy(id = db.diary().insert(withTime))
         }
         sync { saved.forEach { health.writeMeal(it) } }
         if (prefs.reasonsEnabled.value && saved.isNotEmpty()) pendingReason.value = saved.map { it.id }
     }
 
-    fun updateGrams(entry: DiaryEntry, grams: Double) = viewModelScope.launch {
+    fun updateGrams(entry: DiaryEntry, grams: Double, time: LocalTime? = null) = viewModelScope.launch {
         if (entry.grams <= 0) return@launch
         val k = grams / entry.grams
         val updated = entry.copy(
             grams = grams, kcal = entry.kcal * k, protein = entry.protein * k,
             fat = entry.fat * k, carbs = entry.carbs * k, fiber = entry.fiber * k,
+            createdAt = time?.let { millis(LocalDate.ofEpochDay(entry.day), it) } ?: entry.createdAt,
         )
         db.diary().update(updated)
         sync { health.deleteMeal(entry); health.writeMeal(updated) }
@@ -553,16 +572,16 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         // Two weeks: the one before gives the alcohol trend.
         day.flatMapLatest { db.diary().rangeFlow(it.minusDays(13).toEpochDay(), it.toEpochDay()) },
         foodsById,
-        combine(day.flatMapLatest { db.sleep().rangeFlow(it.minusDays(6).toEpochDay(), it.toEpochDay()) }, hcSleep, prefs.sleepEnabled) { manual, hc, on ->
-            if (on) hc + manual.associate { it.day to it.hours } else emptyMap()
+        combine(day.flatMapLatest { db.sleep().rangeFlow(it.minusDays(6).toEpochDay(), it.toEpochDay()) }, hcSleep, prefs.sleepEnabled, prefs.mealTimes) { manual, hc, on, times ->
+            (if (on) hc + manual.associate { it.day to it.hours } else emptyMap()) to times
         },
         day.flatMapLatest { db.bowel().rangeFlow(it.minusDays(13).toEpochDay(), it.toEpochDay()) },
         day.flatMapLatest { db.workouts().rangeFlow(it.minusDays(13).toEpochDay(), it.toEpochDay()) },
-    ) { list, foods, sleepMap, bowel, workouts ->
+    ) { list, foods, (sleepMap, times), bowel, workouts ->
         val split = day.value.minusDays(7).toEpochDay()
         val (cur, prev) = list.partition { it.day > split }
-        Habits.of(cur, foods, 7, sleep = sleepMap, bowel = bowel.filter { it.day > split }, workouts = workouts.filter { it.day > split })
-            .copy(prev = Habits.of(prev, foods, 7, bowel = bowel.filter { it.day <= split }, workouts = workouts.filter { it.day <= split }))
+        Habits.of(cur, foods, 7, sleep = sleepMap, bowel = bowel.filter { it.day > split }, workouts = workouts.filter { it.day > split }, withTimes = times)
+            .copy(prev = Habits.of(prev, foods, 7, bowel = bowel.filter { it.day <= split }, workouts = workouts.filter { it.day <= split }, withTimes = times))
             .takeIf { it.days >= 2 }
     }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
@@ -579,8 +598,8 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         val sleep = sleepRange(start, end)
         val bowel = db.bowel().range(start.toEpochDay(), end.toEpochDay()).partition { it.day >= from.toEpochDay() }
         val workouts = db.workouts().range(start.toEpochDay(), end.toEpochDay()).partition { it.day >= from.toEpochDay() }
-        return Habits.of(cur, foods, period.days, sleep = sleep.filterKeys { it >= from.toEpochDay() }, bowel = bowel.first, workouts = workouts.first)
-            .copy(prev = Habits.of(prev, foods, period.days, sleep = sleep.filterKeys { it < from.toEpochDay() }, bowel = bowel.second, workouts = workouts.second))
+        return Habits.of(cur, foods, period.days, sleep = sleep.filterKeys { it >= from.toEpochDay() }, bowel = bowel.first, workouts = workouts.first, withTimes = prefs.mealTimes.value)
+            .copy(prev = Habits.of(prev, foods, period.days, sleep = sleep.filterKeys { it < from.toEpochDay() }, bowel = bowel.second, workouts = workouts.second, withTimes = prefs.mealTimes.value))
     }
 
     /** Plain-text summary of a period ending today, compared with the period before, for the AI. */
@@ -595,8 +614,8 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         val sleepAll = sleepRange(prevFrom, end)
         val bowelAll = db.bowel().range(prevFrom.toEpochDay(), end.toEpochDay()).partition { it.day >= from.toEpochDay() }
         val workAll = db.workouts().range(prevFrom.toEpochDay(), end.toEpochDay()).partition { it.day >= from.toEpochDay() }
-        val h = Habits.of(cur, foods, period.days, sleep = sleepAll.filterKeys { it >= from.toEpochDay() }, bowel = bowelAll.first, workouts = workAll.first)
-        val hp = Habits.of(prev, foods, period.days, sleep = sleepAll.filterKeys { it < from.toEpochDay() }, bowel = bowelAll.second, workouts = workAll.second)
+        val h = Habits.of(cur, foods, period.days, sleep = sleepAll.filterKeys { it >= from.toEpochDay() }, bowel = bowelAll.first, workouts = workAll.first, withTimes = prefs.mealTimes.value)
+        val hp = Habits.of(prev, foods, period.days, sleep = sleepAll.filterKeys { it < from.toEpochDay() }, bowel = bowelAll.second, workouts = workAll.second, withTimes = prefs.mealTimes.value)
         // Water entries plus drinks logged as food, as on the Today screen.
         val fluidsByDay = (
             db.fluids().totalsOnce(prevFrom.toEpochDay(), end.toEpochDay()) +
@@ -628,7 +647,8 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
                     if (list.isEmpty()) { appendLine("- $name $d: nothing logged$drinks"); continue }
                     val t = Totals.of(list)
                     val times = list.map { java.time.Instant.ofEpochMilli(it.createdAt).atZone(zone).toLocalTime().format(time) }.distinct()
-                    appendLine("- $name $d: ${t.kcal.r()} kcal, protein ${t.protein.r()} g, fiber ${t.fiber.r()} g; logged at ${times.joinToString()}$drinks")
+                    val at = if (prefs.mealTimes.value) "; eaten at ${times.joinToString()}" else ""
+                    appendLine("- $name $d: ${t.kcal.r()} kcal, protein ${t.protein.r()} g, fiber ${t.fiber.r()} g$at$drinks")
                 }
                 Period.MONTH -> for (w in 0 until 4) {
                     val a = from.plusDays(w * 7L)
@@ -651,7 +671,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
                 line("Average per logged day", "${h.kcalAvg.r()} kcal, protein ${h.proteinAvg.r()} g, fiber ${h.fiberAvg.r()} g", if (hp.days > 0) "${hp.kcalAvg.r()} kcal, protein ${hp.proteinAvg.r()} g" else "no data")
                 line("Sweets and sugary drinks", "${h.sweetsPct.r()} % of calories, ${h.sweetFreeDays} of ${h.days} days without", if (hp.days > 0) "${hp.sweetsPct.r()} %" else "no data")
                 line("Vegetables and fruit", "${h.vegFruitG.r()} g a day (WHO: 400 g or more)", if (hp.days > 0) "${hp.vegFruitG.r()} g" else "no data")
-                line("Calories logged after 22:00", "${h.latePct.r()} %", if (hp.days > 0) "${hp.latePct.r()} %" else "no data")
+                if (prefs.mealTimes.value) line("Calories eaten after 22:00", "${h.latePct.r()} %", if (hp.days > 0) "${hp.latePct.r()} %" else "no data")
                 line(
                     "Alcohol (standard drinks of 10 g)",
                     "${"%.1f".format(java.util.Locale.ROOT, h.alcoholPerWeek)} a week, on ${h.alcoholDays} days, ${h.heavyDrinkDays} days with 6 or more",
@@ -842,4 +862,9 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
             getApplication<Application>().contentResolver.openOutputStream(uri, "wt")!!.use { it.write(text.toByteArray(Charsets.UTF_8)) }
         }
+
+    companion object {
+        /** Usual times of breakfast, lunch, dinner and a snack, for entries on past days. */
+        val MEAL_TIMES = listOf(LocalTime.of(8, 0), LocalTime.of(13, 0), LocalTime.of(19, 0), LocalTime.of(16, 0))
+    }
 }

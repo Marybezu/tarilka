@@ -74,6 +74,8 @@ fun PhotoScreen(
     val ui by ai.photo.collectAsState()
     val day by vm.day.collectAsState()
     var meal by rememberSaveable { mutableIntStateOf(initialMeal) }
+    val timesOn by vm.mealTimes.collectAsState()
+    var time by remember(meal) { mutableStateOf(vm.defaultTime(meal)) }
     androidx.compose.runtime.LaunchedEffect(Unit) { ai.warmUp() }
 
     Scaffold(
@@ -96,7 +98,7 @@ fun PhotoScreen(
                     )
                     Button(
                         onClick = {
-                            vm.addEntries(ai.entriesFor(day.toEpochDay(), meal))
+                            vm.addEntries(ai.entriesFor(day.toEpochDay(), meal), if (timesOn) time else null)
                             ai.resetPhoto()
                             onBack()
                         },
@@ -127,6 +129,7 @@ fun PhotoScreen(
                         FilterChip(meal == m, { meal = m }, { Text(mealName(m), maxLines = 1, softWrap = false) })
                     }
                 }
+                if (timesOn) TimeRow(time) { time = it }
             }
             if (!ui.working && !ui.analyzed) {
                 item {

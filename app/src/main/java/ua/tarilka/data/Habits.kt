@@ -53,6 +53,8 @@ data class Habits(
     val workoutCount: Int = 0,
     val activeMinPerWeek: Double = 0.0,
     val strengthPerWeek: Double = 0.0,
+    /** False when the person switched off meal times: no late-eating figures then. */
+    val timesTracked: Boolean = true,
     /** The period before, for trend arrows; set by the caller. */
     val prev: Habits? = null,
 ) {
@@ -150,13 +152,14 @@ data class Habits(
             sleep: Map<Long, Double> = emptyMap(),
             bowel: List<BowelEntry> = emptyList(),
             workouts: List<WorkoutEntry> = emptyList(),
+            withTimes: Boolean = true,
         ): Habits {
             fun food(e: DiaryEntry) = e.foodId?.let(foods::get)
             fun sweet(e: DiaryEntry) = food(e)?.let(::isSweet) == true
             val byDay = entries.groupBy { it.day }
             val days = byDay.size
             val kcal = entries.sumOf { it.kcal }
-            fun isLate(e: DiaryEntry) = Instant.ofEpochMilli(e.createdAt).atZone(zone).hour.let { it >= 22 || it < 4 }
+            fun isLate(e: DiaryEntry) = withTimes && Instant.ofEpochMilli(e.createdAt).atZone(zone).hour.let { it >= 22 || it < 4 }
             val late = entries.filter(::isLate).sumOf { it.kcal }
             fun alcoholG(e: DiaryEntry) = food(e)?.code?.let(ALCOHOL_G::get)?.let { it * e.grams / 100 } ?: 0.0
             val alcohol = entries.sumOf(::alcoholG) / 10
@@ -198,6 +201,7 @@ data class Habits(
                 activeMinPerWeek = workouts.sumOf(Workouts::whoMinutes) * 7.0 / maxOf(days, 7).coerceAtMost(periodDays),
                 strengthPerWeek = workouts.filter { it.type == Workouts.STRENGTH }.map { it.day }.distinct().size * 7.0 /
                     maxOf(days, 7).coerceAtMost(periodDays),
+                timesTracked = withTimes,
                 sleepNights = sleep.size,
                 shortNights = sleep.values.count { it < 6 },
             )

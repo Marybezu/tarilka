@@ -84,12 +84,14 @@ fun HabitChips(
             stringResource(R.string.habit_sweets_info), stringResource(R.string.sweets_noticed, h.sweetsPct.f0()),
             stringResource(R.string.sweets_tips),
         )
-        Habit(
-            if (h.latePct < 1) stringResource(R.string.habit_late_none) else stringResource(R.string.habit_late, h.latePct.f0()), h.lateLevel,
-            h.trend({ it.latePct }, 5.0), p?.let { "${it.latePct.f0()}%" },
-            stringResource(R.string.habit_late_info), stringResource(R.string.late_noticed, h.lateDays, h.days),
-            stringResource(R.string.late_tips), if (h.lateLevel == Level.WATCH) stringResource(R.string.eating_help) else null,
-        )
+        if (h.timesTracked) {
+            Habit(
+                if (h.latePct < 1) stringResource(R.string.habit_late_none) else stringResource(R.string.habit_late, h.latePct.f0()), h.lateLevel,
+                h.trend({ it.latePct }, 5.0), p?.let { "${it.latePct.f0()}%" },
+                stringResource(R.string.habit_late_info), stringResource(R.string.late_noticed, h.lateDays, h.days),
+                stringResource(R.string.late_tips), if (h.lateLevel == Level.WATCH) stringResource(R.string.eating_help) else null,
+            )
+        }
         h.sleepAvg?.let { hrs ->
             Habit(
                 stringResource(R.string.habit_sleep, hrs.f1()), h.sleepLevel,

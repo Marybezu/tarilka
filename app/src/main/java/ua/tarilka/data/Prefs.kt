@@ -54,6 +54,11 @@ class Prefs(context: Context) {
     val sleepEnabled: StateFlow<Boolean> = _sleepEnabled.asStateFlow()
     fun setSleepEnabled(on: Boolean) { sp.edit().putBoolean("sleepEnabled", on).apply(); _sleepEnabled.value = on }
 
+    private val _mealTimes = MutableStateFlow(sp.getBoolean("mealTimes", true))
+    /** Track the time of meals (late eating badge, times for the AI). On by default. */
+    val mealTimes: StateFlow<Boolean> = _mealTimes.asStateFlow()
+    fun setMealTimes(on: Boolean) { sp.edit().putBoolean("mealTimes", on).apply(); _mealTimes.value = on }
+
     private val _bowelEnabled = MutableStateFlow(sp.getBoolean("bowelEnabled", false))
     val bowelEnabled: StateFlow<Boolean> = _bowelEnabled.asStateFlow()
     fun setBowelEnabled(on: Boolean) { sp.edit().putBoolean("bowelEnabled", on).apply(); _bowelEnabled.value = on }

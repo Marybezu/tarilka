@@ -218,6 +218,6 @@
     <string name="steps_from_sensor">phone sensor, since first opened today</string>
     <string name="portion_typical">Typical weight of one serving or piece. If you know the exact weight, type it in.</string>
     <string name="missing_title">Not found in the database</string>
-    <string name="missing_hint">What you searched for and didn't find (times in brackets). Kept only on this phone. Copy the list so these foods can be added in future versions.</string>
+    <string name="missing_hint">What you searched for and didn\'t find (times in brackets). Kept only on this phone. Copy the list so these foods can be added in future versions.</string>
     <string name="copy_list">Copy list</string>
 </resources>

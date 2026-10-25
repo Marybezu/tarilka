@@ -41,6 +41,8 @@ fun HabitChips(
     modifier: Modifier = Modifier,
     sex: ua.tarilka.data.Sex = ua.tarilka.data.Sex.FEMALE,
     onSaveNote: ((String) -> Unit)? = null,
+    /** Workouts are tracked (for a week or more): show the activity badge even at 0 minutes. */
+    workoutsTracked: Boolean = false,
 ) {
     var info by remember { mutableStateOf<HabitInfo?>(null) }
     var audit by remember { mutableStateOf(false) }
@@ -110,7 +112,7 @@ fun HabitChips(
                 stringResource(R.string.reasons_tips), if (h.hardToStop > 0) stringResource(R.string.eating_help) else null,
             )
         }
-        if (h.workoutCount > 0 || p?.workoutCount?.let { it > 0 } == true) {
+        if (workoutsTracked || h.workoutCount > 0 || p?.workoutCount?.let { it > 0 } == true) {
             Habit(
                 stringResource(R.string.habit_activity, h.activeMinPerWeek.f0()), h.activityLevel,
                 h.trend({ it.activeMinPerWeek }, 20.0), p?.let { stringResource(R.string.minutes_n, it.activeMinPerWeek.toInt()) },

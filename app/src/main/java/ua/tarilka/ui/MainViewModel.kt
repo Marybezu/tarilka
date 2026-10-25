@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
@@ -126,7 +127,24 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         val finished = d.isBefore(LocalDate.now()) || now >= 21
         val afternoon = d == LocalDate.now() && now >= 15
         Tips.forDay(t, tg, n, finished, rest[1] as Profile, rest[2] as Double?, rest[3] as Double?, fluid, afternoon, st, goal)
-    }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+    }.combine(
+        // Workouts tracked for a week or more and none in the last 7 days: a gentle word, at most once a week, never daily.
+        combine(prefs.workoutsEnabled, day, today) { on, d, t -> Triple(on, d, t) }.flatMapLatest { (on, d, t) ->
+            if (!on || d != t) flowOf(false)
+            else db.workouts().rangeFlow(t.toEpochDay() - 6, t.toEpochDay()).map { list ->
+                val td = t.toEpochDay()
+                val due = list.isEmpty() && td - prefs.workoutsSince >= 7 &&
+                    (prefs.workoutNudgeDay == td || td - prefs.workoutNudgeDay >= 7)
+                if (due) prefs.workoutNudgeDay = td
+                due
+            }
+        },
+    ) { list, nudge -> if (nudge) list + Tip(ua.tarilka.R.string.tip_no_workouts) else list }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+
+    /** Workout tracking on for a week or more: the activity badge shows even with no workouts (0 minutes). */
+    val workoutsTracked: StateFlow<Boolean> = combine(prefs.workoutsEnabled, today) { on, t -> on && t.toEpochDay() - prefs.workoutsSince >= 7 }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     init {
         viewModelScope.launch { day.collect { refreshSteps() } }
@@ -493,7 +511,8 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
             withTime.copy(id = db.diary().insert(withTime))
         }
         sync { saved.forEach { health.writeMeal(it) } }
-        if (prefs.reasonsEnabled.value && saved.isNotEmpty()) pendingReason.value = saved.map { it.id }
+        // Several foods added in a row get one "why I eat" question, asked when the person is back on Today.
+        if (prefs.reasonsEnabled.value && saved.isNotEmpty()) pendingReason.value = (pendingReason.value ?: emptyList()) + saved.map { it.id }
     }
 
     fun updateGrams(entry: DiaryEntry, grams: Double, time: LocalTime? = null) = viewModelScope.launch {

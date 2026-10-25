@@ -445,3 +445,7 @@ x09;fastfood;Локшина швидкого приготування (суха)
 x10;fastfood;Картопля фрі (духовка);Oven fries;120;порція;serving;Potatoes, french fried, all types, salt added in processing, frozen, home-prepared, oven heated
 x11;fastfood;Цибулеві кільця;Onion rings;100;порція;serving;Fast foods, onion rings, breaded and fried
 x12;fastfood;Сендвіч з куркою;Chicken sandwich;180;шт;piece;Fast foods, chicken fillet sandwich, plain with pickles
+v86;veg;Гарбуз печений;Pumpkin, baked;150;порція;serving;Squash, winter, all varieties, cooked, baked, without salt
+dr30;drinks;Чай каркаде;Hibiscus tea;250;чашка;cup;Beverages, tea, hibiscus, brewed
+u86;dishes;Бульйон курячий;Chicken broth;300;тарілка;bowl;Soup, stock, chicken, home-prepared
+u87;dishes;Бульйон яловичий;Beef broth;300;тарілка;bowl;Soup, stock, beef, home-prepared

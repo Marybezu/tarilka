@@ -277,7 +277,7 @@
     <string name="hunger_scale">Hunger before eating: 1 none, 5 very strong</string>
     <string name="hard_to_stop">It was hard to stop</string>
     <string name="habit_sleep">😴 Sleep: %1$s h</string>
-    <string name="habit_sleep_info">Average sleep. Adults are advised 7–9 hours. With less sleep, appetite and sweet cravings go up.</string>
+    <string name="habit_sleep_info">Average sleep. Adults are advised 7–9 hours. With less sleep, appetite and sweet cravings go up. If you regularly sleep over 10 hours and still feel tired in the day, that is worth discussing with a doctor too.</string>
     <string name="habit_reasons">💭 Not from hunger: %1$d of %2$d</string>
     <string name="habit_reasons_info">How often you ate for another reason than hunger (of the times you answered Why I eat). Eating for company or pleasure now and then is normal.</string>
     <string name="ai_download">Download model</string>
@@ -410,7 +410,7 @@
     <string name="activity_hint">From your steps and workouts in recent weeks, your activity is closer to "%1$s" than the profile says. Update? Your daily target depends on it.</string>
     <string-array name="bowel_forms">
         <item>hard</item>
-        <item>normal</item>
+        <item>usual</item>
         <item>loose</item>
     </string-array>
     <string-array name="workout_types">
@@ -518,4 +518,10 @@
     <string name="ai_busy">The AI is still finishing the previous request. Try again in a minute.</string>
     <string name="meal_time_fixed">Time: %1$s, as for the whole meal (change it in the meal\'s header).</string>
     <string name="clear_done_hc_failed">Data deleted in Tarilka, but Health Connect did not allow deleting everything: check Tarilka\'s permissions in Health Connect.</string>
+    <string name="added_n">Added %1$d</string>
+    <string name="done">Done</string>
+    <string name="bowel_once">once</string>
+    <string name="bowel_twice">twice</string>
+    <string name="bowel_3plus">3+ times</string>
+    <string name="tip_no_workouts">No workouts logged in the last 7 days. Even 10 minutes of brisk walking counts: a good start.</string>
 </resources>

@@ -318,5 +318,5 @@ object FluidRules {
         "l15", "n20",
     )
     /** Soups and borscht: about 80 % of their weight is water. */
-    val SOUPS = listOf("u01", "u02", "u03", "u04", "u05", "u06", "u07", "u32", "u33", "u34", "u35", "u36", "u37", "u73", "u74")
+    val SOUPS = listOf("u01", "u02", "u03", "u04", "u05", "u06", "u07", "u32", "u33", "u34", "u35", "u36", "u37", "u73", "u74", "u86", "u87")
 }

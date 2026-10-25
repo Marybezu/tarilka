@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
@@ -112,6 +113,9 @@ fun AddFoodScreen(
     onPickedAt: ((Food, Double, java.time.LocalTime) -> Unit)? = null,
     /** "квашена капуста 100 г, картопля 40 г…": read the whole list at once. */
     onTextList: ((String) -> Unit)? = null,
+    /** Foods added so far from this screen; with [onDone], the screen stays open for the next one. */
+    added: List<String> = emptyList(),
+    onDone: (() -> Unit)? = null,
 ) {
     val query by vm.query.collectAsState()
     val results by vm.searchResults.collectAsState()
@@ -133,6 +137,25 @@ fun AddFoodScreen(
                 title = { Text(title) },
                 navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back)) } },
             )
+        },
+        bottomBar = {
+            if (added.isNotEmpty() && onDone != null) {
+                androidx.compose.material3.Surface(tonalElevation = 3.dp) {
+                    androidx.compose.foundation.layout.Row(
+                        verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
+                        modifier = Modifier.fillMaxWidth().navigationBarsPadding().padding(horizontal = 16.dp, vertical = 8.dp),
+                    ) {
+                        Text(
+                            stringResource(R.string.added_n, added.size) + ": " + added.joinToString(", "),
+                            style = MaterialTheme.typography.bodyMedium,
+                            maxLines = 2,
+                            overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                            modifier = Modifier.weight(1f),
+                        )
+                        androidx.compose.material3.Button(onClick = onDone) { Text(stringResource(R.string.done)) }
+                    }
+                }
+            }
         },
         floatingActionButton = {
             ExtendedFloatingActionButton(

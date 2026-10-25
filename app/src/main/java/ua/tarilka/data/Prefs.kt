@@ -67,7 +67,22 @@ class Prefs(context: Context) {
 
     private val _workoutsEnabled = MutableStateFlow(sp.getBoolean("workoutsEnabled", false))
     val workoutsEnabled: StateFlow<Boolean> = _workoutsEnabled.asStateFlow()
-    fun setWorkoutsEnabled(on: Boolean) { sp.edit().putBoolean("workoutsEnabled", on).apply(); _workoutsEnabled.value = on }
+    fun setWorkoutsEnabled(on: Boolean) {
+        sp.edit().putBoolean("workoutsEnabled", on).apply { if (on) putLong("workoutsSince", java.time.LocalDate.now().toEpochDay()) }.apply()
+        _workoutsEnabled.value = on
+    }
+
+    /** The day workout tracking was switched on (for those who had it on before: the first day this is read). */
+    val workoutsSince: Long
+        get() {
+            if (!sp.contains("workoutsSince")) sp.edit().putLong("workoutsSince", java.time.LocalDate.now().toEpochDay()).apply()
+            return sp.getLong("workoutsSince", 0)
+        }
+
+    /** The last day the "no workouts this week" note was shown: at most once a week. */
+    var workoutNudgeDay: Long
+        get() = sp.getLong("workoutNudgeDay", -100)
+        set(v) = sp.edit().putLong("workoutNudgeDay", v).apply()
 
     private val _cycleEnabled = MutableStateFlow(sp.getBoolean("cycleEnabled", false))
     val cycleEnabled: StateFlow<Boolean> = _cycleEnabled.asStateFlow()

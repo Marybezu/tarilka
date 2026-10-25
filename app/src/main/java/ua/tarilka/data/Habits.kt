@@ -81,7 +81,8 @@ data class Habits(
         else -> Level.OK
     }
     val fastFoodLevel get() = level(fastFoodDays == 0, perWeek(fastFoodDays) <= 1)
-    val sleepLevel get() = sleepAvg?.let { level(it >= 7, it >= 6) } ?: Level.OK
+    /** 7–9 h is the adult range (AASM); regularly much longer sleep is worth a look too, but never orange. */
+    val sleepLevel get() = sleepAvg?.let { if (it > 9.5) Level.OK else level(it >= 7, it >= 6) } ?: Level.OK
     /** Hard-to-stop episodes twice a week or more are worth attention; eating for other reasons now and then is normal. */
     val reasonsLevel get() = if (perWeek(hardToStop) >= 2) Level.WATCH else level(notHungerTotal == 0 && hardToStop == 0, true)
 

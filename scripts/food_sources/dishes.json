@@ -181,6 +181,8 @@
     {"code": "u68", "category": "drinks", "uk": "Чай з цукром", "en": "Tea with sugar", "portion": [260, "чашка", "cup"], "yield": 260,
      "items": [["dr02", 250], ["c01", 10]]},
     {"code": "u85", "category": "drinks", "uk": "Смузі банановий", "en": "Banana smoothie", "portion": [340, "склянка", "glass"], "yield": 340,
-     "items": [["f03", 120], ["d02", 200], ["g07", 20]]}
+     "items": [["f03", 120], ["d02", 200], ["g07", 20]]},
+    {"code": "b25", "category": "bread", "uk": "Хліб гречаний", "en": "Buckwheat bread", "portion": [30, "скибка", "slice"], "yield": 760,
+     "items": [["g18", 350], ["g02", 150]]}
   ]
 }

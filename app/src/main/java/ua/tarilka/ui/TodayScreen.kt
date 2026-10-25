@@ -41,6 +41,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -246,8 +248,14 @@ fun TodayScreen(
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
                             "🌿 " + stringResource(R.string.bowel_short) + ": " + (bowel?.let { b ->
-                                (if (b.count == 0) stringResource(R.string.bowel_none) else if (b.count >= 3) "3+" else "${b.count}") +
-                                    (b.form?.let { " · " + forms.getOrElse(it) { "" } } ?: "")
+                                when (b.count) {
+                                    0 -> stringResource(R.string.bowel_none)
+                                    1 -> stringResource(R.string.bowel_once)
+                                    2 -> stringResource(R.string.bowel_twice)
+                                    else -> stringResource(R.string.bowel_3plus)
+                                } +
+                                    // Only an unusual form is named; the usual one needs no label.
+                                    (b.form?.takeIf { it != 1 }?.let { " · " + forms.getOrElse(it) { "" } } ?: "")
                             } ?: "—"),
                             style = MaterialTheme.typography.bodyMedium,
                             modifier = Modifier.weight(1f),
@@ -261,7 +269,7 @@ fun TodayScreen(
                         val s = sleep
                         Text(
                             "😴 " + (s?.let {
-                                stringResource(R.string.sleep_line, if (it.hours < 4) "<4" else if (it.hours % 1.0 == 0.0) it.hours.toInt().toString() else it.hours.f1()) +
+                                stringResource(R.string.sleep_line, if (it.hours < 4) "<4" else if (it.hours > 10) ">10" else if (it.hours % 1.0 == 0.0) it.hours.toInt().toString() else it.hours.f1()) +
                                     (it.quality?.let { q -> SLEEP_FELT.getOrNull(q) }?.let { r -> ", " + stringResource(r) } ?: "") +
                                     (if (it.fromHc) " · Health Connect" else "")
                             } ?: stringResource(R.string.sleep_title) + " —"),
@@ -362,7 +370,7 @@ fun TodayScreen(
                     WeekBars(day, week, targets.kcal)
                     habits?.let {
                         Spacer(Modifier.height(10.dp))
-                        HabitChips(it, sex = profile.sex, onSaveNote = vm::appendNoteToday)
+                        HabitChips(it, sex = profile.sex, onSaveNote = vm::appendNoteToday, workoutsTracked = vm.workoutsTracked.collectAsState().value)
                     }
                     TextButton(onClick = onHistory) { Text(stringResource(R.string.summaries_link)) }
                 }
@@ -570,35 +578,25 @@ private fun MealSection(
         },
     ) {
         entries.forEach { e -> androidx.compose.runtime.key(e.id) {
-            // Swipe left to delete; "Undo" appears at the bottom.
-            // The state keeps its first callback; read the entry as it is now (grams or answers may have changed).
+            // A swipe to the left never deletes by itself: it only shows a Delete button, which needs a tap.
+            // "Undo" still appears at the bottom. Read the entry as it is now (grams or answers may have changed).
             val current by androidx.compose.runtime.rememberUpdatedState(e)
-            // Only a long, deliberate swipe (over 60 % of the row) deletes; a short one springs back.
-            val swipe = androidx.compose.material3.rememberSwipeToDismissBoxState(
-                confirmValueChange = { v ->
-                    if (v == androidx.compose.material3.SwipeToDismissBoxValue.EndToStart) { onDelete(current); true } else false
-                },
-                positionalThreshold = { width -> width * 0.6f },
-            )
-            androidx.compose.material3.SwipeToDismissBox(
-                state = swipe,
-                enableDismissFromStartToEnd = false,
-                backgroundContent = {
-                    Box(
-                        Modifier
-                            .fillMaxSize()
-                            .background(MaterialTheme.colorScheme.errorContainer)
-                            .padding(end = 16.dp),
-                        contentAlignment = Alignment.CenterEnd,
-                    ) { Icon(Icons.Filled.Delete, stringResource(R.string.delete), tint = MaterialTheme.colorScheme.onErrorContainer) }
-                },
-            ) {
+            var revealed by remember { mutableStateOf(false) }
+            var drag by remember { androidx.compose.runtime.mutableFloatStateOf(0f) }
+            val density = androidx.compose.ui.platform.LocalDensity.current
+            val minDrag = with(density) { 40.dp.toPx() }
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
                     .fillMaxWidth()
                     .background(MaterialTheme.colorScheme.surfaceContainerLow)
-                    .clickable { onEntry(e) }
+                    .pointerInput(Unit) {
+                        detectHorizontalDragGestures(
+                            onDragStart = { drag = 0f },
+                            onDragEnd = { if (drag < -minDrag) revealed = true else if (drag > minDrag) revealed = false },
+                        ) { _, d -> drag += d }
+                    }
+                    .clickable { if (revealed) revealed = false else onEntry(e) }
                     .padding(vertical = 6.dp),
             ) {
                 Column(Modifier.weight(1f)) {
@@ -617,8 +615,21 @@ private fun MealSection(
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
-                Text(e.kcal.f0(), style = MaterialTheme.typography.bodyLarge.merge(Numbers))
-            }
+                if (revealed) {
+                    androidx.compose.material3.FilledTonalButton(
+                        onClick = { revealed = false; onDelete(current) },
+                        colors = androidx.compose.material3.ButtonDefaults.filledTonalButtonColors(
+                            containerColor = MaterialTheme.colorScheme.errorContainer,
+                            contentColor = MaterialTheme.colorScheme.onErrorContainer,
+                        ),
+                    ) {
+                        Icon(Icons.Filled.Delete, null, Modifier.size(18.dp))
+                        Spacer(Modifier.width(6.dp))
+                        Text(stringResource(R.string.delete))
+                    }
+                } else {
+                    Text(e.kcal.f0(), style = MaterialTheme.typography.bodyLarge.merge(Numbers))
+                }
             }
         } }
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(top = 4.dp)) {
@@ -740,12 +751,12 @@ private fun SleepDialog(
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 androidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    // 3.5 stands for "under 4 hours".
-                    listOf(3.5, 4.0, 5.0, 6.0, 6.5, 7.0, 7.5, 8.0, 9.0, 10.0).forEach { h ->
+                    // 3.5 stands for "under 4 hours", 11 for "over 10".
+                    listOf(3.5, 4.0, 5.0, 6.0, 6.5, 7.0, 7.5, 8.0, 9.0, 10.0, 11.0).forEach { h ->
                         androidx.compose.material3.FilterChip(
                             selected = hours == h,
                             onClick = { hours = h },
-                            label = { Text(if (h < 4) "<4" else if (h % 1.0 == 0.0) h.toInt().toString() else h.f1(), maxLines = 1) },
+                            label = { Text(if (h < 4) "<4" else if (h > 10) ">10" else if (h % 1.0 == 0.0) h.toInt().toString() else h.f1(), maxLines = 1) },
                         )
                     }
                 }

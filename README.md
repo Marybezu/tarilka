@@ -8,7 +8,7 @@
 ## Чому Тарілка
 
 - 🔒 **Приватність за замовчуванням.** Дозволу на інтернет немає, тож застосунок фізично не може нічого надіслати. За замовчуванням не запитує жодного дозволу. Дані лише на телефоні, хмарну копію вимкнено. Резервна копія — за вашою дією, за бажанням зашифрована паролем (AES-256).
-- 🔬 **Наукова база офлайн.** 594 продукти: числа USDA [FoodData Central](https://fdc.nal.usda.gov/) копіюються автоматично, біля кожного продукту видно джерело.
+- 🔬 **Наукова база офлайн.** 599 продуктів: числа USDA [FoodData Central](https://fdc.nal.usda.gov/) копіюються автоматично, біля кожного продукту видно джерело.
 - 🥟 **Українські страви:** борщі, вареники, сирники, голубці, банош, олів'є та ще ~80, розраховані з інгредієнтів за відкритим рецептом.
 - 🌱 **Звички без осуду.** Кольорові плашки рахуються самі: овочі й фрукти, солодке, пізня їжа, алкоголь, фастфуд. За бажанням — сон, «чому я їм», тренування, кишківник. Стрілки тенденцій, доказові поради (ВООЗ, КПТ), самоперевірка AUDIT-C.
 - 🤖 **Локальний ШІ (Gemma 4), за бажанням.** Розпізнає їжу на фото (з урахуванням розміру тарілки й ваших виправлень), дає поради на день і підсумки за тиждень, місяць, рік. Працює повністю на телефоні, фото видаляється після аналізу.
@@ -44,7 +44,7 @@ Kotlin · Jetpack Compose · Room · [LiteRT-LM](https://github.com/google-ai-ed
 **Tarilka** is a private, offline food tracker for Android. **Test version** — please back up before updating; feedback via Options → About → Send feedback or [Issues](../../issues).
 
 - No internet permission, no accounts, no analytics. Data stays on the phone; optional password-encrypted backups.
-- 594 foods: USDA lab values copied automatically, plus Ukrainian dishes calculated from open recipes.
+- 599 foods: USDA lab values copied automatically, plus Ukrainian dishes calculated from open recipes.
 - Non-judgmental habit badges (vegetables, sweets, late eating, alcohol, fast food; optional sleep, why I eat, workouts, bowel) with trends and evidence-based tips.
 - Optional on-device Gemma 4: plate photos, daily advice, week/month/year summaries.
 - Safe targets: never below basal metabolism (even a custom one); no weight-loss target under 18, with a BMI under 18.5, or in pregnancy and breastfeeding. BMI shown with what it does and does not tell.

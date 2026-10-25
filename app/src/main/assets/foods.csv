@@ -69,6 +69,7 @@ b21;bread;Хліб вівсяний;Oat bread;269;8.4;4.4;48.5;4;0;30;скибк
 b22;bread;Хліб «Український» (житньо-пшеничний);Ukrainian rye-wheat bread;221;6.7;1.1;46;5;0;30;скибка;slice;LABEL;
 b23;bread;Батон нарізний;Sliced white loaf (baton);260;7.5;2.9;51;2.3;0;30;скибка;slice;LABEL;
 b24;bread;Хліб «Бородинський»;Borodinsky rye bread;203;6.8;1.3;41;6;0;30;скибка;slice;LABEL;
+b25;bread;Хліб гречаний;Buckwheat bread;236;7.07;0.99;49.94;3.28;0;30;скибка;slice;RECIPE;
 v01;veg;Картопля варена;Potatoes, boiled;86;1.71;0.1;20.01;1.8;0;200;порція;serving;USDA;Potatoes, boiled, cooked without skin, flesh, without salt
 v02;veg;Картопля запечена;Potatoes, baked with skin;93;2.5;0.13;21.15;2.2;0;200;шт;piece;USDA;Potatoes, baked, flesh and skin, without salt
 v03;veg;Картопляне пюре (картопля товчена);Mashed potatoes with milk and butter;113;1.86;4.22;16.81;1.5;0;200;порція;serving;USDA;Potatoes, mashed, home-prepared, whole milk and butter added
@@ -154,6 +155,7 @@ v82;veg;Ревінь;Rhubarb;21;0.9;0.2;4.54;1.8;0;100;порція;serving;USDA
 v83;veg;Ікра кабачкова;Squash caviar (spread);97;1.2;7;7.4;1.2;0;50;порція;serving;LABEL;
 v84;veg;Ікра баклажанна;Eggplant caviar (spread);147;1.7;13.3;5.1;2.5;0;50;порція;serving;LABEL;
 v85;veg;Морква по-корейськи;Korean-style carrots;130;1.3;9.5;10;2.5;0;50;порція;serving;LABEL;
+v86;veg;Гарбуз печений;Pumpkin, baked;37;0.89;0.35;8.85;2.8;0;150;порція;serving;USDA;Squash, winter, all varieties, cooked, baked, without salt
 f01;fruit;Яблуко;Apple;52;0.26;0.17;13.81;2.4;0;180;шт;piece;USDA;Apples, raw, with skin
 f02;fruit;Груша;Pear;57;0.36;0.14;15.23;3.1;0;180;шт;piece;USDA;Pears, raw
 f03;fruit;Банан;Banana;89;1.09;0.33;22.84;2.6;0;120;шт (без шкірки);piece (peeled);USDA;Bananas, raw
@@ -356,6 +358,7 @@ d58;dairy;Айран;Ayran;24;1.1;1.5;1.4;0;0;250;склянка;glass;LABEL;
 d59;dairy;Масло вершкове 72,5%;Butter 72.5%;661;0.8;72.5;1.3;0;0;10;шматочок;pat;LABEL;
 d60;dairy;Морозиво пломбір 12%;Plombir ice cream 12%;227;3.2;12;26;0;0;80;ріжок;cone;LABEL;
 d61;dairy;Ряжанка 2,5%;Ryazhenka 2.5%;54;2.9;2.5;4.2;0;0;250;склянка;glass;LABEL;
+d62;dairy;Халумі (сир для гриля);Halloumi cheese, grilled;321;21;25;2.2;0;0;80;порція;serving;LABEL;
 e01;eggs;Яйце куряче варене;Egg, boiled;155;12.58;10.61;1.12;0;0;50;шт;piece;USDA;Egg, whole, cooked, hard-boiled
 e02;eggs;Яйце куряче сире;Egg, raw;143;12.56;9.51;0.72;0;0;50;шт;piece;USDA;Egg, whole, raw, fresh
 e03;eggs;Яєчня (яйце смажене);Fried egg;196;13.61;14.84;0.83;0;0;46;шт;piece;USDA;Egg, whole, cooked, fried
@@ -491,6 +494,7 @@ dr26;drinks;Сік ананасовий;Pineapple juice;53;0.36;0.12;12.87;0.2;0
 dr27;drinks;Сік морквяний;Carrot juice;40;0.95;0.15;9.28;0.8;0;250;склянка;glass;USDA;Carrot juice, canned
 dr28;drinks;Кокосова вода;Coconut water;19;0.72;0.2;3.71;1.1;0;250;склянка;glass;USDA;Nuts, coconut water (liquid from coconuts)
 dr29;drinks;Нектар фруктовий;Fruit nectar;50;0.2;0;12;0.2;0;250;склянка;glass;LABEL;
+dr30;drinks;Чай каркаде;Hibiscus tea;0;0;0;0;0;0;250;чашка;cup;USDA;Beverages, tea, hibiscus, brewed
 u63;drinks;Кисіль журавлинний;Cranberry kissel;44;0.06;0.02;11.04;0.43;0;250;склянка;glass;RECIPE;
 u64;drinks;Морс журавлинний;Cranberry mors;31;0.06;0.02;8.08;0.47;0;250;склянка;glass;RECIPE;
 u65;drinks;Кава з молоком (латте);Caffe latte;44;2.26;1.96;4;0;0;260;чашка;cup;RECIPE;
@@ -517,6 +521,7 @@ a16;sauces;Соус сальса;Salsa;29;1.52;0.17;6.64;1.9;0;30;ложка;tbs
 a17;sauces;Кориця;Cinnamon;247;3.99;1.24;80.59;53.1;0;2;ложечка;tsp;USDA;Spices, cinnamon, ground
 a18;sauces;Майонез 67%;Mayonnaise 67%;618;0.8;67;3;0;0;15;ложка;tbsp;LABEL;
 a19;sauces;Майонез легкий 30%;Light mayonnaise 30%;296;0.5;30;6;0;0;15;ложка;tbsp;LABEL;
+a20;sauces;Соус цацикі;Tzatziki;100;4;7.5;4;0.5;0;30;ложка;tbsp;LABEL;
 u01;dishes;Борщ з мʼясом;Borscht with meat;51;2.37;2.94;3.97;0.81;0;350;тарілка;plate;RECIPE;
 u02;dishes;Борщ пісний;Borscht, vegetarian;28;0.57;1.16;4.1;0.85;0;350;тарілка;plate;RECIPE;
 u03;dishes;Суп курячий з локшиною;Chicken noodle soup;35;3.14;0.59;4.03;0.35;0;350;тарілка;plate;RECIPE;
@@ -582,6 +587,8 @@ u78;dishes;Галушки;Halushky (dough dumplings);231;6.24;5.41;38.26;1.35;0;
 u82;dishes;Салат «Мімоза»;Mimosa salad;222;8.97;17.64;6.85;0.83;0;150;порція;serving;RECIPE;
 u83;dishes;Канапка з лососем;Salmon open sandwich;231;11.64;10.35;22.36;1.16;0;70;шт;piece;RECIPE;
 u84;dishes;Тост з авокадо;Avocado toast;209;4.62;10.66;25.77;5.27;0;80;шт;piece;RECIPE;
+u86;dishes;Бульйон курячий;Chicken broth;36;2.52;1.2;3.53;0;0;300;тарілка;bowl;USDA;Soup, stock, chicken, home-prepared
+u87;dishes;Бульйон яловичий;Beef broth;13;1.97;0.09;1.2;0;0;300;тарілка;bowl;USDA;Soup, stock, beef, home-prepared
 x01;fastfood;Піца сирна;Cheese pizza;266;11.39;9.69;33.33;2.3;0;110;шматок;slice;USDA;Fast food, pizza chain, 14" pizza, cheese topping, regular crust
 x02;fastfood;Бургер;Hamburger;250;12.5;10;28;1.5;0;200;шт;piece;LABEL;
 x03;fastfood;Шаурма;Shawarma;183;10.22;8.56;15.83;1.08;0;400;шт;piece;RECIPE;
@@ -594,5 +601,3 @@ x09;fastfood;Локшина швидкого приготування (суха)
 x10;fastfood;Картопля фрі (духовка);Oven fries;158;2.75;5.48;25.55;2;0;120;порція;serving;USDA;Potatoes, french fried, all types, salt added in processing, frozen, home-prepared, oven heated
 x11;fastfood;Цибулеві кільця;Onion rings;411;3.86;25.23;43.58;2.7;0;100;порція;serving;USDA;Fast foods, onion rings, breaded and fried
 x12;fastfood;Сендвіч з куркою;Chicken sandwich;250;16.28;11.19;20.89;1.4;0;180;шт;piece;USDA;Fast foods, chicken fillet sandwich, plain with pickles
-d62;dairy;Халумі (сир для гриля);Halloumi cheese, grilled;321;21.0;25.0;2.2;0;0;80;порція;serving;LABEL;
-a20;sauces;Соус цацикі;Tzatziki;100;4.0;7.5;4.0;0.5;0;30;ложка;tbsp;LABEL;

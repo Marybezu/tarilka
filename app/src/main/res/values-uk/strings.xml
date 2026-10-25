@@ -277,7 +277,7 @@
     <string name="hunger_scale">Голод до їжі: 1 — зовсім немає, 5 — дуже сильний</string>
     <string name="hard_to_stop">Важко було зупинитися</string>
     <string name="habit_sleep">😴 Сон: %1$s год</string>
-    <string name="habit_sleep_info">Середня тривалість сну. Дорослим радять 7–9 годин. Коли сну менше, апетит і тяга до солодкого зростають.</string>
+    <string name="habit_sleep_info">Середня тривалість сну. Дорослим радять 7–9 годин. Коли сну менше, апетит і тяга до солодкого зростають. Якщо ви регулярно спите понад 10 годин і все одно втомлені вдень, це теж варто обговорити з лікарем.</string>
     <string name="habit_reasons">💭 Не від голоду: %1$d з %2$d</string>
     <string name="habit_reasons_info">Скільки разів ви їли не від голоду (з тих разів, коли відповідали на «Чому я їм»). Іноді їсти за компанію чи для задоволення — нормально.</string>
     <string name="ai_download">Завантажити модель</string>
@@ -410,7 +410,7 @@
     <string name="activity_hint">За кроками й тренуваннями останніх тижнів ваша активність ближча до рівня «%1$s», ніж у профілі. Оновити? Від цього залежить денна норма.</string>
     <string-array name="bowel_forms">
         <item>тверде</item>
-        <item>норма</item>
+        <item>звичайне</item>
         <item>рідке</item>
     </string-array>
     <string-array name="workout_types">
@@ -518,4 +518,10 @@
     <string name="ai_busy">ШІ ще закінчує попередній запит. Спробуйте за хвилину.</string>
     <string name="meal_time_fixed">Час: %1$s, як у всього прийому (змінити можна в заголовку прийому).</string>
     <string name="clear_done_hc_failed">Дані в Тарілці видалено, але Health Connect не дозволив видалити все: перевірте дозволи Тарілки в Health Connect.</string>
+    <string name="added_n">Додано %1$d</string>
+    <string name="done">Готово</string>
+    <string name="bowel_once">1 раз</string>
+    <string name="bowel_twice">2 рази</string>
+    <string name="bowel_3plus">3 і більше</string>
+    <string name="tip_no_workouts">За останні 7 днів тренувань не записано. Навіть 10 хвилин швидкої ходьби вже рахуються: це добрий початок.</string>
 </resources>

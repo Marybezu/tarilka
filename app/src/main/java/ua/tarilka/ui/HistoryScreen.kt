@@ -154,7 +154,7 @@ private fun Summaries(vm: MainViewModel, ai: AiViewModel, dayCount: Int) {
                 stringResource(R.string.summaries_avg, h.kcalAvg.f0(), h.proteinAvg.f0(), h.days),
                 style = MaterialTheme.typography.bodyMedium.merge(Numbers),
             )
-            HabitChips(h, sex = vm.profile.collectAsState().value.sex, onSaveNote = vm::appendNoteToday)
+            HabitChips(h, sex = vm.profile.collectAsState().value.sex, onSaveNote = vm::appendNoteToday, workoutsTracked = vm.workoutsTracked.collectAsState().value)
             if (model !is ua.tarilka.ai.ModelStore.State.Ready) return@Column
             when {
                 loading -> Row(verticalAlignment = Alignment.CenterVertically) {

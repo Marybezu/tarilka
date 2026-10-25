@@ -22,6 +22,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -99,14 +100,19 @@ private fun AppRoot() {
     BackHandler(enabled = stack.isNotEmpty()) { pop() }
 
     when (val top = stack.lastOrNull()) {
-        is Overlay.AddFood -> AddFoodScreen(
+        is Overlay.AddFood -> {
+            // Stays open after each food, so several can be added in a row; "Done" goes back.
+            val added = androidx.compose.runtime.saveable.rememberSaveable(top) { mutableStateOf(listOf<String>()) }
+            AddFoodScreen(
             vm = vm,
             title = stringResource(R.string.add_to, mealName(top.meal)),
             onBack = ::pop,
+            added = added.value,
+            onDone = { vm.query.value = ""; pop() },
             onPicked = { food, grams ->
                 vm.addFood(food, grams, top.meal)
                 vm.query.value = ""
-                pop()
+                added.value = added.value + food.name()
             },
             onCreateFood = { push(Overlay.EditFood(null)) },
             // Breakfast/lunch/dinner that already have a time keep it; only a new meal or a snack asks.
@@ -114,7 +120,7 @@ private fun AppRoot() {
             onPickedAt = { food, grams, time ->
                 vm.addFood(food, grams, top.meal, time)
                 vm.query.value = ""
-                pop()
+                added.value = added.value + food.name()
             },
             onTextList = { text ->
                 ai.analyzeText(text)
@@ -122,7 +128,8 @@ private fun AppRoot() {
                 pop()
                 push(Overlay.Photo(top.meal))
             },
-        )
+            )
+        }
 
         is Overlay.Photo -> PhotoScreen(
             vm = vm,

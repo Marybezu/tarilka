@@ -14,7 +14,8 @@ import java.time.ZoneId
  */
 object Backup {
     const val FORMAT = "tarilka-backup"
-    const val VERSION = 1
+    /** 2: sleep, bowel, workouts, cycle and the cycle/steps settings. */
+    const val VERSION = 2
 
     private const val ENCRYPTED = "tarilka-backup-encrypted"
     private const val ITERATIONS = 310_000
@@ -67,7 +68,7 @@ object Backup {
             .put("profile", prefs.profile.value.let { p ->
                 JSONObject().put("sex", p.sex.name).put("age", p.age).put("heightCm", p.heightCm)
                     .put("weightKg", p.weightKg).put("activity", p.activity).put("goal", p.goal.name)
-                    .put("customKcal", p.customKcal ?: JSONObject.NULL).put("isSet", p.isSet)
+                    .put("customKcal", p.customKcal ?: JSONObject.NULL).put("isSet", p.isSet).put("pregnant", p.pregnant)
             })
             .put("customFoods", JSONArray().apply {
                 custom.forEach { f ->
@@ -136,6 +137,9 @@ object Backup {
                     put(JSONObject().put("day", LocalDate.ofEpochDay(it.day).toString()).put("flow", it.flow ?: JSONObject.NULL).put("pain", it.pain ?: JSONObject.NULL))
                 }
             })
+            .put("settings", JSONObject()
+                .put("cycleTypical", prefs.cycleTypical.value)
+                .put("stepLog", JSONObject(prefs.loggedSteps().mapKeys { it.key.toString() })))
             .put("weights", JSONArray().apply {
                 db.weights().allOnce().forEach {
                     put(JSONObject().put("day", LocalDate.ofEpochDay(it.day).toString()).put("kg", it.kg).put("minutes", it.minutes ?: JSONObject.NULL))
@@ -160,6 +164,8 @@ object Backup {
     suspend fun restore(db: AppDatabase, prefs: Prefs, json: String): Summary {
         val o = JSONObject(json)
         require(o.optString("format") == FORMAT) { "not a Tarilka backup" }
+        // A newer file may hold data this version would silently drop.
+        require(o.optInt("version", 1) <= VERSION) { "made by a newer version of Tarilka: update the app first" }
         val summary = peek(json)
         db.withTransaction {
             db.diary().deleteAll()
@@ -297,6 +303,12 @@ object Backup {
                 }
             }
         }
+        o.optJSONObject("settings")?.let { st ->
+            st.optInt("cycleTypical", -1).let { prefs.setCycleTypical(if (it in 15..60) it else -1) }
+            st.optJSONObject("stepLog")?.let { log ->
+                log.keys().forEach { k -> k.toLongOrNull()?.let { d -> log.optLong(k, -1).takeIf { it in 0..200_000 }?.let { prefs.logSteps(d, it) } } }
+            }
+        }
         o.optJSONObject("profile")?.let { p ->
             if (p.optBoolean("isSet")) {
                 prefs.saveProfile(
@@ -306,6 +318,7 @@ object Backup {
                         weightKg = p.optDouble("weightKg", 65.0), activity = p.optInt("activity", 1),
                         goal = runCatching { Goal.valueOf(p.getString("goal")) }.getOrDefault(Goal.MAINTAIN),
                         customKcal = if (p.isNull("customKcal")) null else p.optInt("customKcal"),
+                        pregnant = p.optBoolean("pregnant", false),
                     ),
                 )
             }

@@ -111,6 +111,8 @@ fun WeightScreen(vm: MainViewModel, padding: PaddingValues) {
                     stringResource(R.string.energy_text, targets.bmr.f0(), targets.tdee.f0(), targets.kcal.f0()),
                     style = MaterialTheme.typography.bodyMedium,
                 )
+                val profile by vm.profile.collectAsState()
+                if (profile.isSet) BmiLine(targets.bmi, profile.age)
             }
         }
         if (weights.isNotEmpty()) {

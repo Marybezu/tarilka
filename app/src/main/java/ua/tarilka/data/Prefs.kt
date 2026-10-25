@@ -19,6 +19,8 @@ data class Profile(
     /** User can type their own calorie target instead of the calculated one. */
     val customKcal: Int? = null,
     val isSet: Boolean = false,
+    /** Pregnant or breastfeeding: no weight-loss target. */
+    val pregnant: Boolean = false,
 )
 
 class Prefs(context: Context) {
@@ -206,12 +208,19 @@ class Prefs(context: Context) {
 
     /** Forget the profile and the not-found list; app settings stay. */
     fun clearPersonal() {
-        sp.edit().apply { (PROFILE_KEYS + STEP_KEYS).forEach { remove(it) } }.remove("missing").apply()
+        sp.edit().apply { (PROFILE_KEYS + STEP_KEYS).forEach { remove(it) } }.remove("missing").remove("gramsRatios").apply()
         _profile.value = Profile()
         _missing.value = emptyMap()
+        _cycleTypical.value = -1
+    }
+
+    /** Cycle settings that go with the cycle records (also cleared with the diary). */
+    fun clearCycle() {
+        sp.edit().remove("cycleNext").remove("cycleTypical").apply()
+        _cycleTypical.value = -1
     }
     private val STEP_KEYS = listOf("stepLog", "stepDay", "stepBase", "stepLast", "cycleNext", "cycleTypical")
-    private val PROFILE_KEYS = listOf("sex", "age", "height", "weight", "activity", "goal", "customKcal", "profileSet")
+    private val PROFILE_KEYS = listOf("sex", "age", "height", "weight", "activity", "goal", "customKcal", "profileSet", "pregnant")
 
     private val _profile = MutableStateFlow(loadProfile())
     val profile: StateFlow<Profile> = _profile.asStateFlow()
@@ -221,7 +230,7 @@ class Prefs(context: Context) {
             .putString("sex", p.sex.name).putInt("age", p.age).putInt("height", p.heightCm)
             .putFloat("weight", p.weightKg.toFloat()).putInt("activity", p.activity)
             .putString("goal", p.goal.name).putInt("customKcal", p.customKcal ?: -1)
-            .putBoolean("profileSet", true)
+            .putBoolean("profileSet", true).putBoolean("pregnant", p.pregnant)
             .apply()
         _profile.value = p.copy(isSet = true)
     }
@@ -237,6 +246,7 @@ class Prefs(context: Context) {
             goal = runCatching { Goal.valueOf(sp.getString("goal", null)!!) }.getOrDefault(Goal.MAINTAIN),
             customKcal = sp.getInt("customKcal", -1).takeIf { it > 0 },
             isSet = true,
+            pregnant = sp.getBoolean("pregnant", false),
         )
     }
 }

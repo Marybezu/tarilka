@@ -45,6 +45,7 @@ fun CycleDialog(vm: MainViewModel, onDismiss: () -> Unit) {
     val info by vm.cycle.collectAsState()
     val periods by vm.periods.collectAsState()
     val days by vm.periodDays.collectAsState()
+    val own by vm.ownPeriodStarts.collectAsState()
     val selected by vm.day.collectAsState()
     val context = LocalContext.current
     val c = info ?: return
@@ -71,6 +72,7 @@ fun CycleDialog(vm: MainViewModel, onDismiss: () -> Unit) {
                 c.ovulation?.let { Text(stringResource(R.string.cycle_ovulation, shortDate(it - 5), shortDate(it)), style = MaterialTheme.typography.bodyMedium) }
                 if (c.nextStart == null || c.fromTypical) Text(stringResource(R.string.cycle_need_two), style = MaterialTheme.typography.bodySmall)
                 if (c.irregular) Text(stringResource(R.string.cycle_irregular), style = MaterialTheme.typography.bodySmall)
+                if (c.longGap) Text(stringResource(R.string.cycle_long_gap), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.tertiary)
                 Text(stringResource(R.string.cycle_disclaimer), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
 
                 // Flow and pain for the shown day, if it falls in a period.
@@ -103,7 +105,11 @@ fun CycleDialog(vm: MainViewModel, onDismiss: () -> Unit) {
                             style = MaterialTheme.typography.bodyMedium,
                             modifier = Modifier.weight(1f),
                         )
-                        TextButton(onClick = { vm.deletePeriod(p.start) }) { Text(stringResource(R.string.delete)) }
+                        if (p.start in own) {
+                            TextButton(onClick = { vm.deletePeriod(p.start) }) { Text(stringResource(R.string.delete)) }
+                        } else {
+                            Text("Health Connect", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
                     }
                 }
 

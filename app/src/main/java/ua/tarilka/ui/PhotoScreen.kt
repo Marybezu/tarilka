@@ -98,7 +98,7 @@ fun PhotoScreen(
                     )
                     Button(
                         onClick = {
-                            vm.addEntries(ai.entriesFor(day.toEpochDay(), meal), if (timesOn) time else null)
+                            vm.addEntries(ai.entriesFor(day.toEpochDay(), meal), if (timesOn && vm.mealTimeOf(meal) == null) time else null)
                             ai.resetPhoto()
                             onBack()
                         },
@@ -129,7 +129,14 @@ fun PhotoScreen(
                         FilterChip(meal == m, { meal = m }, { Text(mealName(m), maxLines = 1, softWrap = false) })
                     }
                 }
-                if (timesOn) TimeRow(time) { time = it }
+                // A meal that already has foods keeps its one time (change it in the meal's header).
+                val mealTime = vm.mealTimeOf(meal)
+                if (timesOn && mealTime == null) TimeRow(time) { time = it }
+                else if (timesOn) Text(
+                    stringResource(R.string.meal_time_fixed, mealTime.toString()),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
             }
             if (!ui.working && !ui.analyzed) {
                 item {
@@ -259,7 +266,7 @@ fun PhotoScreen(
 
 @Composable
 private fun ReviewCard(i: Int, item: ReviewItem, ai: AiViewModel, onReplace: (Int) -> Unit) {
-    var text by remember(i, item.food?.id) { mutableStateOf(item.grams.f0()) }
+    var text by remember(i, item.food?.id, item.detected) { mutableStateOf(item.grams.f0()) }
     Section {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Checkbox(checked = item.include, onCheckedChange = { ai.setInclude(i, it) }, enabled = item.food != null)

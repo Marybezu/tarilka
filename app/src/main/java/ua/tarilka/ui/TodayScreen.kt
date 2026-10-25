@@ -217,7 +217,8 @@ fun TodayScreen(
                         )
                         if (!periodsKnown) {
                             TextButton(onClick = { cycleSetup = true }) { Text(stringResource(R.string.cycle_set)) }
-                        } else if (c.inPeriod) {
+                        } else if (c.inPeriod && c.lastStart != null && t >= c.lastStart) {
+                            // Only on days of the open period: "Ended" on an older day would close an old one.
                             TextButton(onClick = { vm.periodEnded(day) }) { Text(stringResource(R.string.cycle_ended)) }
                         } else if (c.nextStart == null || t >= c.nextStart - 5) {
                             // Around the expected start: one tap.
@@ -709,6 +710,9 @@ private fun adviceSummary(
             "(target ${targets.protein.f0()}), fat ${totals.fat.f0()} g (target ${targets.fat.f0()}), " +
             "carbs ${totals.carbs.f0()} g (target ${targets.carbs.f0()}), fiber ${totals.fiber.f0()} g (target ${targets.fiber.f0()}).",
     )
+    if (targets.limit != null) {
+        appendLine("Important: the person is pregnant or breastfeeding, under 18, or has a BMI under 18.5. Never suggest eating less or losing weight.")
+    }
     if (tips.isNotEmpty()) {
         appendLine("Notes from the app:")
         tips.forEach { appendLine("- " + context.getString(it.res, *it.args.toTypedArray())) }

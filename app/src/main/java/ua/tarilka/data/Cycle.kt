@@ -44,10 +44,12 @@ data class CycleInfo(
     val tooShortOrLong: Boolean,
     val longBleeding: Boolean,
     val heavyOrPainful: Boolean,
+    /** A gap over 60 days between two recent starts: forgotten, or a real long pause. Ask, don't count it as a cycle. */
+    val longGap: Boolean = false,
 ) {
     fun cycleDay(today: Long): Int? = lastStart?.let { (today - it + 1).toInt() }?.takeIf { it in 1..120 }
     /** The expected start passed by 2+ days without a new entry: ask, don't conclude. */
-    fun late(today: Long): Boolean = nextStart != null && today >= nextStart + 2
+    fun late(today: Long): Boolean = nextStart != null && today >= nextStart + 2 && today - nextStart <= MAX_GAP
     val seeDoctor: Boolean get() = tooShortOrLong || longBleeding || heavyOrPainful
 
     companion object {
@@ -83,6 +85,7 @@ data class CycleInfo(
                 tooShortOrLong = recent.size >= 2 && avg != null && (avg < 21 || avg > 35),
                 // Only from a marked end: an unmarked one is more likely forgotten than long.
                 longBleeding = sorted.takeLast(3).any { p -> p.end != null && p.end - p.start + 1 > 7 },
+                longGap = sorted.takeLast(4).zipWithNext { a, b -> b.start - a.start }.any { it > MAX_GAP },
                 heavyOrPainful = lastTwo.size == 2 && lastTwo.all { p -> periodDays(p).any { it.flow == 2 || it.pain == 2 } },
             )
         }

@@ -246,5 +246,37 @@ class LogicTest {
         assertEquals(null, b[3].amount)
         assertTrue(t.looksLikeList("котлета 50 г"))
         assertTrue(!t.looksLikeList("котлета"))
+        // Counting words and fractions do not become stray items.
+        val c = t.parse("хліб 2 скибки, 1/2 банана, сир 100 грамів, молоко 1 склянка")
+        assertEquals(listOf("хліб", "банана", "сир", "молоко"), c.map { it.name })
+        assertEquals(2.0, c[0].amount!!, 0.01)
+        assertEquals(ua.tarilka.data.TextMeal.Unit.PIECES, c[0].unit)
+        assertEquals(0.5, c[1].amount!!, 0.01)
+        assertEquals(100.0, c[2].amount!!, 0.01)
+        assertEquals(250.0, c[3].amount!!, 0.01)
+    }
+
+    @Test
+    fun noDietWhenNotSafe() {
+        val adult = Profile(Sex.FEMALE, 30, 165, 65.0, 1, Goal.LOSE)
+        val n = Nutrition.targets(adult, null)
+        assertEquals(Goal.LOSE, n.goal)
+        assertEquals(null, n.limit)
+        // Own target below the floor is raised to it.
+        val low = Nutrition.targets(adult.copy(customKcal = 800), null)
+        assertTrue(low.customRaised)
+        assertTrue(low.kcal >= 1200)
+        // Pregnancy, under 18 and BMI under 18.5: no deficit at all.
+        for (p in listOf(adult.copy(pregnant = true), adult.copy(age = 16), adult.copy(weightKg = 48.0))) {
+            val t = Nutrition.targets(p, null)
+            assertEquals(Goal.MAINTAIN, t.goal)
+            assertTrue(t.limit != null)
+            assertEquals(t.tdee, t.kcal, 0.01)
+        }
+        // Protein with obesity: from the weight at BMI 25, not the actual weight.
+        val big = Nutrition.targets(adult.copy(weightKg = 140.0), null)
+        assertEquals(1.6 * 25 * 1.65 * 1.65, big.protein, 0.5)
+        assertEquals(1, Nutrition.bmiClass(22.0))
+        assertEquals(3, Nutrition.bmiClass(31.0))
     }
 }

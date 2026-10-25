@@ -72,14 +72,19 @@ object Tips {
         }
         if (weeklyTrendKg != null && currentWeight != null) {
             val oneTenth = (weeklyTrendKg * 10).roundToInt() / 10.0
+            // The goal in use: "Lose" is not used in pregnancy, under 18 or with a low BMI.
+            val goal = targets.goal
             when {
                 weeklyTrendKg < -currentWeight * 0.01 ->
                     tips += Tip(R.string.tip_weight_fast, listOf(oneTenth), Tip.Kind.WARN)
-                profile.goal == Goal.LOSE && weeklyTrendKg > 0.1 ->
+                // Never praise weight loss with a BMI under 18.5: a calm word and a pointer to help instead.
+                targets.limit == Limit.UNDERWEIGHT && weeklyTrendKg < -0.1 ->
+                    tips += Tip(R.string.tip_weight_down_low_bmi, listOf(oneTenth))
+                goal == Goal.LOSE && weeklyTrendKg > 0.1 ->
                     tips += Tip(R.string.tip_weight_up, listOf(oneTenth))
-                profile.goal == Goal.LOSE && weeklyTrendKg < -0.1 ->
+                goal == Goal.LOSE && weeklyTrendKg < -0.1 ->
                     tips += Tip(R.string.tip_weight_down_good, listOf(oneTenth), Tip.Kind.GOOD)
-                profile.goal == Goal.GAIN && weeklyTrendKg < 0 ->
+                goal == Goal.GAIN && weeklyTrendKg < 0 ->
                     tips += Tip(R.string.tip_weight_gain_none, listOf(oneTenth))
             }
         }

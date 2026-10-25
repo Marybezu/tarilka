@@ -82,6 +82,9 @@ private fun AppRoot() {
         if (ok && pendingMeal >= 0) {
             showPhoto(pendingMeal)
             ai.analyze(ua.tarilka.ai.PhotoUtil.captureUri(context))
+        } else if (!ok && !ai.photo.value.working) {
+            // Cancelled: a half-written photo must not stay in the cache.
+            ua.tarilka.ai.PhotoUtil.clear(context)
         }
     }
     val gallery = androidx.activity.compose.rememberLauncherForActivityResult(
@@ -199,9 +202,15 @@ private fun Tabs(vm: MainViewModel, ai: AiViewModel, tab: Int, onTab: (Int) -> U
     val deletedText = undoEvent?.let { stringResource(R.string.deleted_n, it.second) }
     val undoText = stringResource(R.string.undo)
     LaunchedEffect(undoEvent) {
+        val seq = undoEvent?.first ?: return@LaunchedEffect
         if (deletedText == null) return@LaunchedEffect
-        val r = snackbar.showSnackbar(deletedText, actionLabel = undoText, duration = androidx.compose.material3.SnackbarDuration.Short)
-        if (r == androidx.compose.material3.SnackbarResult.ActionPerformed) vm.undo() else vm.undoShown()
+        try {
+            val r = snackbar.showSnackbar(deletedText, actionLabel = undoText, duration = androidx.compose.material3.SnackbarDuration.Short)
+            if (r == androidx.compose.material3.SnackbarResult.ActionPerformed) vm.undo()
+        } finally {
+            // Also when this screen is left mid-snackbar: an old undo must not come back later.
+            vm.undoShown(seq)
+        }
     }
     Scaffold(
         snackbarHost = { androidx.compose.material3.SnackbarHost(snackbar) },
@@ -224,7 +233,11 @@ private fun Tabs(vm: MainViewModel, ai: AiViewModel, tab: Int, onTab: (Int) -> U
         },
     ) { pad ->
         when (tab) {
-            0 -> TodayScreen(vm, ai, pad, onAdd = { push(Overlay.AddFood(it)) }, onPhoto = { push(Overlay.Photo(it)) }, onHistory = { push(Overlay.History) })
+            0 -> TodayScreen(vm, ai, pad, onAdd = { push(Overlay.AddFood(it)) }, onPhoto = {
+                // A typed list left from before must not stand in for the camera.
+                if (ai.photo.value.fromText) ai.resetPhoto()
+                push(Overlay.Photo(it))
+            }, onHistory = { push(Overlay.History) })
             1 -> WeightScreen(vm, pad)
             2 -> FoodsScreen(vm, pad, onEdit = { push(Overlay.EditFood(it)) })
             else -> SettingsScreen(vm, ai, pad)

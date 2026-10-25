@@ -111,46 +111,68 @@ class AiViewModel(app: Application) : AndroidViewModel(app) {
 
     fun setNote(text: String) = _photo.update { it.copy(note = text) }
 
+    /**
+     * One analysis at a time: a new one (or a reset) cancels the old, and an old one that still
+     * finishes cannot overwrite the newer result.
+     */
+    private var analysis: kotlinx.coroutines.Job? = null
+    private var generation = 0L
+    private fun newGeneration(): Long { analysis?.cancel(); return ++generation }
+    private fun update(gen: Long, f: (PhotoUi) -> PhotoUi) { if (gen == generation) _photo.update(f) }
+
+    /** The model can't be stopped mid-answer: an AI call that timed out may still hold it for a while. */
+    private var aiCall: kotlinx.coroutines.Deferred<*>? = null
+    private fun aiBusy() = aiCall?.isCompleted == false
+
     fun resetPhoto() {
+        newGeneration()
         _photo.value = PhotoUi()
         PhotoUtil.clear(getApplication())
     }
 
-    fun analyze(uri: Uri) = viewModelScope.launch {
-        if (_importProgress.value != null) {
-            _photo.update { it.copy(error = "the model is still being copied") }
-            return@launch
-        }
-        _photo.update { it.copy(working = true, error = null, items = emptyList(), analyzed = false, seconds = 0) }
-        val ticker = launch {
-            while (isActive) { delay(1000); _photo.update { it.copy(seconds = it.seconds + 1) } }
-        }
-        try {
-            val img = PhotoUtil.prepare(getApplication(), uri)
-            _photo.update { it.copy(preview = PhotoUtil.thumbnail(img)) }
-            val foods = tapp.db.foods().allOnce()
-            val result = gemma.analyzePhoto(img, _photo.value.note, tapp.prefs.plateSize)
-            val factor = tapp.prefs.gramsFactor()
-            _photo.update {
-                it.copy(raw = result.raw.take(600), backend = result.backend, loadSec = result.loadSec, analyzeSec = result.analyzeSec, factor = factor)
+    fun analyze(uri: Uri) {
+        val gen = newGeneration()
+        analysis = viewModelScope.launch {
+            if (_importProgress.value != null) {
+                update(gen) { it.copy(error = "the model is still being copied") }
+                return@launch
             }
-            val items = result.foods.map { d ->
-                val match = FoodMatcher.best(d.nameEn, d.nameUk, foods)
-                // Not in the database: off until the person picks the right food with "Replace".
-                // Adjusted to how this person usually corrects the AI's portions (rounded to 5 g).
-                val grams = (kotlin.math.round(d.grams * factor / 5) * 5).coerceAtLeast(5.0)
-                ReviewItem(detected = d, food = match?.food, grams = grams, include = match != null)
+            if (aiBusy()) {
+                update(gen) { it.copy(error = getApplication<Application>().getString(ua.tarilka.R.string.ai_busy)) }
+                PhotoUtil.clear(getApplication())
+                return@launch
             }
-            // Unknown foods go to the "Not found" list in Options, like empty searches.
-            items.filter { it.food == null }.forEach { tapp.prefs.recordMissing(it.detected.nameEn) }
-            _photo.update { it.copy(items = items, analyzed = true) }
-        } catch (t: Throwable) {
-            _photo.update { it.copy(error = t.message ?: t.javaClass.simpleName) }
-        } finally {
-            // Nothing of the photo stays on disk.
-            PhotoUtil.clear(getApplication())
-            ticker.cancel()
-            _photo.update { it.copy(working = false) }
+            update(gen) { it.copy(working = true, error = null, items = emptyList(), analyzed = false, seconds = 0) }
+            val ticker = launch {
+                while (isActive) { delay(1000); update(gen) { it.copy(seconds = it.seconds + 1) } }
+            }
+            try {
+                val img = PhotoUtil.prepare(getApplication(), uri)
+                update(gen) { it.copy(preview = PhotoUtil.thumbnail(img)) }
+                val foods = tapp.db.foods().allOnce()
+                val result = gemma.analyzePhoto(img, _photo.value.note, tapp.prefs.plateSize)
+                val factor = tapp.prefs.gramsFactor()
+                update(gen) {
+                    it.copy(raw = result.raw.take(600), backend = result.backend, loadSec = result.loadSec, analyzeSec = result.analyzeSec, factor = factor)
+                }
+                val items = result.foods.map { d ->
+                    val match = FoodMatcher.best(d.nameEn, d.nameUk, foods)
+                    // Not in the database: off until the person picks the right food with "Replace".
+                    // Adjusted to how this person usually corrects the AI's portions (rounded to 5 g).
+                    val grams = (kotlin.math.round(d.grams * factor / 5) * 5).coerceAtLeast(5.0)
+                    ReviewItem(detected = d, food = match?.food, grams = grams, include = match != null)
+                }
+                // Unknown foods go to the "Not found" list in Options, like empty searches.
+                items.filter { it.food == null }.forEach { tapp.prefs.recordMissing(it.detected.nameEn) }
+                update(gen) { it.copy(items = items, analyzed = true) }
+            } catch (t: Throwable) {
+                update(gen) { it.copy(error = t.message ?: t.javaClass.simpleName) }
+            } finally {
+                // Nothing of the photo stays on disk (a cancelled old run must not delete a newer photo).
+                if (gen == generation) PhotoUtil.clear(getApplication())
+                ticker.cancel()
+                update(gen) { it.copy(working = false) }
+            }
         }
     }
 
@@ -158,25 +180,28 @@ class AiViewModel(app: Application) : AndroidViewModel(app) {
      * A typed list, read by rules at once (no model needed). Foods that were not found are shown as such;
      * the AI reads the text only when the person asks for it ([analyzeTextWithAi]).
      */
-    fun analyzeText(text: String) = viewModelScope.launch {
-        _photo.value = PhotoUi(note = text, working = true, fromText = true)
-        try {
-            val foods = tapp.db.foods().allOnce()
-            val items = ua.tarilka.data.TextMeal.parse(text).map { item ->
-                val food = FoodMatcher.best(item.name, item.name, foods)?.food
-                val grams = when {
-                    item.amount == null -> food?.portionG ?: 100.0
-                    item.unit == ua.tarilka.data.TextMeal.Unit.PIECES -> item.amount * (food?.portionG ?: 100.0)
-                    else -> item.amount
+    fun analyzeText(text: String) {
+        val gen = newGeneration()
+        analysis = viewModelScope.launch {
+            _photo.value = PhotoUi(note = text, working = true, fromText = true)
+            try {
+                val foods = tapp.db.foods().allOnce()
+                val items = ua.tarilka.data.TextMeal.parse(text).map { item ->
+                    val food = FoodMatcher.best(item.name, item.name, foods)?.food
+                    val grams = when {
+                        item.amount == null -> food?.portionG ?: 100.0
+                        item.unit == ua.tarilka.data.TextMeal.Unit.PIECES -> item.amount * (food?.portionG ?: 100.0)
+                        else -> item.amount
+                    }
+                    ReviewItem(DetectedFood(item.name, item.name, grams, null, null, null, null, "manual"), food, grams, include = food != null)
                 }
-                ReviewItem(DetectedFood(item.name, item.name, grams, null, null, null, null, "manual"), food, grams, include = food != null)
+                items.filter { it.food == null }.forEach { tapp.prefs.recordMissing(it.detected.nameEn) }
+                update(gen) { it.copy(items = items, analyzed = true) }
+            } catch (t: Throwable) {
+                update(gen) { it.copy(error = t.message ?: t.javaClass.simpleName) }
+            } finally {
+                update(gen) { it.copy(working = false) }
             }
-            items.filter { it.food == null }.forEach { tapp.prefs.recordMissing(it.detected.nameEn) }
-            _photo.update { it.copy(items = items, analyzed = true) }
-        } catch (t: Throwable) {
-            _photo.update { it.copy(error = t.message ?: t.javaClass.simpleName) }
-        } finally {
-            _photo.update { it.copy(working = false) }
         }
     }
 
@@ -188,34 +213,42 @@ class AiViewModel(app: Application) : AndroidViewModel(app) {
      * The AI reads the whole typed list. A visible timer; after [AI_TEXT_LIMIT_MS] the rules' result stays
      * as it was (the model may keep working in the background, its answer is then ignored).
      */
-    fun analyzeTextWithAi() = viewModelScope.launch {
-        val text = _photo.value.note
-        val before = _photo.value.items
-        _photo.update { it.copy(working = true, error = null, seconds = 0) }
-        val ticker = launch { while (isActive) { delay(1000); _photo.update { it.copy(seconds = it.seconds + 1) } } }
-        try {
-            val foods = tapp.db.foods().allOnce()
-            val job = viewModelScope.async { gemma.parseText(text) }
-            val detected = kotlinx.coroutines.withTimeoutOrNull(AI_TEXT_LIMIT_MS) { job.await() }
-            if (detected == null) {
-                job.cancel()
-                _photo.update { it.copy(error = getApplication<Application>().getString(ua.tarilka.R.string.text_ai_timeout)) }
-            } else if (detected.isEmpty()) {
-                _photo.update { it.copy(error = getApplication<Application>().getString(ua.tarilka.R.string.text_ai_nothing)) }
-            } else {
-                val items = detected.map { d ->
-                    val match = FoodMatcher.best(d.nameEn, d.nameUk, foods)
-                    ReviewItem(d.copy(confidence = "manual"), match?.food, d.grams, include = match != null)
-                }
-                _photo.update { it.copy(items = items) }
+    fun analyzeTextWithAi() {
+        val gen = newGeneration()
+        analysis = viewModelScope.launch {
+            val text = _photo.value.note
+            val before = _photo.value.items
+            if (aiBusy()) {
+                update(gen) { it.copy(error = getApplication<Application>().getString(ua.tarilka.R.string.ai_busy)) }
+                return@launch
             }
-        } catch (t: kotlinx.coroutines.CancellationException) {
-            throw t
-        } catch (t: Throwable) {
-            _photo.update { it.copy(items = before, error = t.message ?: t.javaClass.simpleName) }
-        } finally {
-            ticker.cancel()
-            _photo.update { it.copy(working = false) }
+            update(gen) { it.copy(working = true, error = null, seconds = 0) }
+            val ticker = launch { while (isActive) { delay(1000); update(gen) { it.copy(seconds = it.seconds + 1) } } }
+            try {
+                val foods = tapp.db.foods().allOnce()
+                val job = viewModelScope.async { gemma.parseText(text) }
+                aiCall = job
+                val detected = kotlinx.coroutines.withTimeoutOrNull(AI_TEXT_LIMIT_MS) { job.await() }
+                if (detected == null) {
+                    job.cancel()
+                    update(gen) { it.copy(error = getApplication<Application>().getString(ua.tarilka.R.string.text_ai_timeout)) }
+                } else if (detected.isEmpty()) {
+                    update(gen) { it.copy(error = getApplication<Application>().getString(ua.tarilka.R.string.text_ai_nothing)) }
+                } else {
+                    val items = detected.map { d ->
+                        val match = FoodMatcher.best(d.nameEn, d.nameUk, foods)
+                        ReviewItem(d.copy(confidence = "manual"), match?.food, d.grams, include = match != null)
+                    }
+                    update(gen) { it.copy(items = items) }
+                }
+            } catch (t: kotlinx.coroutines.CancellationException) {
+                throw t
+            } catch (t: Throwable) {
+                update(gen) { it.copy(items = before, error = t.message ?: t.javaClass.simpleName) }
+            } finally {
+                ticker.cancel()
+                update(gen) { it.copy(working = false) }
+            }
         }
     }
 

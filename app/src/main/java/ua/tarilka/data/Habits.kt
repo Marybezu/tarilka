@@ -197,10 +197,10 @@ data class Habits(
                 bowelHard = bowel.count { it.form == 0 },
                 bowelLoose = bowel.count { it.form == 2 },
                 workoutCount = workouts.size,
-                // Over the logged days (like the other weekly rates), at least a week.
-                activeMinPerWeek = workouts.sumOf(Workouts::whoMinutes) * 7.0 / maxOf(days, 7).coerceAtMost(periodDays),
+                // Workouts are logged on their own, not with food: over the whole period.
+                activeMinPerWeek = workouts.sumOf(Workouts::whoMinutes) * 7.0 / maxOf(periodDays, 7),
                 strengthPerWeek = workouts.filter { it.type == Workouts.STRENGTH }.map { it.day }.distinct().size * 7.0 /
-                    maxOf(days, 7).coerceAtMost(periodDays),
+                    maxOf(periodDays, 7),
                 timesTracked = withTimes,
                 sleepNights = sleep.size,
                 shortNights = sleep.values.count { it < 6 },

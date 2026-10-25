@@ -62,8 +62,8 @@
     <string name="tip_fat_high">Fat is high today (%1$d g). Watch oil, mayonnaise, sausages and pastries.</string>
     <string name="tip_balance_good">Great balance of protein and fiber today.</string>
     <string name="tip_weight_fast">Weight is dropping fast (%1$.1f kg a week). More than 1%% of body weight a week is a lot; consider eating a bit more or talking to a doctor.</string>
-    <string name="tip_weight_up">Weight trend is going up (%1$.1f kg a week) while the goal is to lose. Check portions and snacks.</string>
-    <string name="tip_weight_down_good">Weight is going down steadily (%1$.1f kg a week). Keep it up.</string>
+    <string name="tip_weight_up">Your weight is trending up (%1$.1f kg a week), although the goal is to lose weight. Check portions and snacks.</string>
+    <string name="tip_weight_down_good">Your weight is going down gradually (%1$.1f kg a week), at a safe pace.</string>
     <string name="tip_weight_gain_none">The goal is to gain, but weight is not increasing (%1$.1f kg a week). Add a snack or a bigger portion.</string>
 
     <string name="ai_advice">Advice from on-device AI</string>
@@ -116,7 +116,7 @@
     <string name="goal_gain">Gain weight</string>
     <string name="custom_kcal">Own calorie target (optional)</string>
     <string name="your_targets">Daily targets</string>
-    <string name="targets_text">%1$s kcal · protein %2$s g · fat %3$s g · carbs %4$s g · fiber %5$s g. Calculated with the Mifflin–St Jeor formula; the app never suggests eating below your basal metabolism.</string>
+    <string name="targets_text">%1$s kcal · protein %2$s g · fat %3$s g · carbs %4$s g · fibre %5$s g. Calculated with the Mifflin–St Jeor formula; the target is never below your basal metabolism, your own one included.</string>
 
     <string name="ai_title">On-device AI</string>
     <string name="ai_explain">Recognizes food on photos and gives advice. Runs entirely on the phone. The model is about 2.6 GB and is only needed for photos and AI advice; everything else works without it.</string>
@@ -168,7 +168,7 @@
     <string name="hc_sync">Save to Health Connect</string>
     <string name="hc_sync_hint">Meals, drinks and weight are written to Health Connect so other apps can see them.</string>
     <string name="hc_unavailable">Health Connect is not available on this phone. Steps will come from the phone\'s sensor.</string>
-    <string name="tab_options">Settings</string>
+    <string name="tab_options">Options</string>
     <string name="appearance">Appearance</string>
     <string name="theme_system">System</string>
     <string name="theme_light">Light</string>
@@ -186,7 +186,7 @@
     <string name="import_confirm">The file has %1$d food entries, %2$d drinks, %3$d weigh-ins and %4$d own foods. Your current diary, drinks, weight and own foods will be replaced.</string>
     <string name="import_replace">Replace</string>
     <string name="import_done">Restored: %1$d food entries, %2$d weigh-ins.</string>
-    <string name="ai_steps">1. Tap Download model: your browser downloads %1$s (about 2.6 GB, Wi-Fi recommended). It is Google\'s Gemma 4 E2B and works on any phone.\n2. Come back and tap Choose model file. The app has no internet access, so this is the only way in.</string>
+    <string name="ai_steps">1. Tap Download model: your browser downloads %1$s (about 2.6 GB, Wi-Fi recommended). It is Google\'s Gemma 4 E2B; it runs on most phones with 6 GB of memory or more.\n2. Come back and tap Choose model file. The app has no internet access, so this is the only way in.</string>
     <string name="ai_open_page">Model page</string>
     <string name="ai_delete_original">Delete the downloaded file after copying</string>
     <string name="ai_original_deleted">The downloaded file was deleted to free up space.</string>
@@ -218,7 +218,7 @@
     <string name="steps_from_sensor">phone sensor, since first opened today</string>
     <string name="portion_typical">Typical weight of one serving or piece. If you know the exact weight, type it in.</string>
     <string name="missing_title">Not found in the database</string>
-    <string name="missing_hint">Foods you searched for, or the AI saw in a photo, that are not in the database (times in brackets). Kept only on this phone. You can add any of them yourself: Foods → New food. To get them into the database for everyone, tap Send the list.</string>
+    <string name="missing_hint">Foods you searched for, or the AI saw in a photo, that are not in the database (times in brackets). Kept only on this phone. You can add any of them yourself: Foods → New food. To get them into the database for everyone, tap Send the list (a public GitHub issue from your account; you can edit the list before sending).</string>
     <string name="copy_list">Copy list</string>
     <string name="missing_empty">Empty for now. Searches in Add, or foods the AI saw in a photo, that are not in the database will appear here.</string>
     <string name="more">More</string>
@@ -229,8 +229,8 @@
     <string name="clear_done">Data deleted.</string>
     <string name="clear_diary">Clear diary</string>
     <string name="clear_all">Delete all personal data</string>
-    <string name="clear_diary_text">All food, fluid, weight, sleep, note and Why I eat records will be deleted. Your foods, recipes, profile and the AI model stay. This cannot be undone.</string>
-    <string name="clear_all_text">The diary (food, fluids, weight, sleep, notes, Why I eat), your foods and recipes, favorites, profile, the phone-sensor step log and the Not found list will be deleted. Steps and sleep in Health Connect are not touched. The AI model and settings (language, theme, reminders) stay. This cannot be undone.</string>
+    <string name="clear_diary_text">All food, fluid, weight, sleep, cycle, bowel, workout, note and Why I eat records will be deleted. Your foods, recipes, profile and the AI model stay. This cannot be undone.</string>
+    <string name="clear_all_text">The diary (food, fluids, weight, sleep, cycle, bowel, workouts, notes, Why I eat), your foods and recipes, favorites, profile, the photo grams correction, the phone-sensor step log and the Not found list will be deleted. Steps and sleep in Health Connect are not touched. The AI model and settings (language, theme, reminders) stay. This cannot be undone.</string>
     <string name="clear_hc">Also delete the records Tarilka wrote to Health Connect</string>
     <string name="export_first">Make a backup first</string>
     <string name="copy">Copy</string>
@@ -245,7 +245,7 @@
     <string name="habit_veg">🥦 Vegetables and fruit: %1$s g/day</string>
     <string name="habit_veg_info">Average vegetables and fruit a day (potatoes not counted). The WHO recommends at least 400 g.</string>
     <string name="habit_sweets">🍬 Without sweets: %1$d of %2$d days</string>
-    <string name="habit_sweets_info">Sweets, pastries and sugary drinks (juice included). The WHO recommends they give under 10% of calories, ideally under 5%.</string>
+    <string name="habit_sweets_info">Calories from sweets, pastries and sugary drinks (juice included), with the fat and flour in them. The WHO advises that added sugar gives under 10% of calories, ideally under 5%; the sugar itself is less than these calories, so this is a rough guide.</string>
     <string name="habit_late">🌙 After 22:00: %1$s%% of calories</string>
     <string name="habit_late_none">🌙 Nothing after 22:00</string>
     <string name="habit_late_info">Share of calories eaten after 22:00, by the time of the meal; you can set or correct it by tapping an entry.</string>
@@ -301,7 +301,7 @@
     <string name="steps_no_history">No data yet. Health Connect shows past days too; the phone sensor only days you opened the app.</string>
     <string name="steps_avg">On average %1$s a day · goal reached on %2$d of %3$d days</string>
     <string name="steps_goal">Daily steps goal</string>
-    <string name="steps_goal_hint">8,000 by default. Large studies show the health benefit grows up to about 7–8 thousand steps (8–10 thousand for younger people) and then hardly increases. 10,000 comes from a 1960s pedometer advert.</string>
+    <string name="steps_goal_hint">8,000 by default. Large studies show the health benefit grows up to about 6–8 thousand steps for people over 60 and 8–10 thousand for younger people, and then hardly increases. 10,000 comes from a 1960s pedometer advert.</string>
     <string name="filter_all">All</string>
     <string name="filter_mine">Mine</string>
     <string name="filter_favorites">Favorites</string>
@@ -368,7 +368,7 @@
     <string name="feedback">Send feedback</string>
     <string name="feedback_title">Feedback</string>
     <string name="feedback_body">Version: %1$s\n\nWhat happened or what you would like:\n\n</string>
-    <string name="feedback_hint">Opens the app\'s GitHub page (an account is needed). You see and can edit everything before sending; nothing from your diary is added.</string>
+    <string name="feedback_hint">Opens the app\'s GitHub page (an account is needed). Issues there are public and show your account name. You see and can edit everything before sending; nothing from your diary is added.</string>
     <string name="send_list">Send the list</string>
     <string name="missing_issue_title">Not found in the database</string>
     <string name="missing_issue_body">Version: %1$s\n\nFoods that were not found (times in brackets):\n%2$s</string>
@@ -448,7 +448,7 @@
     <string name="cycle_mark_start">Mark a start on another date</string>
     <string name="cycle_mark_end">Mark an end on another date</string>
     <string name="cycle_tips">In the days before a period, appetite and sweet cravings often rise and weight can be 0.5–2 kg higher from water; that is normal. What helps: regular meals and complex carbs, less salt, coffee and alcohol, movement and sleep.</string>
-    <string name="cycle_when_doctor">See a doctor if cycles are shorter than 21 or longer than 35 days, a period lasts over 7 days, is very painful or heavy, or something changes sharply.</string>
+    <string name="cycle_when_doctor">See a doctor if cycles are shorter than 21 or longer than 35 days, there has been no period for 3 months, a period lasts over 7 days or is very painful or heavy, you bleed between periods or after sex, or something changes sharply. If you could be pregnant, take a test.</string>
     <string name="cycle_doctor">Worth seeing a gynaecologist: %1$s There is often a simple explanation and good treatment.</string>
     <string name="cycle_flag_length">cycle length outside 21–35 days.</string>
     <string name="cycle_flag_long">periods lasting over 7 days.</string>
@@ -493,4 +493,29 @@
     <string name="text_ask_ai_hint">The AI reads the whole list again. The first time can take up to a minute.</string>
     <string name="text_ai_timeout">The AI did not answer within a minute. Kept what was read without it: use Replace for what was not found.</string>
     <string name="text_ai_nothing">The AI found nothing. Kept what was read without it.</string>
+    <string name="what_is_it">What is it?</string>
+    <string name="bmi_title">Body mass index (BMI)</string>
+    <string name="bmi_line">BMI %1$s · %2$s (WHO)</string>
+    <string name="bmi_teen">BMI %1$s. Under 18 it is judged by age charts, so no category is shown.</string>
+    <string name="bmi_info">BMI = weight (kg) ÷ height (m)². For example, 70 kg and 1.65 m: 70 ÷ (1.65 × 1.65) ≈ 25.7.\n\nWHO categories for adults: under 18.5 underweight; 18.5–24.9 normal; 25–29.9 overweight; 30 or more obesity (class I 30–34.9, II 35–39.9, III 40+).\n\nWhat BMI does not show: how much is muscle and how much is fat, and where the fat is. Athletes with a lot of muscle can be \"overweight\" without extra fat; older people can be \"normal\" while losing muscle. For people of Asian origin the WHO suggests lower risk thresholds. Waist size (over 80 cm for women, over 94 cm for men) adds useful information.\n\nBMI is a starting point for a conversation, not a judgement of you. If it is under 18.5 or your weight changes for no clear reason, talk to a doctor.</string>
+    <string name="pregnant">Pregnant or breastfeeding</string>
+    <string name="limit_pregnant">In pregnancy and while breastfeeding the app does not offer weight loss: the goal is to keep your weight, with no calorie deficit. Your doctor can tell you how much to add and how your weight should change.</string>
+    <string name="limit_teen">Under 18 the app does not offer weight loss: the body is still growing, and cutting calories without a doctor can do harm. If your weight worries you, talk to a paediatrician or dietitian.</string>
+    <string name="limit_underweight">BMI is under 18.5, so weight loss is not offered. If your weight is dropping on its own, or thoughts about food and weight get in the way of life, it is worth talking to a doctor.</string>
+    <string name="custom_kcal_hint">Not below the safety floor: if you enter less, the app raises it to the floor.</string>
+    <string name="custom_raised">Your own target is below the safety floor, so the app uses the floor.</string>
+    <string name="tip_weight_down_low_bmi">Your weight is going down (%1$.1f kg a week) and your BMI is already under 18.5. Make sure you eat enough, and talk to a doctor about it.</string>
+    <string name="water_own_note">If a doctor has limited your fluids (for example for the heart or kidneys), follow their amount.</string>
+    <string-array name="bmi_classes">
+        <item>underweight</item>
+        <item>normal weight</item>
+        <item>overweight</item>
+        <item>obesity class I</item>
+        <item>obesity class II</item>
+        <item>obesity class III</item>
+    </string-array>
+    <string name="cycle_long_gap">There were more than 60 days between the last two starts. If you did not miss an entry, a gap that long is worth discussing with a doctor. If you did, mark the missed start on its past date.</string>
+    <string name="ai_busy">The AI is still finishing the previous request. Try again in a minute.</string>
+    <string name="meal_time_fixed">Time: %1$s, as for the whole meal (change it in the meal\'s header).</string>
+    <string name="clear_done_hc_failed">Data deleted in Tarilka, but Health Connect did not allow deleting everything: check Tarilka\'s permissions in Health Connect.</string>
 </resources>

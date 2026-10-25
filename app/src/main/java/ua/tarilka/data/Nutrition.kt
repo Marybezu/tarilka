@@ -12,7 +12,18 @@ data class Targets(
     val tdee: Double,
     /** Daily fluid, ml: about 30 ml per kg of body weight. */
     val waterMl: Double = 2000.0,
+    /** Body mass index, kg/m². */
+    val bmi: Double = 0.0,
+    /** Why weight loss is not offered, if so. */
+    val limit: Limit? = null,
+    /** The goal actually used: "Lose" turns into "Maintain" when [limit] is set. */
+    val goal: Goal = Goal.MAINTAIN,
+    /** The person's own target was below the safety floor and was raised to it. */
+    val customRaised: Boolean = false,
 )
+
+/** When a calorie deficit is not appropriate without a doctor. */
+enum class Limit { PREGNANT, TEEN, UNDERWEIGHT }
 
 object Nutrition {
     val ACTIVITY_FACTORS = doubleArrayOf(1.2, 1.375, 1.55, 1.725, 1.9)
@@ -27,26 +38,56 @@ object Nutrition {
         val w = currentWeightKg ?: p.weightKg
         val bmr = bmr(p, w)
         val tdee = bmr * ACTIVITY_FACTORS[p.activity.coerceIn(0, 4)]
-        val goalKcal = when (p.goal) {
+        val bmi = bmi(w, p.heightCm)
+        // No unsupervised dieting in pregnancy and breastfeeding (NICE PH27), under 18 (AAP 2016)
+        // or with a BMI under 18.5 (WHO: underweight).
+        val limit = limitFor(p.sex, p.pregnant, p.age, bmi)
+        val goal = if (limit != null && p.goal == Goal.LOSE) Goal.MAINTAIN else p.goal
+        val goalKcal = when (goal) {
             Goal.LOSE -> tdee - minOf(500.0, tdee * 0.2)
             Goal.MAINTAIN -> tdee
             Goal.GAIN -> tdee + minOf(400.0, tdee * 0.12)
         }
-        // Safety floor: never suggest eating below the basal metabolic rate
-        // or below a general minimum.
-        val floor = max(bmr, if (p.sex == Sex.MALE) 1500.0 else 1200.0)
-        val kcal = (p.customKcal?.toDouble() ?: max(goalKcal, floor))
-        val proteinPerKg = when (p.goal) {
+        // Safety floor: never below the basal metabolic rate or a general minimum, also for the
+        // person's own target; with a limit, never below what the body uses in a day.
+        val floor = if (limit != null) tdee else max(bmr, if (p.sex == Sex.MALE) 1500.0 else 1200.0)
+        val custom = p.customKcal?.toDouble()
+        val kcal = max(custom ?: goalKcal, floor)
+        val proteinPerKg = when (goal) {
             Goal.LOSE -> 1.6
             Goal.MAINTAIN -> 1.2
             Goal.GAIN -> 1.6
         }
-        val protein = proteinPerKg * w
+        // With obesity, protein is counted from the weight at a BMI of 25 (ESPEN), not the actual weight.
+        val proteinWeight = if (bmi > 30) 25.0 * (p.heightCm / 100.0) * (p.heightCm / 100.0) else w
+        val protein = proteinPerKg * proteinWeight
         val fat = kcal * 0.30 / 9
         val carbs = max(0.0, (kcal - protein * 4 - fat * 9) / 4)
         val fiber = max(25.0, kcal / 1000 * 14)
         val water = (w * 30).coerceIn(1500.0, 3500.0)
-        return Targets(kcal, protein, fat, carbs, fiber, bmr, tdee, water)
+        return Targets(
+            kcal, protein, fat, carbs, fiber, bmr, tdee, water,
+            bmi = bmi, limit = limit, goal = goal, customRaised = custom != null && custom < floor,
+        )
+    }
+
+    fun bmi(weightKg: Double, heightCm: Int): Double = weightKg / ((heightCm / 100.0) * (heightCm / 100.0))
+
+    fun limitFor(sex: Sex, pregnant: Boolean, age: Int, bmi: Double): Limit? = when {
+        sex == Sex.FEMALE && pregnant -> Limit.PREGNANT
+        age < 18 -> Limit.TEEN
+        bmi < 18.5 -> Limit.UNDERWEIGHT
+        else -> null
+    }
+
+    /** WHO adult categories: 0 under 18.5, 1 normal, 2 overweight (25), 3–5 obesity class I–III (30, 35, 40). */
+    fun bmiClass(bmi: Double): Int = when {
+        bmi < 18.5 -> 0
+        bmi < 25 -> 1
+        bmi < 30 -> 2
+        bmi < 35 -> 3
+        bmi < 40 -> 4
+        else -> 5
     }
 
     /** Weight change in kg per week from a least-squares line through the points. */

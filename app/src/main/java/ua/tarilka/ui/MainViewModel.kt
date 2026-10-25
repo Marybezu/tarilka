@@ -221,6 +221,10 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
 
     val cycleTypical: StateFlow<Int> = prefs.cycleTypical
 
+    /** Starts of periods typed in here; the others come from Health Connect and are deleted there. */
+    val ownPeriodStarts: StateFlow<Set<Long>> = db.cycle().periods().map { l -> l.map { it.start }.toSet() }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptySet())
+
     /** First setup: the last period (start and usual length in days) and the usual cycle length (-1 = don't know). */
     fun setupCycle(start: LocalDate, periodDays: Int, cycleDays: Int) = viewModelScope.launch {
         prefs.setCycleTypical(cycleDays)
@@ -238,8 +242,9 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     fun deletePeriod(start: Long) = viewModelScope.launch {
+        val end = periods.value.firstOrNull { it.start == start }?.end ?: (start + 10)
         db.cycle().delete(start)
-        db.cycle().deleteDays(start, start + 10)
+        db.cycle().deleteDays(start, maxOf(end, start + 10))
     }
 
     fun setPeriodDay(d: LocalDate, flow: Int?, pain: Int?) = viewModelScope.launch {
@@ -284,12 +289,16 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         val from = end.minusDays(27)
         val steps = if (prefs.stepsEnabled) stepsByDay(from, end).values.filter { it > 0 } else emptyList()
         val minutes = db.workouts().range(from.toEpochDay(), end.toEpochDay()).sumOf(ua.tarilka.data.Workouts::whoMinutes) / 4.0
-        if (steps.size < 21 && minutes == 0.0) { activityHint.value = null; return@launch }
-        val avg = if (steps.isEmpty()) 0.0 else steps.average()
-        var level = when { avg < 5_000 -> 0; avg < 7_500 -> 1; avg < 10_000 -> 2; avg < 12_500 -> 3; else -> 4 }
-        if (minutes >= 150) level = maxOf(level, 2)
-        if (minutes >= 300) level = maxOf(level, 3)
-        activityHint.value = level.takeIf { it != p.activity }
+        val byMinutes = when { minutes >= 300 -> 3; minutes >= 150 -> 2; else -> 0 }
+        activityHint.value = if (steps.size >= 21) {
+            // Steps decide; workouts can only raise the level. Steps alone never mean "physical work" (4).
+            val avg = steps.average()
+            val level = maxOf(when { avg < 5_000 -> 0; avg < 7_500 -> 1; avg < 10_000 -> 2; else -> 3 }, byMinutes)
+            level.takeIf { it != p.activity }
+        } else {
+            // Without enough step data nothing says the person moves less: only suggest more.
+            byMinutes.takeIf { it > p.activity }
+        }
     }
 
     fun applyActivityHint(level: Int) {
@@ -535,7 +544,9 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         action?.invoke()
     }
 
-    fun undoShown() {
+    /** The snackbar for event [seq] is gone (timed out or left the screen): its undo is no longer offered. */
+    fun undoShown(seq: Long) {
+        if (undoEvent.value?.first != seq) return
         undoAction = null
         undoEvent.value = null
     }
@@ -576,6 +587,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         db.workouts().deleteAll()
         db.cycle().deleteAll()
         db.cycle().deleteAllDays()
+        prefs.clearCycle()
         if (everything) {
             db.foods().deleteCustom()
             db.foods().setFavorites(emptyList())
@@ -584,8 +596,14 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         }
         undoAction = null
         undoEvent.value = null
-        if (alsoHealthConnect) tapp.scope.launch { runCatching { health.deleteAllOwn() } }
-        dataMessage.value = getApplication<Application>().getString(ua.tarilka.R.string.clear_done)
+        val app = getApplication<Application>()
+        dataMessage.value = app.getString(ua.tarilka.R.string.clear_done)
+        if (alsoHealthConnect) tapp.scope.launch {
+            // Say so if Health Connect could not delete everything (e.g. a permission was taken back).
+            if (runCatching { health.deleteAllOwn() }.getOrDefault(false) != true) {
+                dataMessage.value = app.getString(ua.tarilka.R.string.clear_done_hc_failed)
+            }
+        }
     }
 
     // ---- habits and summaries ----
@@ -662,7 +680,13 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
             appendLine("Summary of the person's last $periodName ($from to $end), compared with the $periodName before.")
             appendLine(
                 "Daily targets: ${tg.kcal.r()} kcal, protein ${tg.protein.r()} g, fat ${tg.fat.r()} g, carbs ${tg.carbs.r()} g, " +
-                    "fiber ${tg.fiber.r()} g, fluids ${tg.waterMl.r()} ml. Goal: ${profile.value.goal.name.lowercase()} weight.",
+                    "fiber ${tg.fiber.r()} g, fluids ${tg.waterMl.r()} ml. Goal: ${tg.goal.name.lowercase()} weight." +
+                    when (tg.limit) {
+                        ua.tarilka.data.Limit.PREGNANT -> " The person is pregnant or breastfeeding: never suggest eating less or losing weight."
+                        ua.tarilka.data.Limit.TEEN -> " The person is under 18: never suggest eating less or losing weight."
+                        ua.tarilka.data.Limit.UNDERWEIGHT -> " BMI is under 18.5: never suggest eating less or losing weight; gently suggest a doctor if weight is falling."
+                        null -> ""
+                    },
             )
             when (period) {
                 Period.WEEK -> for (i in 0L..6L) {

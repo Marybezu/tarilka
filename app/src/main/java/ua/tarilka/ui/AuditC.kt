@@ -50,7 +50,17 @@ fun AuditCDialog(sex: Sex, onSaveNote: ((String) -> Unit)? = null, onDismiss: ()
                     Text(stringResource(q), style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
                     FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                         stringArrayResource(a).forEachIndexed { i, label ->
-                            FilterChip(selected = answers[qi] == i, onClick = { answers[qi] = i }, label = { Text(label) })
+                            // "Never" for the first question answers the other two: they are about drinking days.
+                            val never = qi > 0 && answers[0] == 0
+                            FilterChip(
+                                selected = answers[qi] == i,
+                                enabled = !never,
+                                onClick = {
+                                    answers[qi] = i
+                                    if (qi == 0 && i == 0) { answers[1] = 0; answers[2] = 0 }
+                                },
+                                label = { Text(label) },
+                            )
                         }
                     }
                 }

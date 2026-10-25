@@ -37,7 +37,8 @@ object Reminders {
     /** Cycle: a few days before the expected start, and "did it start?" two days after it. */
     const val CYCLE_BEFORE = 50
     const val CYCLE_LATE = 51
-    private val STEPS_TIME = LocalTime.of(23, 55)
+    // Early enough that Doze rarely delays it past midnight.
+    private val STEPS_TIME = LocalTime.of(23, 40)
     private val WATER_TIMES = listOf(LocalTime.of(12, 0), LocalTime.of(16, 0), LocalTime.of(19, 0))
     private val WEEKLY_TIME = LocalTime.of(19, 0)
     private const val CHANNEL = "reminders"
@@ -122,7 +123,8 @@ object Reminders {
                 context.getString(R.string.remind_cycle_late)
             }
             STEPS -> {
-                app.stepSensor.today()?.let { app.prefs.logSteps(today, it) }
+                // Delayed past midnight: a reading now would give yesterday's evening to the new day.
+                if (LocalTime.now().hour >= 12) app.stepSensor.today()?.let { app.prefs.logSteps(today, it) }
                 return
             }
             else -> return

@@ -14,6 +14,7 @@
 - 🤖 **Локальний ШІ (Gemma 4), за бажанням.** Розпізнає їжу на фото (з урахуванням розміру тарілки й ваших виправлень), дає поради на день і підсумки за тиждень, місяць, рік. Працює повністю на телефоні, фото видаляється після аналізу.
 - 📒 **Щоденник:** прийоми їжі, рідина (зокрема напої й супи), вага, кроки з ціллю й графіком, нотатки, історія, свої продукти й страви, експорт у CSV.
 - 🌸 **Цикл, за бажанням.** День циклу, приблизна дата наступного, пояснення коливань ваги й апетиту. Не метод контрацепції.
+- 🛡️ **Безпечні цілі.** Норма калорій (формула Міффліна–Сан Жеора) ніколи не нижча за базовий обмін, навіть своя. Схуднення не пропонується до 18 років, при ІМТ нижче 18,5 і під час вагітності чи годування груддю. ІМТ показано з поясненням, що він означає і чого не показує.
 - 🔔 **Нагадування, за бажанням:** прийоми їжі, вода, сон, цикл, підсумок тижня. На заблокованому екрані без подробиць.
 
 ## Встановлення
@@ -46,6 +47,7 @@ Kotlin · Jetpack Compose · Room · [LiteRT-LM](https://github.com/google-ai-ed
 - 594 foods: USDA lab values copied automatically, plus Ukrainian dishes calculated from open recipes.
 - Non-judgmental habit badges (vegetables, sweets, late eating, alcohol, fast food; optional sleep, why I eat, workouts, bowel) with trends and evidence-based tips.
 - Optional on-device Gemma 4: plate photos, daily advice, week/month/year summaries.
+- Safe targets: never below basal metabolism (even a custom one); no weight-loss target under 18, with a BMI under 18.5, or in pregnancy and breastfeeding. BMI shown with what it does and does not tell.
 - Diary, fluids, weight, steps with a goal, notes, history, own recipes; optional cycle tracking (not contraception) and reminders.
 - Code and database were written with AI assistance (Claude, Anthropic), directed and tested by the author.
 

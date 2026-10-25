@@ -144,6 +144,10 @@ class HealthSync(private val context: Context) {
         }.getOrDefault(emptyMap())
     }
 
+    // The database id makes each record unique: several foods of one meal can share a time.
+    private fun mealId(e: DiaryEntry) = "diary-${e.id}-${e.createdAt}"
+    private fun fluidId(f: FluidEntry) = "fluid-${f.id}-${f.createdAt}"
+
     suspend fun writeMeal(e: DiaryEntry) {
         val c = client ?: return
         if (!canWrite()) return
@@ -152,7 +156,7 @@ class HealthSync(private val context: Context) {
         val rec = NutritionRecord(
             startTime = t, startZoneOffset = off,
             endTime = t.plusSeconds(60), endZoneOffset = off,
-            metadata = Metadata.manualEntry(clientRecordId = "diary-${e.createdAt}"),
+            metadata = Metadata.manualEntry(clientRecordId = mealId(e)),
             energy = Energy.kilocalories(e.kcal),
             protein = Mass.grams(e.protein),
             totalFat = Mass.grams(e.fat),
@@ -171,7 +175,8 @@ class HealthSync(private val context: Context) {
 
     suspend fun deleteMeal(e: DiaryEntry) {
         val c = client ?: return
-        runCatching { c.deleteRecords(NutritionRecord::class, emptyList(), listOf("diary-${e.createdAt}")) }
+        // Also the older id form, from versions before 0.1.51.
+        runCatching { c.deleteRecords(NutritionRecord::class, emptyList(), listOf(mealId(e), "diary-${e.createdAt}")) }
     }
 
     suspend fun writeFluid(f: FluidEntry) {
@@ -184,7 +189,7 @@ class HealthSync(private val context: Context) {
                 listOf(
                     HydrationRecord(
                         t, off, t.plusSeconds(60), off, Volume.milliliters(f.ml),
-                        Metadata.manualEntry(clientRecordId = "fluid-${f.createdAt}"),
+                        Metadata.manualEntry(clientRecordId = fluidId(f)),
                     ),
                 ),
             )
@@ -193,7 +198,7 @@ class HealthSync(private val context: Context) {
 
     suspend fun deleteFluid(f: FluidEntry) {
         val c = client ?: return
-        runCatching { c.deleteRecords(HydrationRecord::class, emptyList(), listOf("fluid-${f.createdAt}")) }
+        runCatching { c.deleteRecords(HydrationRecord::class, emptyList(), listOf(fluidId(f), "fluid-${f.createdAt}")) }
     }
 
     suspend fun deleteWeight(w: WeightEntry) {
@@ -216,13 +221,20 @@ class HealthSync(private val context: Context) {
     }
 
     /** Removes every record this app wrote (Health Connect limits the delete to our own records). */
-    suspend fun deleteAllOwn() {
-        val c = client ?: return
-        if (!canWrite()) return
+    /**
+     * Deletes this app's own food, fluid and weight records (Health Connect lets an app delete only its own).
+     * Each type needs its write permission; returns false if any type could not be deleted.
+     */
+    suspend fun deleteAllOwn(): Boolean {
+        val c = client ?: return false
+        val have = granted()
         val range = TimeRangeFilter.before(Instant.now().plusSeconds(2 * 86_400))
+        var ok = true
         listOf(NutritionRecord::class, HydrationRecord::class, WeightRecord::class).forEach { type ->
-            runCatching { c.deleteRecords(type, range) }
+            if (HealthPermission.getWritePermission(type) !in have) { ok = false; return@forEach }
+            if (runCatching { c.deleteRecords(type, range) }.isFailure) ok = false
         }
+        return ok
     }
 
     companion object {

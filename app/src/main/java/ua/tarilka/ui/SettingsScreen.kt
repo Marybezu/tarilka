@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Button
 import androidx.compose.material3.FilterChip
@@ -68,8 +69,16 @@ fun SettingsScreen(vm: MainViewModel, ai: AiViewModel, padding: PaddingValues) {
                     ),
                     style = MaterialTheme.typography.bodyMedium,
                 )
+                if (targets.customRaised) {
+                    Text(stringResource(R.string.custom_raised), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.tertiary)
+                }
+                targets.limit?.let { l ->
+                    Text(stringResource(limitText(l)), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
                 Spacer(Modifier.height(6.dp))
                 Text(stringResource(R.string.water_target, (targets.waterMl / 1000).f1()), style = MaterialTheme.typography.bodyMedium)
+                Text(stringResource(R.string.water_own_note), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                if (profile.isSet) BmiLine(targets.bmi, profile.age)
             }
         }
         item { ActivitySection(vm) }
@@ -103,6 +112,7 @@ private fun ProfileSection(profile: Profile, onSave: (Profile) -> Unit) {
     var activity by remember(profile) { mutableStateOf(profile.activity) }
     var goal by remember(profile) { mutableStateOf(profile.goal) }
     var custom by remember(profile) { mutableStateOf(profile.customKcal?.toString() ?: "") }
+    var pregnant by remember(profile) { mutableStateOf(profile.pregnant) }
 
     val ageN = age.toNumber()?.toInt()
     val heightN = height.toNumber()?.toInt()
@@ -116,6 +126,16 @@ private fun ProfileSection(profile: Profile, onSave: (Profile) -> Unit) {
             FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 FilterChip(sex == Sex.FEMALE, { sex = Sex.FEMALE }, { Text(stringResource(R.string.female)) })
                 FilterChip(sex == Sex.MALE, { sex = Sex.MALE }, { Text(stringResource(R.string.male)) })
+            }
+            if (sex == Sex.FEMALE) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth().clickable { pregnant = !pregnant },
+                ) {
+                    androidx.compose.material3.Switch(checked = pregnant, onCheckedChange = { pregnant = it })
+                    Spacer(Modifier.width(10.dp))
+                    Text(stringResource(R.string.pregnant), style = MaterialTheme.typography.bodyMedium)
+                }
             }
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Field(stringResource(R.string.age), age, { age = it }, Modifier.weight(1f))
@@ -138,12 +158,19 @@ private fun ProfileSection(profile: Profile, onSave: (Profile) -> Unit) {
                 }
             }
             Text(stringResource(R.string.goal), style = MaterialTheme.typography.labelLarge)
+            // Weight loss is not offered in pregnancy and breastfeeding, under 18 or with a BMI under 18.5.
+            val limit = if (weightN != null && heightN != null && heightN > 0 && ageN != null) {
+                ua.tarilka.data.Nutrition.limitFor(sex, pregnant, ageN, ua.tarilka.data.Nutrition.bmi(weightN, heightN))
+            } else null
+            if (limit != null && goal == Goal.LOSE) goal = Goal.MAINTAIN
             FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                FilterChip(goal == Goal.LOSE, { goal = Goal.LOSE }, { Text(stringResource(R.string.goal_lose)) })
+                FilterChip(goal == Goal.LOSE, { goal = Goal.LOSE }, { Text(stringResource(R.string.goal_lose)) }, enabled = limit == null)
                 FilterChip(goal == Goal.MAINTAIN, { goal = Goal.MAINTAIN }, { Text(stringResource(R.string.goal_maintain)) })
                 FilterChip(goal == Goal.GAIN, { goal = Goal.GAIN }, { Text(stringResource(R.string.goal_gain)) })
             }
+            limit?.let { Text(stringResource(limitText(it)), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant) }
             Field(stringResource(R.string.custom_kcal), custom, { custom = it })
+            Text(stringResource(R.string.custom_kcal_hint), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             Button(
                 enabled = valid,
                 onClick = {
@@ -152,6 +179,7 @@ private fun ProfileSection(profile: Profile, onSave: (Profile) -> Unit) {
                             sex = sex, age = ageN!!, heightCm = heightN!!, weightKg = weightN!!,
                             activity = activity, goal = goal,
                             customKcal = custom.toNumber()?.toInt()?.takeIf { it in 800..6000 },
+                            pregnant = sex == Sex.FEMALE && pregnant,
                         ),
                     )
                 },
@@ -622,4 +650,10 @@ private fun MissingSection(vm: MainViewModel) {
             }
         }
     }
+}
+
+fun limitText(l: ua.tarilka.data.Limit): Int = when (l) {
+    ua.tarilka.data.Limit.PREGNANT -> R.string.limit_pregnant
+    ua.tarilka.data.Limit.TEEN -> R.string.limit_teen
+    ua.tarilka.data.Limit.UNDERWEIGHT -> R.string.limit_underweight
 }

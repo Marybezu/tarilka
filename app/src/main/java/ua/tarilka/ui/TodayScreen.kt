@@ -220,8 +220,11 @@ fun TodayScreen(
                         } else if (c.inPeriod) {
                             TextButton(onClick = { vm.periodEnded(day) }) { Text(stringResource(R.string.cycle_ended)) }
                         } else if (c.nextStart == null || t >= c.nextStart - 5) {
-                            // Only around the expected start; on other days tap the row to mark it.
+                            // Around the expected start: one tap.
                             TextButton(onClick = { vm.periodStarted(day) }) { Text(stringResource(R.string.cycle_started)) }
+                        } else {
+                            // Earlier than expected, or another date: the dialog starts with "Started today".
+                            TextButton(onClick = { cycleDialog = true }) { Text(stringResource(R.string.record)) }
                         }
                     }
                 }
@@ -347,12 +350,14 @@ fun TodayScreen(
                 Section(title = stringResource(R.string.week_title)) {
                     val avg = withData.sumOf { it.kcal } / withData.size
                     val avgP = withData.sumOf { it.protein } / withData.size
-                    Text(
-                        stringResource(R.string.week_avg, avg.f0(), targets.kcal.f0(), avgP.f0(), targets.protein.f0(), withData.size) +
-                            (if (withData.size < 3) " " + stringResource(R.string.week_too_few) else ""),
-                        style = MaterialTheme.typography.bodyMedium,
-                    )
-                    Spacer(Modifier.height(8.dp))
+                    // An average of one or two days says nothing new: the bars are enough until then.
+                    if (withData.size >= 3) {
+                        Text(
+                            stringResource(R.string.week_avg, avg.f0(), targets.kcal.f0(), avgP.f0(), targets.protein.f0()),
+                            style = MaterialTheme.typography.bodyMedium,
+                        )
+                        Spacer(Modifier.height(8.dp))
+                    }
                     WeekBars(day, week, targets.kcal)
                     habits?.let {
                         Spacer(Modifier.height(10.dp))

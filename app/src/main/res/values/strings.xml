@@ -50,7 +50,7 @@
     <string name="profile_hint">Fill in your profile in Settings to get personal calorie and nutrient targets. Until then, average values are used.</string>
     <string name="recommendations">Recommendations</string>
     <string name="week_title">Last 7 days</string>
-    <string name="week_avg">On average %1$s of %2$s kcal · protein %3$s of %4$s g (days logged: %5$d).</string>
+    <string name="week_avg">Average: %1$s of %2$s kcal · protein %3$s of %4$s g</string>
 
     <string name="tip_empty">Nothing logged yet. Add a meal by hand or take a photo of your plate.</string>
     <string name="tip_remaining">About %1$d kcal left for today.</string>
@@ -434,6 +434,7 @@
     <string name="cycle_day">Cycle day %1$d</string>
     <string name="cycle_next_short">next ~%1$s</string>
     <string name="cycle_late">Expected ~%1$s. Has it started? You can mark a past date too</string>
+    <string name="cycle_started_today">Started today</string>
     <string name="cycle_started">Started</string>
     <string name="cycle_ended">Ended</string>
     <string name="cycle_avg">Average cycle length: %1$d days (recorded cycles: %2$d)</string>
@@ -488,5 +489,8 @@
     <string name="text_list_title">Food list</string>
     <string name="text_list_read">Read the list</string>
     <string name="text_list_hint">Several at once works too: "sauerkraut 100 g, potatoes 40 g, cutlet". Or dictate with the keyboard microphone.</string>
-    <string name="week_too_few">Too few days to draw conclusions yet.</string>
+    <string name="text_ask_ai">Try with AI</string>
+    <string name="text_ask_ai_hint">The AI reads the whole list again. The first time can take up to a minute.</string>
+    <string name="text_ai_timeout">The AI did not answer within a minute. Kept what was read without it: use Replace for what was not found.</string>
+    <string name="text_ai_nothing">The AI found nothing. Kept what was read without it.</string>
 </resources>

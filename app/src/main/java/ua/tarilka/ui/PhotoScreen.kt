@@ -197,20 +197,29 @@ fun PhotoScreen(
             }
             ui.error?.let { err ->
                 item {
-                    Text(stringResource(R.string.ai_error, err), color = MaterialTheme.colorScheme.error)
-                    TextButton(onClick = ai::resetPhoto) { Text(stringResource(R.string.try_again)) }
+                    if (ui.fromText) {
+                        // The rules' result stays below; only the AI attempt failed.
+                        Text(err, color = MaterialTheme.colorScheme.tertiary)
+                    } else {
+                        Text(stringResource(R.string.ai_error, err), color = MaterialTheme.colorScheme.error)
+                        TextButton(onClick = ai::resetPhoto) { Text(stringResource(R.string.try_again)) }
+                    }
                 }
             }
             if (ui.analyzed) {
                 if (ui.items.isEmpty()) {
                     item { Text(stringResource(R.string.no_food_found)) }
-                    item {
+                    if (!ui.fromText) item {
                         // Diagnostics: which processor ran the model and what it answered.
                         Text(
                             stringResource(R.string.ai_diagnostics, ui.backend, ui.loadSec, ui.analyzeSec) + "\n" + ui.raw.ifBlank { "—" },
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
+                    }
+                } else if (ui.fromText) {
+                    item {
+                        Text(stringResource(R.string.review_hint), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 } else {
                     item {
@@ -225,6 +234,14 @@ fun PhotoScreen(
                 itemsIndexed(ui.items) { i, item ->
                     ReviewCard(i, item, ai, onReplace)
                 }
+                if (ai.canAskAi(ui)) {
+                    item {
+                        Column {
+                            OutlinedButton(onClick = ai::analyzeTextWithAi) { Text(stringResource(R.string.text_ask_ai)) }
+                            Text(stringResource(R.string.text_ask_ai_hint), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                    }
+                }
                 item {
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         FilledTonalButton(onClick = onAddItem) {
@@ -232,7 +249,7 @@ fun PhotoScreen(
                             Spacer(Modifier.width(6.dp))
                             Text(stringResource(R.string.add_item))
                         }
-                        TextButton(onClick = ai::resetPhoto) { Text(stringResource(R.string.new_photo)) }
+                        if (!ui.fromText) TextButton(onClick = ai::resetPhoto) { Text(stringResource(R.string.new_photo)) }
                     }
                 }
             }

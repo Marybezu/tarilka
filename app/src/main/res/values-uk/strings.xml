@@ -50,7 +50,7 @@
     <string name="profile_hint">Заповніть профіль у Налаштуваннях, щоб отримати особисті норми калорій і нутрієнтів. Поки що використовуються середні значення.</string>
     <string name="recommendations">Рекомендації</string>
     <string name="week_title">Останні 7 днів</string>
-    <string name="week_avg">У середньому %1$s з %2$s ккал · білок %3$s з %4$s г (днів із записами: %5$d).</string>
+    <string name="week_avg">Середнє: %1$s з %2$s ккал · білок %3$s з %4$s г</string>
 
     <string name="tip_empty">Ще нічого не записано. Додайте прийом їжі вручну або сфотографуйте тарілку.</string>
     <string name="tip_remaining">На сьогодні залишилось близько %1$d ккал.</string>
@@ -434,6 +434,7 @@
     <string name="cycle_day">День циклу %1$d</string>
     <string name="cycle_next_short">наступний ~%1$s</string>
     <string name="cycle_late">Очікувався ~%1$s. Почалося? Можна позначити й минулою датою</string>
+    <string name="cycle_started_today">Почалися сьогодні</string>
     <string name="cycle_started">Почалися</string>
     <string name="cycle_ended">Закінчилися</string>
     <string name="cycle_avg">Середня тривалість циклу: %1$d дн. (записаних циклів: %2$d)</string>
@@ -488,5 +489,8 @@
     <string name="text_list_title">Список продуктів</string>
     <string name="text_list_read">Розпізнати список</string>
     <string name="text_list_hint">Можна одразу кілька: «квашена капуста 100 г, картопля 40 г, котлета». Або надиктуйте через мікрофон клавіатури.</string>
-    <string name="week_too_few">Поки замало днів для висновків.</string>
+    <string name="text_ask_ai">Спробувати через ШІ</string>
+    <string name="text_ask_ai_hint">ШІ прочитає весь список ще раз. Перший раз може тривати до хвилини.</string>
+    <string name="text_ai_timeout">ШІ не відповів за хвилину. Залишено те, що розпізнано без нього: ненайдене можна «Замінити».</string>
+    <string name="text_ai_nothing">ШІ нічого не розпізнав. Залишено те, що знайдено без нього.</string>
 </resources>

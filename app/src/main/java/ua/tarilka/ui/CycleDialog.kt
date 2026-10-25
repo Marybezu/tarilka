@@ -60,6 +60,12 @@ fun CycleDialog(vm: MainViewModel, onDismiss: () -> Unit) {
         title = { Text(stringResource(R.string.cycle_title)) },
         text = {
             Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                // First thing: marking a start, also an earlier one than expected.
+                if (!c.inPeriod) {
+                    androidx.compose.material3.Button(onClick = { vm.periodStarted(selected); onDismiss() }) {
+                        Text(stringResource(if (selected == LocalDate.now()) R.string.cycle_started_today else R.string.cycle_started))
+                    }
+                }
                 c.avgLength?.let { Text(stringResource(R.string.cycle_avg, it, c.lengths.size), style = MaterialTheme.typography.bodyMedium) }
                 c.nextStart?.let { Text(stringResource(R.string.cycle_next, shortDate(it)), style = MaterialTheme.typography.bodyMedium) }
                 c.ovulation?.let { Text(stringResource(R.string.cycle_ovulation, shortDate(it - 5), shortDate(it)), style = MaterialTheme.typography.bodyMedium) }

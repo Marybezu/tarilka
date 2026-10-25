@@ -4,6 +4,7 @@ import android.app.Application
 import android.net.Uri
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -154,15 +155,14 @@ class AiViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     /**
-     * A typed list: a quick rule-based reading first (works without the model); if something is
-     * not found and the model is installed, the AI reads the whole text instead. The result goes to the
-     * same review screen as a photo.
+     * A typed list, read by rules at once (no model needed). Foods that were not found are shown as such;
+     * the AI reads the text only when the person asks for it ([analyzeTextWithAi]).
      */
     fun analyzeText(text: String) = viewModelScope.launch {
         _photo.value = PhotoUi(note = text, working = true, fromText = true)
         try {
             val foods = tapp.db.foods().allOnce()
-            val byRules = ua.tarilka.data.TextMeal.parse(text).map { item ->
+            val items = ua.tarilka.data.TextMeal.parse(text).map { item ->
                 val food = FoodMatcher.best(item.name, item.name, foods)?.food
                 val grams = when {
                     item.amount == null -> food?.portionG ?: 100.0
@@ -171,22 +171,50 @@ class AiViewModel(app: Application) : AndroidViewModel(app) {
                 }
                 ReviewItem(DetectedFood(item.name, item.name, grams, null, null, null, null, "manual"), food, grams, include = food != null)
             }
-            val allFound = byRules.isNotEmpty() && byRules.all { it.food != null }
-            val items = if (allFound || _model.value !is ModelStore.State.Ready) {
-                byRules
-            } else {
-                runCatching {
-                    gemma.parseText(text).map { d ->
-                        val match = FoodMatcher.best(d.nameEn, d.nameUk, foods)
-                        ReviewItem(d.copy(confidence = "manual"), match?.food, d.grams, include = match != null)
-                    }
-                }.getOrNull()?.takeIf { it.isNotEmpty() } ?: byRules
-            }
             items.filter { it.food == null }.forEach { tapp.prefs.recordMissing(it.detected.nameEn) }
             _photo.update { it.copy(items = items, analyzed = true) }
         } catch (t: Throwable) {
             _photo.update { it.copy(error = t.message ?: t.javaClass.simpleName) }
         } finally {
+            _photo.update { it.copy(working = false) }
+        }
+    }
+
+    /** The AI can help with a typed list when something was not found and the model is installed. */
+    fun canAskAi(ui: PhotoUi) = ui.fromText && ui.analyzed && !ui.working &&
+        _model.value is ModelStore.State.Ready && ui.items.any { it.food == null }
+
+    /**
+     * The AI reads the whole typed list. A visible timer; after [AI_TEXT_LIMIT_MS] the rules' result stays
+     * as it was (the model may keep working in the background, its answer is then ignored).
+     */
+    fun analyzeTextWithAi() = viewModelScope.launch {
+        val text = _photo.value.note
+        val before = _photo.value.items
+        _photo.update { it.copy(working = true, error = null, seconds = 0) }
+        val ticker = launch { while (isActive) { delay(1000); _photo.update { it.copy(seconds = it.seconds + 1) } } }
+        try {
+            val foods = tapp.db.foods().allOnce()
+            val job = viewModelScope.async { gemma.parseText(text) }
+            val detected = kotlinx.coroutines.withTimeoutOrNull(AI_TEXT_LIMIT_MS) { job.await() }
+            if (detected == null) {
+                job.cancel()
+                _photo.update { it.copy(error = getApplication<Application>().getString(ua.tarilka.R.string.text_ai_timeout)) }
+            } else if (detected.isEmpty()) {
+                _photo.update { it.copy(error = getApplication<Application>().getString(ua.tarilka.R.string.text_ai_nothing)) }
+            } else {
+                val items = detected.map { d ->
+                    val match = FoodMatcher.best(d.nameEn, d.nameUk, foods)
+                    ReviewItem(d.copy(confidence = "manual"), match?.food, d.grams, include = match != null)
+                }
+                _photo.update { it.copy(items = items) }
+            }
+        } catch (t: kotlinx.coroutines.CancellationException) {
+            throw t
+        } catch (t: Throwable) {
+            _photo.update { it.copy(items = before, error = t.message ?: t.javaClass.simpleName) }
+        } finally {
+            ticker.cancel()
             _photo.update { it.copy(working = false) }
         }
     }
@@ -269,4 +297,8 @@ class AiViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     fun clearAdvice() { _advice.value = null }
+
+    companion object {
+        const val AI_TEXT_LIMIT_MS = 60_000L
+    }
 }

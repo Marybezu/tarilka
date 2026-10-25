@@ -98,10 +98,6 @@ jobs:
           files: out/*.apk
           make_latest: true
           body: |
-            **Тестова версія.** Завантажте .apk нижче на телефоні й відкрийте його. Перед оновленням зробіть резервну копію: Опції → Дані → Експорт копії.
-            Відгук або помилка: Опції → Про застосунок → «Написати відгук», або вкладка Issues.
-            Якщо у вас версія 0.1.52 або раніша, оновлення не встановиться (новий ключ підпису): зробіть копію, видаліть застосунок, встановіть цей .apk і відновіть копію.
+            Завантажте .apk нижче й відкрийте його на телефоні. Відгук або помилка: Опції → Про застосунок → «Написати відгук», або Issues.
 
-            **Test version.** Download the .apk below on your phone and open it. Before updating, make a backup: Options → Data → Export backup.
-            Feedback or a bug: Options → About → Send feedback, or the Issues tab.
-            If you have 0.1.52 or older, the update will not install (new signing key): export a backup, uninstall, install this .apk, restore the backup.
+            Download the .apk below and open it on your phone. Feedback or a bug: Options → About → Send feedback, or Issues.

@@ -178,14 +178,13 @@ class LogicTest {
             day = day, meal = 2, foodId = 1, nameUk = "", nameEn = "", grams = ml, kcal = 0.85 * ml,
             protein = 0.0, fat = 0.0, carbs = 0.0, fiber = 0.0,
         )
-        val L = ua.tarilka.data.Habits.Level
         // Two glasses a week: some alcohol, amber.
-        assertEquals(L.OK, ua.tarilka.data.Habits.of(listOf(glass(1, 150.0), glass(3, 150.0)), foods, 7).alcoholLevel)
+        assertEquals(ua.tarilka.data.Habits.Level.OK, ua.tarilka.data.Habits.of(listOf(glass(1, 150.0), glass(3, 150.0)), foods, 7).alcoholLevel)
         // One evening with a bottle (750 ml ≈ 8 drinks): a heavy day, orange.
         val bottle = ua.tarilka.data.Habits.of(listOf(glass(1, 750.0)), foods, 7)
         assertEquals(1, bottle.heavyDrinkDays)
-        assertEquals(L.WATCH, bottle.alcoholLevel)
+        assertEquals(ua.tarilka.data.Habits.Level.WATCH, bottle.alcoholLevel)
         // A small glass on 5 days: frequent, orange.
-        assertEquals(L.WATCH, ua.tarilka.data.Habits.of((1L..5L).map { glass(it, 100.0) }, foods, 7).alcoholLevel)
+        assertEquals(ua.tarilka.data.Habits.Level.WATCH, ua.tarilka.data.Habits.of((1L..5L).map { glass(it, 100.0) }, foods, 7).alcoholLevel)
     }
 }

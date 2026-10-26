@@ -303,4 +303,26 @@ class LogicTest {
         // Two days say too little: no lines at all.
         assertTrue(ua.tarilka.data.Report.build(ua.tarilka.data.PeriodData(h(2, 450.0, 1.0), null, null), null, emptyList(), t, 8000).isEmpty())
     }
+
+    @Test
+    fun adviceFollowsTheRules() {
+        val sausage = ua.tarilka.data.Food(id = 1, code = "m17", category = "meat", nameUk = "Сосиски", nameEn = "Frankfurters", kcal = 290.0, protein = 11.0, fat = 26.0, carbs = 2.0, fiber = 0.0, source = "USDA")
+        val apple = ua.tarilka.data.Food(id = 2, code = "f01", category = "fruit", nameUk = "Яблуко", nameEn = "Apple", kcal = 52.0, protein = 0.3, fat = 0.2, carbs = 14.0, fiber = 2.4, source = "USDA")
+        val foods = mapOf(1L to sausage, 2L to apple)
+        val groups = mapOf("m17" to ua.tarilka.data.FoodGroup.PROCESSED_MEAT, "f01" to ua.tarilka.data.FoodGroup.VEG_FRUIT)
+        val entries = (0L until 7L).flatMap { d ->
+            listOfNotNull(
+                if (d < 4) ua.tarilka.data.DiaryEntry.of(sausage, 100.0, d, 1) else null,
+                ua.tarilka.data.DiaryEntry.of(apple, 150.0, d, 3),
+            )
+        }
+        val r = ua.tarilka.data.Advice.of(entries, foods, groups, 7, mayReduce = true)
+        assertTrue(r.change.any { it.rule == ua.tarilka.data.Advice.Rule.PROCESSED_MEAT })
+        assertTrue(r.change.size <= 2)
+        // Someone who should not eat less only gets "more of" suggestions.
+        val safe = ua.tarilka.data.Advice.of(entries, foods, groups, 7, mayReduce = false)
+        assertTrue(safe.change.none { it.rule.reduce })
+        // Two days say too little.
+        assertTrue(ua.tarilka.data.Advice.of(entries.filter { it.day < 2 }, foods, groups, 2, true).change.isEmpty())
+    }
 }

@@ -109,7 +109,7 @@ fun HistoryScreen(vm: MainViewModel, ai: AiViewModel, onBack: () -> Unit, onOpen
                         Text(
                             "${d.kcal.f0()} ${stringResource(R.string.unit_kcal)}",
                             style = MaterialTheme.typography.titleMedium.merge(Numbers),
-                            color = if (d.kcal > targets.kcal * 1.1) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.onSurface,
+                            color = if (targets.showKcal && d.kcal > targets.kcal * 1.1) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.onSurface,
                         )
                     }
                 }

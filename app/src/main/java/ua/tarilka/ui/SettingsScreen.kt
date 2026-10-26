@@ -65,10 +65,14 @@ fun SettingsScreen(vm: MainViewModel, ai: AiViewModel, padding: PaddingValues) {
         item {
             Section(title = stringResource(R.string.your_targets)) {
                 Text(
-                    stringResource(
-                        R.string.targets_text,
-                        targets.kcal.f0(), targets.protein.f0(), targets.fat.f0(), targets.carbs.f0(), targets.fiber.f0(),
-                    ),
+                    if (targets.showKcal) {
+                        stringResource(
+                            R.string.targets_text,
+                            targets.kcal.f0(), targets.protein.f0(), targets.fat.f0(), targets.carbs.f0(), targets.fiber.f0(),
+                        )
+                    } else {
+                        stringResource(R.string.targets_text_teen, targets.protein.f0(), targets.fiber.f0())
+                    },
                     style = MaterialTheme.typography.bodyMedium,
                 )
                 if (targets.customRaised) {

@@ -79,7 +79,7 @@ object PdfReport {
                     R.string.pdf_profile,
                     c.getString(if (p.sex == Sex.FEMALE) R.string.female else R.string.male), p.age, p.heightCm,
                     (data.days.lastOrNull { it.weight != null }?.weight?.kg ?: p.weightKg).f1(),
-                    t.kcal.f0(), t.protein.f0(), (t.waterMl / 1000).f1(),
+                    if (t.showKcal) t.kcal.f0() else "—", t.protein.f0(), (t.waterMl / 1000).f1(),
                 ),
                 pdf.body,
             )
@@ -95,9 +95,11 @@ object PdfReport {
                 levelColor(if (v >= target * good) ua.tarilka.data.Habits.Level.GOOD else if (v >= target * ok) ua.tarilka.data.Habits.Level.OK else ua.tarilka.data.Habits.Level.WATCH).toArgb()
             val tiles = buildList {
                 if (ReportPart.FOOD in parts) {
-                    val k = logged.map { d -> d.entries.sumOf { it.kcal } }.average()
-                    val kLevel = kotlin.math.abs(k - t.kcal).let { if (it <= t.kcal * 0.1) ua.tarilka.data.Habits.Level.GOOD else if (it <= t.kcal * 0.25) ua.tarilka.data.Habits.Level.OK else ua.tarilka.data.Habits.Level.WATCH }
-                    add(Triple(c.getString(R.string.pdf_tile_kcal), k.f0() + "\n" + c.getString(R.string.pdf_of, t.kcal.f0() + " " + c.getString(R.string.unit_kcal)), levelColor(kLevel).toArgb()))
+                    if (t.showKcal) {
+                        val k = logged.map { d -> d.entries.sumOf { it.kcal } }.average()
+                        val kLevel = kotlin.math.abs(k - t.kcal).let { if (it <= t.kcal * 0.1) ua.tarilka.data.Habits.Level.GOOD else if (it <= t.kcal * 0.25) ua.tarilka.data.Habits.Level.OK else ua.tarilka.data.Habits.Level.WATCH }
+                        add(Triple(c.getString(R.string.pdf_tile_kcal), k.f0() + "\n" + c.getString(R.string.pdf_of, t.kcal.f0() + " " + c.getString(R.string.unit_kcal)), levelColor(kLevel).toArgb()))
+                    }
                     val pr = logged.map { d -> d.entries.sumOf { it.protein } }.average()
                     add(Triple(c.getString(R.string.pdf_tile_protein), pr.f0() + " " + c.getString(R.string.unit_g) + "\n" + c.getString(R.string.pdf_of, t.protein.f0() + " " + c.getString(R.string.unit_g)), tint(pr, t.protein, 0.9, 0.7)))
                 }
@@ -109,7 +111,7 @@ object PdfReport {
                 add(Triple(c.getString(R.string.pdf_tile_days), "${logged.size}\n" + c.getString(R.string.pdf_of, nDays.toString()), 0xFF4E6E58.toInt()))
             }
             pdf.tiles(tiles)
-            if (ReportPart.FOOD in parts) {
+            if (ReportPart.FOOD in parts && t.showKcal) {
                 // Calories: a bar a day up to a month, otherwise the summary's stretches.
                 val kcalMetric = data.summary.metrics.firstOrNull { it.key == Key.KCAL }
                 if (nDays <= DETAIL_DAYS) {
@@ -294,7 +296,7 @@ object PdfReport {
                         val pr = d.entries.sumOf { it.protein }
                         val fi = d.entries.sumOf { it.fiber }
                         pdf.space(2f)
-                        pdf.progress(dayKcal, data.targets.kcal, c.getString(R.string.pdf_of_kcal, dayKcal.f0(), data.targets.kcal.f0()))
+                        if (data.targets.showKcal) pdf.progress(dayKcal, data.targets.kcal, c.getString(R.string.pdf_of_kcal, dayKcal.f0(), data.targets.kcal.f0()))
                         pdf.text(c.getString(R.string.pdf_day_rest, pr.f0(), data.targets.protein.f0(), fi.f0(), data.targets.fiber.f0()), pdf.small)
                     }
                     val lines = buildList {

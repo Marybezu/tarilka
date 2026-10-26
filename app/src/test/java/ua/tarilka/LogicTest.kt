@@ -273,6 +273,9 @@ class LogicTest {
             assertTrue(t.limit != null)
             assertEquals(t.tdee + if (p.pregnant) 300.0 else 0.0, t.kcal, 0.01)
         }
+        // Under 18 no calorie number at all; adults see it.
+        assertTrue(!Nutrition.targets(adult.copy(age = 16), null).showKcal)
+        assertTrue(n.showKcal)
         // Protein with obesity: from the weight at BMI 25, not the actual weight.
         val big = Nutrition.targets(adult.copy(weightKg = 140.0), null)
         assertEquals(1.6 * 25 * 1.65 * 1.65, big.protein, 0.5)

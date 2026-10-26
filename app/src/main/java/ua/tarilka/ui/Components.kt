@@ -90,11 +90,11 @@ fun Section(
 
 /** Ring that fills as calories are eaten; turns amber when over the target. */
 @Composable
-fun CalorieRing(eaten: Double, target: Double, size: Dp = 132.dp) {
+fun CalorieRing(eaten: Double, target: Double?, size: Dp = 132.dp) {
     val track = MaterialTheme.colorScheme.surfaceVariant
     val fill = LocalMacroColors.current.kcal
     val over = MaterialTheme.colorScheme.tertiary
-    val frac = if (target > 0) (eaten / target).toFloat() else 0f
+    val frac = if (target != null && target > 0) (eaten / target).toFloat() else 0f
     Box(contentAlignment = Alignment.Center, modifier = Modifier.size(size)) {
         Canvas(Modifier.size(size)) {
             val stroke = 12.dp.toPx()
@@ -109,7 +109,7 @@ fun CalorieRing(eaten: Double, target: Double, size: Dp = 132.dp) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(eaten.f0(), style = MaterialTheme.typography.headlineMedium.merge(Numbers))
             Text(
-                stringResource(R.string.of_kcal, target.f0()),
+                if (target != null) stringResource(R.string.of_kcal, target.f0()) else stringResource(R.string.unit_kcal),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )

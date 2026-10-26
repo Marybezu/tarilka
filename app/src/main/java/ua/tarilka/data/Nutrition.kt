@@ -20,7 +20,13 @@ data class Targets(
     val goal: Goal = Goal.MAINTAIN,
     /** The person's own target was below the safety floor and was raised to it. */
     val customRaised: Boolean = false,
-)
+) {
+    /**
+     * Under 18 no calorie number is shown (AAP 2016/2023: no calorie counting for teenagers; adult formulas
+     * underestimate growing bodies). Protein, fibre, vegetables and fluids stay.
+     */
+    val showKcal: Boolean get() = limit != Limit.TEEN
+}
 
 /** When a calorie deficit is not appropriate without a doctor. */
 enum class Limit { PREGNANT, TEEN, UNDERWEIGHT }

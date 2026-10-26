@@ -143,12 +143,14 @@ fun TodayScreen(
         item {
             Section {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    CalorieRing(totals.kcal, targets.kcal)
+                    CalorieRing(totals.kcal, targets.kcal.takeIf { targets.showKcal })
                     Spacer(Modifier.width(16.dp))
                     Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         NutrientBar(stringResource(R.string.protein), totals.protein, targets.protein, macros.protein)
-                        NutrientBar(stringResource(R.string.fat), totals.fat, targets.fat, macros.fat)
-                        NutrientBar(stringResource(R.string.carbs), totals.carbs, targets.carbs, macros.carbs)
+                        if (targets.showKcal) {
+                            NutrientBar(stringResource(R.string.fat), totals.fat, targets.fat, macros.fat)
+                            NutrientBar(stringResource(R.string.carbs), totals.carbs, targets.carbs, macros.carbs)
+                        }
                         NutrientBar(stringResource(R.string.fiber), totals.fiber, targets.fiber, macros.fiber)
                     }
                 }
@@ -362,14 +364,14 @@ fun TodayScreen(
                     val avg = withData.sumOf { it.kcal } / withData.size
                     val avgP = withData.sumOf { it.protein } / withData.size
                     // An average of one or two days says nothing new: the bars are enough until then.
-                    if (withData.size >= 3) {
+                    if (withData.size >= 3 && targets.showKcal) {
                         Text(
                             stringResource(R.string.week_avg, avg.f0(), targets.kcal.f0(), avgP.f0(), targets.protein.f0()),
                             style = MaterialTheme.typography.bodyMedium,
                         )
                         Spacer(Modifier.height(8.dp))
                     }
-                    WeekBars(day, week, targets.kcal)
+                    WeekBars(day, week, targets.kcal.takeIf { targets.showKcal })
                     // Several full days well below what the body needs at rest: a calm word and a pointer to help.
                     val past = withData.filter { it.day < java.time.LocalDate.now().toEpochDay() }
                     if (past.size >= 4 && past.sumOf { it.kcal } / past.size < targets.bmr) {
@@ -678,12 +680,12 @@ private fun MealSection(
 }
 
 @Composable
-private fun WeekBars(day: LocalDate, week: List<ua.tarilka.data.DayTotal>, target: Double) {
+private fun WeekBars(day: LocalDate, week: List<ua.tarilka.data.DayTotal>, target: Double?) {
     val byDay = week.associateBy { it.day }
     val color = LocalMacroColors.current.kcal
     val over = MaterialTheme.colorScheme.tertiary
     val track = MaterialTheme.colorScheme.surfaceVariant
-    val max = maxOf(target * 1.3, week.maxOfOrNull { it.kcal } ?: 0.0)
+    val max = maxOf((target ?: 0.0) * 1.3, week.maxOfOrNull { it.kcal } ?: 0.0, 1.0)
     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
         for (i in 6 downTo 0) {
             val d = day.minusDays(i.toLong())
@@ -697,17 +699,19 @@ private fun WeekBars(day: LocalDate, week: List<ua.tarilka.data.DayTotal>, targe
                     drawRect(track)
                     val h = (k / max).toFloat().coerceIn(0f, 1f) * size.height
                     drawRect(
-                        if (k > target * 1.1) over else color,
+                        if (target != null && k > target * 1.1) over else color,
                         topLeft = androidx.compose.ui.geometry.Offset(0f, size.height - h),
                         size = androidx.compose.ui.geometry.Size(size.width, h),
                     )
-                    val ty = (size.height - (target / max).toFloat() * size.height)
-                    drawLine(
-                        androidx.compose.ui.graphics.Color.Gray,
-                        androidx.compose.ui.geometry.Offset(0f, ty),
-                        androidx.compose.ui.geometry.Offset(size.width, ty),
-                        strokeWidth = 2f,
-                    )
+                    if (target != null) {
+                        val ty = (size.height - (target / max).toFloat() * size.height)
+                        drawLine(
+                            androidx.compose.ui.graphics.Color.Gray,
+                            androidx.compose.ui.geometry.Offset(0f, ty),
+                            androidx.compose.ui.geometry.Offset(size.width, ty),
+                            strokeWidth = 2f,
+                        )
+                    }
                 }
                 Text(
                     d.dayOfWeek.getDisplayName(java.time.format.TextStyle.NARROW, java.util.Locale.getDefault()),
@@ -745,9 +749,14 @@ private fun adviceSummary(
     if (steps != null) appendLine("Steps $dayWord: $steps.")
     if (note.isNotBlank()) appendLine("The person's note for that day: ${note.take(300)}")
     appendLine(
-        "Totals: ${totals.kcal.f0()} kcal (target ${targets.kcal.f0()}), protein ${totals.protein.f0()} g " +
-            "(target ${targets.protein.f0()}), fat ${totals.fat.f0()} g (target ${targets.fat.f0()}), " +
-            "carbs ${totals.carbs.f0()} g (target ${targets.carbs.f0()}), fiber ${totals.fiber.f0()} g (target ${targets.fiber.f0()}).",
+        if (targets.showKcal) {
+            "Totals: ${totals.kcal.f0()} kcal (target ${targets.kcal.f0()}), protein ${totals.protein.f0()} g " +
+                "(target ${targets.protein.f0()}), fat ${totals.fat.f0()} g (target ${targets.fat.f0()}), " +
+                "carbs ${totals.carbs.f0()} g (target ${targets.carbs.f0()}), fiber ${totals.fiber.f0()} g (target ${targets.fiber.f0()})."
+        } else {
+            "Totals: protein ${totals.protein.f0()} g (target ${targets.protein.f0()}), fiber ${totals.fiber.f0()} g " +
+                "(target ${targets.fiber.f0()}). The person is under 18: never mention calories or calorie targets."
+        },
     )
     if (targets.limit != null) {
         appendLine("Important: the person is pregnant or breastfeeding, under 18, or has a BMI under 18.5. Never suggest eating less or losing weight.")

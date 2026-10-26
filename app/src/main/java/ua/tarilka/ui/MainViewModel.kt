@@ -931,12 +931,13 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         return buildString {
             appendLine("Summary of the person's last $periodName ($from to $end), compared with the $periodName before.")
             appendLine(
-                "Daily targets: ${tg.kcal.r()} kcal, protein ${tg.protein.r()} g, fat ${tg.fat.r()} g, carbs ${tg.carbs.r()} g, " +
+                (if (tg.showKcal) "Daily targets: ${tg.kcal.r()} kcal, protein ${tg.protein.r()} g, fat ${tg.fat.r()} g, carbs ${tg.carbs.r()} g, "
+                else "Daily targets: protein ${tg.protein.r()} g, ") +
                     "fiber ${tg.fiber.r()} g, fluids ${tg.waterMl.r()} ml." +
                     (if (tg.limit == ua.tarilka.data.Limit.PREGNANT) " Goal: no weight loss; weight gain in pregnancy is expected." else " Goal: ${tg.goal.name.lowercase()} weight.") +
                     when (tg.limit) {
                         ua.tarilka.data.Limit.PREGNANT -> " The person is pregnant or breastfeeding: never suggest eating less or losing weight."
-                        ua.tarilka.data.Limit.TEEN -> " The person is under 18: never suggest eating less or losing weight."
+                        ua.tarilka.data.Limit.TEEN -> " The person is under 18: never suggest eating less or losing weight, and never mention calories or calorie targets; talk about regular meals, vegetables, drinks, sleep and movement."
                         ua.tarilka.data.Limit.UNDERWEIGHT -> " BMI is under 18.5: never suggest eating less or losing weight; gently suggest a doctor if weight is falling."
                         null -> ""
                     },

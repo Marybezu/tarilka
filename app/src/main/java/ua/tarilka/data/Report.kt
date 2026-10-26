@@ -83,7 +83,8 @@ object Report {
 
         if (h.days >= MIN) {
             val k = targets.kcal
-            add(
+            // Under 18 no calorie measure (see Targets.showKcal).
+            if (targets.showKcal) add(
                 Metric.Key.KCAL, h.kcalAvg, k,
                 abs(h.kcalAvg - k).let { if (it <= k * 0.1) Level.GOOD else if (it <= k * 0.25) Level.OK else Level.WATCH },
                 ph?.kcalAvg, k * 0.05, true, { it.habits.foodOrNull { kcalAvg } }, k, closenessTo = k,

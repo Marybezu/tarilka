@@ -9,6 +9,7 @@ grep -q '^package:' permissions.txt || { echo "::error::Could not read permissio
 ALLOWED=" android.permission.ACTIVITY_RECOGNITION android.permission.POST_NOTIFICATIONS android.permission.RECEIVE_BOOT_COMPLETED \
 android.permission.health.READ_STEPS android.permission.health.READ_SLEEP android.permission.health.READ_MENSTRUATION \
 android.permission.health.WRITE_NUTRITION android.permission.health.WRITE_HYDRATION android.permission.health.WRITE_WEIGHT \
+android.permission.USE_BIOMETRIC android.permission.USE_FINGERPRINT \
 ua.tarilka.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION "
 for p in $(grep -oE "name='[^']+'" permissions.txt | sed "s/name='//;s/'//"); do
   case "$ALLOWED" in

@@ -130,6 +130,13 @@ jobs:
           name: tarilka-unsigned
           path: unsigned
 
+      # The build job ran third-party code: check the APK's permissions again here, before signing,
+      # in a step that has no secrets.
+      - name: Check permissions again
+        if: steps.secrets.outputs.ready == 'true'
+        shell: bash
+        run: bash .github/check-permissions.sh unsigned/app-release-unsigned.apk
+
       - name: Sign
         if: steps.secrets.outputs.ready == 'true'
         env:
@@ -138,8 +145,6 @@ jobs:
         shell: bash
         run: |
           set -e
-          # The build job ran third-party code: check the APK's permissions again here, before signing.
-          bash .github/check-permissions.sh unsigned/app-release-unsigned.apk
           BT=$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -1)
           printf %s "$PASS" > "$RUNNER_TEMP/p"
           openssl enc -d -aes-256-cbc -pbkdf2 -iter 600000 -in signing/tarilka.jks.enc -out "$RUNNER_TEMP/tarilka.jks" -pass file:"$RUNNER_TEMP/p"

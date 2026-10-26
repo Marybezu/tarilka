@@ -874,14 +874,8 @@ private fun AutoBackupRow(vm: MainViewModel) {
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(stringResource(R.string.auto_backup_setup_text), style = MaterialTheme.typography.bodyMedium)
-                    androidx.compose.material3.OutlinedTextField(
-                        pw1, { pw1 = it }, label = { Text(stringResource(R.string.password)) }, singleLine = true,
-                        visualTransformation = androidx.compose.ui.text.input.PasswordVisualTransformation(),
-                    )
-                    androidx.compose.material3.OutlinedTextField(
-                        pw2, { pw2 = it }, label = { Text(stringResource(R.string.auto_backup_repeat)) }, singleLine = true,
-                        visualTransformation = androidx.compose.ui.text.input.PasswordVisualTransformation(),
-                    )
+                    PasswordField(stringResource(R.string.password), pw1) { pw1 = it }
+                    PasswordField(stringResource(R.string.auto_backup_repeat), pw2) { pw2 = it }
                     if (pw1.isNotEmpty() && pw1.length < 8) Text(stringResource(R.string.auto_backup_short), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.tertiary)
                     else if (pw2.isNotEmpty() && pw1 != pw2) Text(stringResource(R.string.auto_backup_mismatch), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.tertiary)
                 }

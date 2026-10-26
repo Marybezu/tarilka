@@ -47,7 +47,7 @@ import ua.tarilka.ui.theme.Numbers
 import java.util.Locale
 import kotlin.math.roundToInt
 
-fun Double.f0(): String = roundToInt().toString()
+fun Double.f0(): String = if (isFinite()) roundToInt().toString() else "—"
 fun Double.f1(): String = String.format(Locale.getDefault(), "%.1f", this)
 
 /** A number typed by the person: comma or dot, never negative, NaN or infinite. */

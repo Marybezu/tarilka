@@ -42,6 +42,7 @@ object Reminders {
     private val WATER_TIMES = listOf(LocalTime.of(12, 0), LocalTime.of(16, 0), LocalTime.of(19, 0))
     private val WEEKLY_TIME = LocalTime.of(19, 0)
     private const val CHANNEL = "reminders"
+    private const val CYCLE_CHANNEL = "reminders_cycle"
     private const val EXTRA_KIND = "kind"
 
     /**
@@ -140,8 +141,12 @@ object Reminders {
 
     private fun show(context: Context, kind: Int, text: String) {
         val nm = context.getSystemService(NotificationManager::class.java) ?: return
+        val cycle = kind == CYCLE_BEFORE || kind == CYCLE_LATE
+        // Cycle reminders have their own channel that never shows on the lock screen, and stay on the phone (no watch).
+        val channel = if (cycle) CYCLE_CHANNEL else CHANNEL
         nm.createNotificationChannel(
-            NotificationChannel(CHANNEL, context.getString(R.string.reminders_title), NotificationManager.IMPORTANCE_DEFAULT),
+            NotificationChannel(channel, context.getString(if (cycle) R.string.reminders_cycle_title else R.string.reminders_title), NotificationManager.IMPORTANCE_DEFAULT)
+                .apply { if (cycle) lockscreenVisibility = android.app.Notification.VISIBILITY_SECRET },
         )
         if (!NotificationManagerCompat.from(context).areNotificationsEnabled()) return
         val open = PendingIntent.getActivity(
@@ -151,19 +156,20 @@ object Reminders {
         )
         // What the lock screen shows when the phone hides private content: nothing about food or drinks.
         // Cycle reminders are never shown there, whatever the phone setting.
-        val public = NotificationCompat.Builder(context, CHANNEL)
+        val public = NotificationCompat.Builder(context, channel)
             .setSmallIcon(R.drawable.ic_notification)
             .setContentTitle(context.getString(R.string.app_name))
             .setContentText(context.getString(R.string.remind_public))
             .build()
-        val n = NotificationCompat.Builder(context, CHANNEL)
+        val n = NotificationCompat.Builder(context, channel)
             .setSmallIcon(R.drawable.ic_notification)
             .setContentTitle(context.getString(R.string.app_name))
             .setContentText(text)
             .setStyle(NotificationCompat.BigTextStyle().bigText(text))
             .setContentIntent(open)
             .setAutoCancel(true)
-            .setVisibility(if (kind >= CYCLE_BEFORE && kind <= CYCLE_LATE) NotificationCompat.VISIBILITY_SECRET else NotificationCompat.VISIBILITY_PRIVATE)
+            .setVisibility(if (cycle) NotificationCompat.VISIBILITY_SECRET else NotificationCompat.VISIBILITY_PRIVATE)
+            .setLocalOnly(cycle)
             .setPublicVersion(public)
             .build()
         runCatching { nm.notify(kind, n) }

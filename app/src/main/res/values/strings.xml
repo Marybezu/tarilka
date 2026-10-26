@@ -217,7 +217,7 @@
     <string name="steps_from_sensor">phone sensor, since first opened today</string>
     <string name="portion_typical">Typical weight of one serving or piece. If you know the exact weight, type it in.</string>
     <string name="missing_title">Not found in the database</string>
-    <string name="missing_hint">Foods you searched for, or the AI saw in a photo, that are not in the database (times in brackets). Kept only on this phone. You can add any of them yourself: Foods → New food. To get them into the database for everyone, tap Send the list (a public GitHub issue from your account; you can edit the list before sending).</string>
+    <string name="missing_hint">Foods you searched for, or the AI saw in a photo, that are not in the database (times in brackets). Kept only on this phone. You can add any of them yourself: Foods → New food. To get them into the database for everyone, tap Send the list: the list is passed to a public GitHub page in your browser (it stays in the browser history), where you can edit it; it is published from your account only when you confirm.</string>
     <string name="copy_list">Copy list</string>
     <string name="missing_empty">Empty for now. Searches in Add, or foods the AI saw in a photo, that are not in the database will appear here.</string>
     <string name="more">More</string>
@@ -569,7 +569,7 @@
     <string name="mi_weight">Weight change along the trend line, kg a week. Weight swings with water and the cycle, so the trend over several weeks matters, not single days. More than 1% of body weight a week is too fast.</string>
     <string name="protect_title">App protection</string>
     <string name="protect_switch">Encrypt the diary and open with fingerprint or PIN</string>
-    <string name="protect_hint">The diary (food, fluids, weight, sleep, cycle, notes) is encrypted with a key kept in the phone\'s secure hardware. Tarilka opens with your fingerprint or the phone PIN and locks when the screen turns off or after a minute in the background. The profile and settings are not encrypted. Reminders work without access to your entries.</string>
+    <string name="protect_hint">The diary (food, fluids, weight, sleep, cycle, notes) is encrypted with a key kept in the phone\'s secure hardware. Tarilka opens with your fingerprint or the phone PIN and locks when the screen turns off or after a minute in the background. Not encrypted: the profile (including pregnancy), settings, daily steps, the expected next period date and a few of today\'s numbers (for reminders), the Not found list and the automatic backup password (it is protected by a key of this phone). Entries in Health Connect are not covered.</string>
     <string name="protect_on_title">Turn on protection?</string>
     <string name="protect_on_text">⚠ Important: if you ever remove the phone\'s screen lock completely (PIN and fingerprint), Android destroys the key and the diary can no longer be opened, only restored from a backup. Adding a new fingerprint does not reset the key.\n\nSo first make an encrypted backup: Options → Data → Export backup.\n\nEntries in Health Connect are not covered by this protection.</string>
     <string name="protect_on_confirm">Turn on</string>
@@ -671,7 +671,7 @@
     <string name="intro_start">Start</string>
     <string name="next">Next</string>
     <string name="crash_title">Tarilka closed with an error last time</string>
-    <string name="crash_text">You can send a technical description of the error to help fix it. It contains no diary entries, only the error\'s name and places in the code. A public GitHub page opens where you can review and edit everything before sending.</string>
+    <string name="crash_text">You can send a technical description of the error to help fix it. It contains no diary entries, only the error\'s name and places in the code. The text is passed to a public GitHub page in your browser (it stays in the browser history), where you can edit it; it is published only when you confirm there.</string>
     <string name="crash_send">Send</string>
     <string name="crash_no">No, thanks</string>
     <string name="crash_issue_title">App error</string>
@@ -719,4 +719,5 @@
     <string name="audit_pregnant">In pregnancy and while breastfeeding, the safest choice is no alcohol at all. If stopping is hard, tell your doctor: it is common, and help is available.</string>
     <string name="week_under">This week you ate clearly less on average than your body uses even at rest. Long-term undereating takes energy, muscle and sleep, and often leads to overeating. If this comes from worries about weight or food, talk to a doctor or a psychologist: help works.</string>
     <string name="targets_text_teen">Protein %1$s g · fibre %2$s g a day. Under 18 we do not show a calorie target: needs differ a lot while the body is growing. Go by hunger and fullness, regular meals and a variety of foods.</string>
+    <string name="reminders_cycle_title">Cycle reminders</string>
 </resources>

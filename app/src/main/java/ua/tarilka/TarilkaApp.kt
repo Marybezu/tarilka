@@ -128,6 +128,8 @@ class TarilkaApp : Application() {
             rawKey?.fill(0)
             return
         }
+        // A camera photo saved while the diary was locked could not be used: it does not stay unencrypted.
+        if (rawKey != null) runCatching { ua.tarilka.ai.PhotoUtil.clear(this) }
         scope.launch {
             runCatching { withDb { FoodSeeder.seedIfNeeded(this@TarilkaApp, it, prefs) } }
             // The weekly automatic copy, when it is due (works with protection too: the diary is open now).
@@ -167,7 +169,8 @@ class TarilkaApp : Application() {
         scope.launch {
             // The screens' own work stops when they are cleared; give it time, then wait for the rest.
             kotlinx.coroutines.delay(1500)
-            while (users.get() > 0) kotlinx.coroutines.delay(100)
+            // ...but not for ever: after 30 s it closes anyway (a copy stuck on a slow folder just fails).
+            kotlinx.coroutines.withTimeoutOrNull(30_000) { while (users.get() > 0) kotlinx.coroutines.delay(100) }
             runCatching { d.close() }
             key?.fill(0)
         }.also { closing = it }

@@ -300,7 +300,7 @@ m42;meat;Куряча грудка зі шкірою;Chicken breast with skin, c
 m43;meat;Свинина корейка сира;Pork loin, raw;;;;Pork, fresh, loin, whole, separable lean and fat, raw
 m44;meat;Яловичина (вирізка) сира;Beef tenderloin, raw;;;;Beef, tenderloin, steak, separable lean only, trimmed to 1/8" fat, all grades, raw
 m46;meat;Пепероні;Pepperoni;15;кілька скибочок;a few slices;Pepperoni, beef and pork, sliced
-m47;meat;Шинка копчена;Smoked ham;30;скибка;slice;Pork, cured, ham, whole, separable lean and fat, roasted
+m47;meat;Шинка копчена;Smoked ham;30;скибка;slice;Pork, cured, ham with natural juices, whole, boneless, separable lean and fat, heated, roasted
 s11;fish;Путасу / мерланг приготовані;Blue whiting / whiting, cooked;150;порція;serving;Fish, whiting, mixed species, cooked, dry heat
 s12;fish;Короп;Carp, cooked;150;порція;serving;Fish, carp, cooked, dry heat
 s13;fish;Окунь / судак;Perch, cooked;150;порція;serving;Fish, perch, mixed species, cooked, dry heat
@@ -450,7 +450,6 @@ u87;dishes;Бульйон яловичий;Beef broth;300;тарілка;bowl;So
 x13;fastfood;Чізбургер;Cheeseburger;127;шт;piece;Fast foods, cheeseburger; single, regular patty, with condiments
 x14;fastfood;Бургер подвійний (чізбургер);Double cheeseburger;165;шт;piece;Fast foods, cheeseburger; double, regular patty; with condiments
 m52;meat;Курячі крильця смажені (в паніровці);Fried chicken wings, breaded;58;шт;piece;Fast Foods, Fried Chicken, Wing, meat and skin and breading
-c45;sweets;Еклер із заварним кремом;Eclair with custard and chocolate glaze;60;шт;piece;Eclairs, custard-filled with chocolate glaze, prepared from recipe
 c46;sweets;Цукерки-трюфелі;Chocolate truffles;12;шт;piece;Candies, truffles, prepared-from-recipe
 d63;dairy;Сироватка молочна;Whey (from cottage cheese), fluid;250;склянка;glass;Whey, acid, fluid
 d64;dairy;Протеїн сироватковий (порошок);Whey protein powder;30;мірна ложка;scoop;Beverages, Protein powder whey based

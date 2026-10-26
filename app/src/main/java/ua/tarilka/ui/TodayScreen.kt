@@ -51,6 +51,7 @@ import androidx.compose.ui.unit.dp
 import ua.tarilka.R
 import ua.tarilka.ai.ModelStore
 import ua.tarilka.data.DiaryEntry
+import ua.tarilka.data.aiSafety
 import ua.tarilka.data.Tip
 import ua.tarilka.data.isUkrainian
 import ua.tarilka.ui.theme.LocalMacroColors

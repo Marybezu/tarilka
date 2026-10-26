@@ -19,6 +19,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.FlowPreview
 import androidx.room.withTransaction
+import ua.tarilka.data.aiSafety
 import ua.tarilka.data.clearDiary
 import ua.tarilka.data.drinksByDay
 import ua.tarilka.data.drinksOn

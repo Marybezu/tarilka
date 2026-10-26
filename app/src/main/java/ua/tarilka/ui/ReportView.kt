@@ -256,25 +256,24 @@ fun AdviceBlock(advice: ua.tarilka.data.Advice.Result) {
 
 /** One suggestion in words; the guideline it follows is named at the end. */
 fun adviceText(c: android.content.Context, i: ua.tarilka.data.Advice.Item): String {
-    val R_ = ua.tarilka.data.Advice.Rule
     val foods = i.foods.joinToString(", ")
     val text = if (i.good) when (i.rule) {
-        R_.VEG_FRUIT -> c.getString(R.string.advice_good_veg, i.amount.f0())
-        R_.LEGUMES -> c.getString(R.string.advice_good_legumes, i.amount.f1())
-        R_.FISH -> c.getString(R.string.advice_good_fish, i.amount.f1())
-        R_.REFINED_GRAINS -> c.getString(R.string.advice_good_whole, i.amount.f0(), foods)
+        ua.tarilka.data.Advice.Rule.VEG_FRUIT -> c.getString(R.string.advice_good_veg, i.amount.f0())
+        ua.tarilka.data.Advice.Rule.LEGUMES -> c.getString(R.string.advice_good_legumes, i.amount.f1())
+        ua.tarilka.data.Advice.Rule.FISH -> c.getString(R.string.advice_good_fish, i.amount.f1())
+        ua.tarilka.data.Advice.Rule.REFINED_GRAINS -> c.getString(R.string.advice_good_whole, i.amount.f0(), foods)
         else -> ""
     } else when (i.rule) {
-        R_.PROCESSED_MEAT -> c.getString(R.string.advice_processed, i.amount.f1(), foods)
-        R_.RED_MEAT -> c.getString(R.string.advice_red, i.amount.f0(), foods)
-        R_.SUGAR -> c.getString(R.string.advice_sugar, i.amount.f0(), foods)
-        R_.SFA_FOODS -> c.getString(R.string.advice_sfa, i.amount.f0(), foods)
-        R_.FASTFOOD -> c.getString(R.string.advice_fastfood, i.amount.f1(), foods)
-        R_.REFINED_GRAINS -> c.getString(R.string.advice_refined, i.amount.f0(), foods)
-        R_.VEG_FRUIT -> c.getString(R.string.advice_veg, i.amount.f0()) + if (foods.isNotEmpty()) " " + c.getString(R.string.advice_veg_yours, foods) else ""
-        R_.LEGUMES -> c.getString(R.string.advice_legumes)
-        R_.FISH -> c.getString(R.string.advice_fish)
-        R_.NUTS -> c.getString(R.string.advice_nuts)
+        ua.tarilka.data.Advice.Rule.PROCESSED_MEAT -> c.getString(R.string.advice_processed, i.amount.f1(), foods)
+        ua.tarilka.data.Advice.Rule.RED_MEAT -> c.getString(R.string.advice_red, i.amount.f0(), foods)
+        ua.tarilka.data.Advice.Rule.SUGAR -> c.getString(R.string.advice_sugar, i.amount.f0(), foods)
+        ua.tarilka.data.Advice.Rule.SFA_FOODS -> c.getString(R.string.advice_sfa, i.amount.f0(), foods)
+        ua.tarilka.data.Advice.Rule.FASTFOOD -> c.getString(R.string.advice_fastfood, i.amount.f1(), foods)
+        ua.tarilka.data.Advice.Rule.REFINED_GRAINS -> c.getString(R.string.advice_refined, i.amount.f0(), foods)
+        ua.tarilka.data.Advice.Rule.VEG_FRUIT -> c.getString(R.string.advice_veg, i.amount.f0()) + if (foods.isNotEmpty()) " " + c.getString(R.string.advice_veg_yours, foods) else ""
+        ua.tarilka.data.Advice.Rule.LEGUMES -> c.getString(R.string.advice_legumes)
+        ua.tarilka.data.Advice.Rule.FISH -> c.getString(R.string.advice_fish)
+        ua.tarilka.data.Advice.Rule.NUTS -> c.getString(R.string.advice_nuts)
     }
     return text + " (" + c.getString(i.rule.source) + ")"
 }

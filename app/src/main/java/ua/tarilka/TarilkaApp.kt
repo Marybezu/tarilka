@@ -119,7 +119,11 @@ class TarilkaApp : Application() {
             rawKey?.fill(0)
             return
         }
-        scope.launch { runCatching { withDb { FoodSeeder.seedIfNeeded(this@TarilkaApp, it, prefs) } } }
+        scope.launch {
+            runCatching { withDb { FoodSeeder.seedIfNeeded(this@TarilkaApp, it, prefs) } }
+            // The weekly automatic copy, when it is due (works with protection too: the diary is open now).
+            if (ua.tarilka.data.AutoBackup.isDue(prefs)) runCatching { withDb { ua.tarilka.data.AutoBackup.run(this@TarilkaApp, it, prefs) } }
+        }
     }
 
     /** Opening and locking never interleave. */

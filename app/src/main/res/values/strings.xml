@@ -638,4 +638,18 @@
     <string name="cause_loose">loose: %1$d d</string>
     <string name="cause_heavy">6+ drinks: %1$d d</string>
     <string name="mv_min_week">%1$s min/wk</string>
+    <string name="auto_backup_title">Automatic backup</string>
+    <string name="auto_backup_hint">Once a week Tarilka saves an encrypted copy into a folder you choose (for example a memory card). The 4 newest copies are kept.</string>
+    <string name="auto_backup_setup">Set up</string>
+    <string name="auto_backup_setup_text">Choose a password for the copies (at least 8 characters) and write it down: without it a copy cannot be restored. The password is kept encrypted with a key of this phone so the copies can be made by themselves. Then choose the folder.</string>
+    <string name="auto_backup_repeat">Password again</string>
+    <string name="auto_backup_short">At least 8 characters.</string>
+    <string name="auto_backup_mismatch">The passwords do not match.</string>
+    <string name="auto_backup_choose">Choose folder</string>
+    <string name="auto_backup_on">Weekly into the folder \u201c%1$s\u201d. Last copy: %2$s.</string>
+    <string name="auto_backup_problem">The last copy could not be made: the folder may be gone or the card removed. Tap Back up now or set it up again.</string>
+    <string name="auto_backup_now">Back up now</string>
+    <string name="auto_backup_off">Turn off</string>
+    <string name="auto_backup_done">Copy saved.</string>
+    <string name="auto_backup_failed">Could not make the copy. Check the folder.</string>
 </resources>

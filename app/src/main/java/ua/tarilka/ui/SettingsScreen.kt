@@ -525,6 +525,7 @@ private fun DataSection(vm: MainViewModel) {
                 OutlinedButton(onClick = { exportCsv.launch("tarilka-diary-$date.csv") }) { Text(stringResource(R.string.export_csv)) }
                 OutlinedButton(onClick = { pdfDialog = true }) { Text(stringResource(R.string.pdf_button)) }
             }
+            AutoBackupRow(vm)
             FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 TextButton(onClick = { clearing = false }) {
                     Text(stringResource(R.string.clear_diary), color = MaterialTheme.colorScheme.error)
@@ -822,3 +823,69 @@ data class PdfRequest(
     val parts: Set<ReportPart>,
     val profile: Boolean,
 ) : java.io.Serializable
+
+/** The weekly encrypted copy: where, when last, a problem if any; set up with a password and a folder. */
+@Composable
+private fun AutoBackupRow(vm: MainViewModel) {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val app = context.applicationContext as ua.tarilka.TarilkaApp
+    val version by vm.autoBackupVersion.collectAsState()
+    var setup by rememberSaveable { mutableStateOf(false) }
+    var pw1 by remember { mutableStateOf("") }
+    var pw2 by remember { mutableStateOf("") }
+    // The password waits here while the folder picker is open (only in memory, never saved in plain text).
+    var pending by remember { mutableStateOf<String?>(null) }
+    val pickFolder = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocumentTree()) { uri ->
+        val pw = pending
+        if (uri != null && pw != null) vm.setUpAutoBackup(uri, pw)
+        pending = null
+        pw1 = ""; pw2 = ""
+    }
+    val on = remember(version) { ua.tarilka.data.AutoBackup.isSetUp(app.prefs) }
+    val folder = remember(version) { if (on) ua.tarilka.data.AutoBackup.folderName(context, app.prefs) else null }
+    val problem = remember(version) { app.prefs.autoBackupProblem }
+    val last = remember(version) { app.prefs.autoBackupLast.takeIf { it > 0 } }
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Text(stringResource(R.string.auto_backup_title), style = MaterialTheme.typography.titleSmall)
+        if (on) {
+            Text(
+                stringResource(R.string.auto_backup_on, folder ?: "—", last?.let { shortDate(it) } ?: "—"),
+                style = MaterialTheme.typography.bodySmall,
+            )
+            if (problem) Text(stringResource(R.string.auto_backup_problem), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.tertiary)
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                OutlinedButton(onClick = { vm.autoBackupNow() }) { Text(stringResource(R.string.auto_backup_now)) }
+                TextButton(onClick = { vm.turnOffAutoBackup() }) { Text(stringResource(R.string.auto_backup_off)) }
+            }
+        } else {
+            Text(stringResource(R.string.auto_backup_hint), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            OutlinedButton(onClick = { setup = true }) { Text(stringResource(R.string.auto_backup_setup)) }
+        }
+    }
+    if (setup) {
+        val ok = pw1.length >= 8 && pw1 == pw2
+        androidx.compose.material3.AlertDialog(
+            onDismissRequest = { setup = false },
+            title = { Text(stringResource(R.string.auto_backup_title)) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(stringResource(R.string.auto_backup_setup_text), style = MaterialTheme.typography.bodyMedium)
+                    androidx.compose.material3.OutlinedTextField(
+                        pw1, { pw1 = it }, label = { Text(stringResource(R.string.password)) }, singleLine = true,
+                        visualTransformation = androidx.compose.ui.text.input.PasswordVisualTransformation(),
+                    )
+                    androidx.compose.material3.OutlinedTextField(
+                        pw2, { pw2 = it }, label = { Text(stringResource(R.string.auto_backup_repeat)) }, singleLine = true,
+                        visualTransformation = androidx.compose.ui.text.input.PasswordVisualTransformation(),
+                    )
+                    if (pw1.isNotEmpty() && pw1.length < 8) Text(stringResource(R.string.auto_backup_short), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.tertiary)
+                    else if (pw2.isNotEmpty() && pw1 != pw2) Text(stringResource(R.string.auto_backup_mismatch), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.tertiary)
+                }
+            },
+            confirmButton = {
+                TextButton(enabled = ok, onClick = { pending = pw1; setup = false; pickFolder.launch(null) }) { Text(stringResource(R.string.auto_backup_choose)) }
+            },
+            dismissButton = { TextButton(onClick = { setup = false; pw1 = ""; pw2 = "" }) { Text(stringResource(R.string.cancel)) } },
+        )
+    }
+}

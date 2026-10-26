@@ -638,4 +638,18 @@
     <string name="cause_loose">рідке: %1$d дн.</string>
     <string name="cause_heavy">6+ порцій: %1$d дн.</string>
     <string name="mv_min_week">%1$s хв/тиж</string>
+    <string name="auto_backup_title">Автоматична копія</string>
+    <string name="auto_backup_hint">Раз на тиждень Тарілка сама збереже зашифровану копію в обрану теку (наприклад, на карту памʼяті). Зберігаються 4 останні копії.</string>
+    <string name="auto_backup_setup">Налаштувати</string>
+    <string name="auto_backup_setup_text">Придумайте пароль для копій (щонайменше 8 символів) і запишіть його: без нього копію не відновити. Пароль зберігається зашифрованим ключем цього телефона, щоб копії робилися самі. Далі оберіть теку.</string>
+    <string name="auto_backup_repeat">Пароль ще раз</string>
+    <string name="auto_backup_short">Щонайменше 8 символів.</string>
+    <string name="auto_backup_mismatch">Паролі не збігаються.</string>
+    <string name="auto_backup_choose">Обрати теку</string>
+    <string name="auto_backup_on">Щотижня в теку «%1$s». Остання копія: %2$s.</string>
+    <string name="auto_backup_problem">Останню копію зробити не вдалося: можливо, теку видалено або карту вийнято. Натисніть «Зробити зараз» або налаштуйте знову.</string>
+    <string name="auto_backup_now">Зробити зараз</string>
+    <string name="auto_backup_off">Вимкнути</string>
+    <string name="auto_backup_done">Копію збережено.</string>
+    <string name="auto_backup_failed">Копію зробити не вдалося. Перевірте теку.</string>
 </resources>

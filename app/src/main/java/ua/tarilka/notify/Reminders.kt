@@ -13,7 +13,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import ua.tarilka.R
 import ua.tarilka.TarilkaApp
-import ua.tarilka.data.FluidRules
+import ua.tarilka.data.drinksOn
 import ua.tarilka.data.Nutrition
 import ua.tarilka.ui.MainActivity
 import java.time.DayOfWeek
@@ -105,7 +105,7 @@ object Reminders {
             WATER -> {
                 val fromDb = app.withDb { db ->
                     val ml = db.fluids().mlOnce(today) +
-                        db.fluids().drinksFromDiary(today, FluidRules.ALCOHOL, FluidRules.MILK_DRINKS, FluidRules.SOUPS).first()
+                        db.fluids().drinksOn(today).first()
                     ml to Nutrition.targets(app.prefs.profile.value, db.weights().allOnce().lastOrNull()?.kg).waterMl
                 }
                 val drunk = fromDb?.first ?: app.prefs.cachedFluid(today)

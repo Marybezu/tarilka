@@ -171,17 +171,8 @@ object Backup {
         require(o.optInt("version", 1) <= VERSION) { "made by a newer version of Tarilka: update the app first" }
         val summary = peek(json)
         db.withTransaction {
-            db.diary().deleteAll()
-            db.fluids().deleteAll()
-            db.weights().deleteAll()
+            db.clearDiary()
             db.foods().deleteCustom()
-            db.notes().deleteAll()
-            db.sleep().deleteAll()
-            db.bowel().deleteAll()
-            db.workouts().deleteAll()
-            db.cycle().deleteAll()
-            db.cycle().deleteAllDays()
-            db.waist().deleteAll()
 
             val idMap = mutableMapOf<Long, Long>()
             o.optJSONArray("customFoods")?.let { arr ->

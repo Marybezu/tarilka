@@ -8,7 +8,7 @@ import androidx.room.RoomDatabase
 @Database(
     entities = [Food::class, DiaryEntry::class, WeightEntry::class, FluidEntry::class, DayNote::class, SleepEntry::class, BowelEntry::class, WorkoutEntry::class, PeriodEntry::class, PeriodDay::class, WaistEntry::class],
     version = AppDatabase.VERSION,
-    exportSchema = true,
+    exportSchema = false,
 )
 abstract class AppDatabase : RoomDatabase() {
     abstract fun foods(): FoodDao
@@ -96,4 +96,18 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
     }
+}
+
+/** Deletes every diary record (food, fluids, weight, notes, sleep, bowel, workouts, cycle, waist); foods stay. */
+suspend fun AppDatabase.clearDiary() {
+    diary().deleteAll()
+    fluids().deleteAll()
+    weights().deleteAll()
+    notes().deleteAll()
+    sleep().deleteAll()
+    bowel().deleteAll()
+    workouts().deleteAll()
+    cycle().deleteAll()
+    cycle().deleteAllDays()
+    waist().deleteAll()
 }

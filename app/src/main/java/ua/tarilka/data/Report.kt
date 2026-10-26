@@ -61,7 +61,7 @@ object Report {
         fun ratioLevel(v: Double, t: Double, good: Double, ok: Double) =
             if (v >= t * good) Level.GOOD else if (v >= t * ok) Level.OK else Level.WATCH
 
-        /** [better] maps (now, before) to +1/-1/0. */
+        /** One measure: its value, level, the value before, and how a change is judged ([higherIsBetter], [closenessTo]). */
         fun add(
             key: Metric.Key, value: Double?, target: Double?, level: Level, prevValue: Double?,
             minDiff: Double, higherIsBetter: Boolean, series: (PeriodData) -> Double?, seriesTarget: Double?,

@@ -7,6 +7,7 @@ import androidx.room.Query
 import androidx.room.Update
 import androidx.room.Upsert
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 
 @Dao
 interface FoodDao {
@@ -133,22 +134,9 @@ interface FluidDao {
     fun forDay(day: Long): Flow<List<FluidEntry>>
 
     /**
-     * Drinks logged as food also count as fluid (1 g ≈ 1 ml): non-alcoholic drinks
-     * and milk drinks; not spirits, beer or wine, and not dry powders.
+     * Drinks logged as food also count as fluid (1 g ≈ 1 ml), per day: non-alcoholic drinks and milk drinks,
+     * soups at 80 %; not spirits, beer or wine, and not dry powders. Use [drinksByDay] for the lists.
      */
-    @Query(
-        """SELECT COALESCE(SUM(CASE WHEN f.code IN (:soups) THEN d.grams * 0.8 ELSE d.grams END), 0) FROM diary d JOIN foods f ON f.id = d.foodId
-           WHERE d.day = :day AND f.kcal < 150 AND (
-             (f.category = 'drinks' AND f.code NOT IN (:alcohol)) OR f.code IN (:milkDrinks) OR f.code IN (:soups))"""
-    )
-    fun drinksFromDiary(
-        day: Long,
-        alcohol: List<String>,
-        milkDrinks: List<String>,
-        soups: List<String>,
-    ): Flow<Double>
-
-    /** Drinks logged as food, per day (same rules as [drinksFromDiary]). */
     @Query(
         """SELECT d.day AS day, SUM(CASE WHEN f.code IN (:soups) THEN d.grams * 0.8 ELSE d.grams END) AS ml FROM diary d JOIN foods f ON f.id = d.foodId
            WHERE d.day BETWEEN :from AND :to AND f.kcal < 150 AND (
@@ -331,6 +319,13 @@ interface CycleDao {
     @Query("DELETE FROM period_days")
     suspend fun deleteAllDays()
 }
+
+/** Drinks logged as food, per day, with the app's rules ([FluidRules]). */
+fun FluidDao.drinksByDay(from: Long, to: Long): Flow<List<DayFluid>> =
+    drinksFromDiaryRange(from, to, FluidRules.ALCOHOL, FluidRules.MILK_DRINKS, FluidRules.SOUPS)
+
+/** The same for one day, in ml. */
+fun FluidDao.drinksOn(day: Long): Flow<Double> = drinksByDay(day, day).map { list -> list.sumOf { it.ml } }
 
 object FluidRules {
     val ALCOHOL = listOf("dr06", "dr07", "dr08", "dr09", "dr23", "dr24", "dr25", "dr31", "dr33", "dr34")

@@ -132,9 +132,6 @@ private fun Bars(series: List<Double?>, target: Double?, color: Color, fromZero:
 private fun name(k: Key): String = metricName(androidx.compose.ui.platform.LocalContext.current, k)
 
 @Composable
-private fun number(k: Key, v: Double): String = metricNumber(androidx.compose.ui.platform.LocalContext.current, k, v)
-
-@Composable
 private fun valueText(m: Metric): String = metricValue(androidx.compose.ui.platform.LocalContext.current, m)
 
 /** The measure's name; plain functions so the PDF report says exactly the same. */

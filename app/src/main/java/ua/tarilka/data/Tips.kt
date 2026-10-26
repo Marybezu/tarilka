@@ -24,7 +24,6 @@ object Tips {
         targets: Targets,
         entries: Int,
         dayFinished: Boolean,
-        profile: Profile,
         weeklyTrendKg: Double?,
         currentWeight: Double?,
         fluidMl: Double = 0.0,

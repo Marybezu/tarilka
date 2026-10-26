@@ -18,6 +18,10 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.FlowPreview
+import androidx.room.withTransaction
+import ua.tarilka.data.clearDiary
+import ua.tarilka.data.drinksByDay
+import ua.tarilka.data.drinksOn
 import ua.tarilka.TarilkaApp
 import ua.tarilka.data.DayTotal
 import ua.tarilka.data.DiaryEntry
@@ -49,6 +53,8 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
 
     /** Call on resume: if the app stayed open past midnight, move from yesterday to the new day. */
     fun onResume() {
+        // The diary was locked meanwhile: this view model's database is closed.
+        if (tapp.dbState.value !== db) return
         val now = LocalDate.now()
         if (now != today.value) {
             if (day.value == today.value) day.value = now
@@ -101,7 +107,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     /** Water entries plus drinks logged as food. */
     val fluidMl: StateFlow<Double> = combine(
         fluids,
-        day.flatMapLatest { db.fluids().drinksFromDiary(it.toEpochDay(), ua.tarilka.data.FluidRules.ALCOHOL, ua.tarilka.data.FluidRules.MILK_DRINKS, ua.tarilka.data.FluidRules.SOUPS) },
+        day.flatMapLatest { db.fluids().drinksOn(it.toEpochDay()) },
     ) { f, drinks -> f.sumOf { it.ml } + drinks }
         .stateIn(viewModelScope, SharingStarted.Eagerly, 0.0)
 
@@ -119,14 +125,13 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
 
     val tips: StateFlow<List<Tip>> = combine(
         combine(totals, targets, entries) { t, tg, e -> Triple(t, tg, e.size) },
-        combine(day, profile, weeklyTrend, latestWeight) { d, p, tr, w -> listOf(d, p, tr, w) },
+        combine(day, weeklyTrend, latestWeight) { d, tr, w -> Triple(d, tr, w) },
         combine(fluidMl, steps, prefs.stepsGoal) { f, st, goal -> Triple(f, st, goal) },
-    ) { (t, tg, n), rest, (fluid, st, goal) ->
-        val d = rest[0] as LocalDate
+    ) { (t, tg, n), (d, trend, weight), (fluid, st, goal) ->
         val now = LocalTime.now().hour
         val finished = d.isBefore(LocalDate.now()) || now >= 21
         val afternoon = d == LocalDate.now() && now >= 15
-        Tips.forDay(t, tg, n, finished, rest[1] as Profile, rest[2] as Double?, rest[3] as Double?, fluid, afternoon, st, goal, entries.value)
+        Tips.forDay(t, tg, n, finished, trend, weight, fluid, afternoon, st, goal, entries.value)
     }.combine(
         // Workouts tracked for a week or more and none in the last 7 days: a gentle word, at most once a week, never daily.
         combine(prefs.workoutsEnabled, day, today) { on, d, t -> Triple(on, d, t) }.flatMapLatest { (on, d, t) ->
@@ -459,7 +464,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
             db.diary().totals(from, to),
             combine(
                 db.fluids().totals(from, to),
-                db.fluids().drinksFromDiaryRange(from, to, ua.tarilka.data.FluidRules.ALCOHOL, ua.tarilka.data.FluidRules.MILK_DRINKS, ua.tarilka.data.FluidRules.SOUPS),
+                db.fluids().drinksByDay(from, to),
             ) { a, b -> (a + b).groupBy { it.day }.mapValues { (d, l) -> ua.tarilka.data.DayFluid(d, l.sumOf { it.ml }) } },
             db.weights().all(), db.notes().all(),
         ) { food, w, weight, notes ->
@@ -622,16 +627,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
      * favorites, the profile and the not-found list. The AI model and app settings stay.
      */
     fun clearData(everything: Boolean, alsoHealthConnect: Boolean) = viewModelScope.launch {
-        db.diary().deleteAll()
-        db.fluids().deleteAll()
-        db.weights().deleteAll()
-        db.notes().deleteAll()
-        db.sleep().deleteAll()
-        db.bowel().deleteAll()
-        db.workouts().deleteAll()
-        db.cycle().deleteAll()
-        db.cycle().deleteAllDays()
-        db.waist().deleteAll()
+        db.withTransaction { db.clearDiary() }
         prefs.clearCycle()
         prefs.clearCache()
         if (everything) {
@@ -744,7 +740,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         val workouts = db.workouts().range(prevFrom.toEpochDay(), end.toEpochDay())
         val fluids = (
             db.fluids().totalsOnce(prevFrom.toEpochDay(), end.toEpochDay()) +
-                db.fluids().drinksFromDiaryRange(prevFrom.toEpochDay(), end.toEpochDay(), ua.tarilka.data.FluidRules.ALCOHOL, ua.tarilka.data.FluidRules.MILK_DRINKS, ua.tarilka.data.FluidRules.SOUPS).first()
+                db.fluids().drinksByDay(prevFrom.toEpochDay(), end.toEpochDay()).first()
             ).groupBy { it.day }.mapValues { (_, l) -> l.sumOf { it.ml } }.filterValues { it > 0 }
         val steps = if (prefs.stepsEnabled) stepsByDay(prevFrom, end).filterValues { it > 0 } else emptyMap()
         val weightsAll = db.weights().allOnce()
@@ -866,7 +862,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         val diary = db.diary().range(r.first, r.last).groupBy { it.day }
         val fluids = (
             db.fluids().totalsOnce(r.first, r.last) +
-                db.fluids().drinksFromDiaryRange(r.first, r.last, ua.tarilka.data.FluidRules.ALCOHOL, ua.tarilka.data.FluidRules.MILK_DRINKS, ua.tarilka.data.FluidRules.SOUPS).first()
+                db.fluids().drinksByDay(r.first, r.last).first()
             ).groupBy { it.day }.mapValues { (_, l) -> l.sumOf { it.ml } }
         val weights = db.weights().allOnce().filter { it.day in r }.associateBy { it.day }
         val sleep = sleepRange(from, to)
@@ -906,7 +902,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         // Water entries plus drinks logged as food, as on the Today screen.
         val fluidsByDay = (
             db.fluids().totalsOnce(prevFrom.toEpochDay(), end.toEpochDay()) +
-                db.fluids().drinksFromDiaryRange(prevFrom.toEpochDay(), end.toEpochDay(), ua.tarilka.data.FluidRules.ALCOHOL, ua.tarilka.data.FluidRules.MILK_DRINKS, ua.tarilka.data.FluidRules.SOUPS).first()
+                db.fluids().drinksByDay(prevFrom.toEpochDay(), end.toEpochDay()).first()
             ).groupBy { it.day }.mapValues { (_, l) -> l.sumOf { it.ml } }
         val tg = targets.value
         val time = java.time.format.DateTimeFormatter.ofPattern("HH:mm")

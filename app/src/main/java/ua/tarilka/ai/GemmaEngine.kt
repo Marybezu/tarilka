@@ -19,15 +19,11 @@ import org.json.JSONArray
 import org.json.JSONObject
 import java.io.File
 
-/** One food the model saw on the plate. Nutrients are the model's own estimate (fallback only). */
+/** One food the model saw on the plate; its values always come from the database. */
 data class DetectedFood(
     val nameEn: String,
     val nameUk: String,
     val grams: Double,
-    val kcal100: Double?,
-    val protein100: Double?,
-    val fat100: Double?,
-    val carbs100: Double?,
     val confidence: String,
 )
 
@@ -244,10 +240,6 @@ confidence is "high", "medium" or "low". If there is no food, answer {"items":[]
                     nameEn = en.ifEmpty { uk },
                     nameUk = ua.tarilka.data.Lang.safeUk(uk, en.ifEmpty { uk }),
                     grams = (num("grams") ?: 100.0).coerceIn(1.0, 2000.0),
-                    kcal100 = num("kcal_per_100g"),
-                    protein100 = num("protein_per_100g"),
-                    fat100 = num("fat_per_100g"),
-                    carbs100 = num("carbs_per_100g"),
                     confidence = o.optString("confidence", "medium"),
                 )
             }

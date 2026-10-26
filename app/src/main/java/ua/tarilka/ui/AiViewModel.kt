@@ -134,7 +134,7 @@ class AiViewModel(app: Application) : AndroidViewModel(app) {
         val gen = newGeneration()
         analysis = viewModelScope.launch {
             if (_importProgress.value != null) {
-                update(gen) { it.copy(error = "the model is still being copied") }
+                update(gen) { it.copy(error = getApplication<Application>().getString(ua.tarilka.R.string.ai_busy)) }
                 return@launch
             }
             if (aiBusy()) {
@@ -193,7 +193,7 @@ class AiViewModel(app: Application) : AndroidViewModel(app) {
                         item.unit == ua.tarilka.data.TextMeal.Unit.PIECES -> item.amount * (food?.portionG ?: 100.0)
                         else -> item.amount
                     }
-                    ReviewItem(DetectedFood(item.name, item.name, grams, null, null, null, null, "manual"), food, grams, include = food != null)
+                    ReviewItem(DetectedFood(item.name, item.name, grams, "manual"), food, grams, include = food != null)
                 }
                 items.filter { it.food == null }.forEach { tapp.prefs.recordMissing(it.detected.nameEn) }
                 update(gen) { it.copy(items = items, analyzed = true) }
@@ -262,7 +262,7 @@ class AiViewModel(app: Application) : AndroidViewModel(app) {
     fun replaceFood(i: Int, food: Food) = updateItem(i) { it.copy(food = food, include = true) }
 
     fun addManualItem(food: Food) = _photo.update {
-        val d = DetectedFood(food.nameEn, food.nameUk, food.portionG ?: 100.0, null, null, null, null, "manual")
+        val d = DetectedFood(food.nameEn, food.nameUk, food.portionG ?: 100.0, "manual")
         it.copy(items = it.items + ReviewItem(d, food, d.grams))
     }
 

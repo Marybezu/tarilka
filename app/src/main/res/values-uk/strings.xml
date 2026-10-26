@@ -159,7 +159,6 @@
     <string name="plus_ml">+%1$d мл</string>
     <string name="water_target">Рідина: близько %1$s л напоїв на день (EFSA).</string>
     <string name="tip_water_low">Варто більше пити: поки %1$d з %2$d мл.</string>
-    <string name="steps_line">Кроки: %1$d · ≈ %2$s ккал</string>
     <string name="tip_steps_good">Кроків сьогодні: %1$d. Чудова прогулянка!</string>
     <string name="tip_steps_low">Кроків сьогодні: лише %1$d. 20 хвилин ходьби — це ще близько 2 000.</string>
     <string name="activity_section">Кроки та Health Connect</string>
@@ -239,7 +238,6 @@
     <string name="period_week">Тиждень</string>
     <string name="period_month">Місяць</string>
     <string name="period_year">Рік</string>
-    <string name="summaries_avg">У середньому %1$s ккал, білок %2$s г · днів із записами: %3$d</string>
     <string name="summaries_few">Поки замало записів: потрібно хоча б 3 дні.</string>
     <string name="ai_summary">Підсумок ШІ</string>
     <string name="habit_veg">🥦 Овочі й фрукти: %1$s з 400 г</string>

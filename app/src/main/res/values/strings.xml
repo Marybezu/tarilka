@@ -159,7 +159,6 @@
     <string name="plus_ml">+%1$d ml</string>
     <string name="water_target">Fluids: about %1$s L of drinks a day (EFSA).</string>
     <string name="tip_water_low">Drink more: %1$d of %2$d ml so far.</string>
-    <string name="steps_line">Steps: %1$d · ≈ %2$s kcal</string>
     <string name="tip_steps_good">%1$d steps today, nice walking.</string>
     <string name="tip_steps_low">Only %1$d steps today. A 20-minute walk is about 2,000 more.</string>
     <string name="activity_section">Steps and Health Connect</string>
@@ -239,7 +238,6 @@
     <string name="period_week">Week</string>
     <string name="period_month">Month</string>
     <string name="period_year">Year</string>
-    <string name="summaries_avg">On average %1$s kcal, protein %2$s g · days logged: %3$d</string>
     <string name="summaries_few">Not enough entries yet: at least 3 days are needed.</string>
     <string name="ai_summary">AI summary</string>
     <string name="habit_veg">🥦 Vegetables and fruit: %1$s of 400 g</string>

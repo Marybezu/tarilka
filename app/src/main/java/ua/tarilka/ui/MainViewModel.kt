@@ -680,6 +680,34 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
             Period.YEAR -> (11 downTo 0).map { i -> end.withDayOfMonth(1).minusMonths(i.toLong()).let { m -> m to minOf(m.plusMonths(1).minusDays(1), end) } }
         }
         val from = if (period == Period.YEAR) bars.first().first else end.minusDays(period.days - 1L)
+        val uk = ua.tarilka.data.isUkrainian()
+        return reportFor(from, end, bars) { a ->
+            when (period) {
+                Period.WEEK -> a.dayOfWeek.getDisplayName(java.time.format.TextStyle.NARROW_STANDALONE, java.util.Locale.getDefault())
+                Period.MONTH -> "${a.dayOfMonth}.%02d".format(a.monthValue)
+                Period.YEAR -> a.month.getDisplayName(java.time.format.TextStyle.NARROW_STANDALONE, if (uk) java.util.Locale.forLanguageTag("uk") else java.util.Locale.ENGLISH)
+            }
+        }
+    }
+
+    /** Bars for any stretch: days up to a month, weeks up to half a year, then calendar months. */
+    fun barsFor(from: LocalDate, end: LocalDate): List<Pair<LocalDate, LocalDate>> {
+        val n = end.toEpochDay() - from.toEpochDay() + 1
+        return when {
+            n <= 31 -> (0 until n).map { from.plusDays(it).let { d -> d to d } }
+            n <= 186 -> generateSequence(end) { it.minusDays(7) }.takeWhile { !it.isBefore(from) }
+                .map { b -> maxOf(b.minusDays(6), from) to b }.toList().reversed()
+            else -> generateSequence(from.withDayOfMonth(1)) { it.plusMonths(1) }.takeWhile { !it.isAfter(end) }
+                .map { m -> maxOf(m, from) to minOf(m.plusMonths(1).minusDays(1), end) }.toList()
+        }
+    }
+
+    suspend fun reportFor(
+        from: LocalDate,
+        end: LocalDate,
+        bars: List<Pair<LocalDate, LocalDate>>,
+        label: (LocalDate) -> String,
+    ): PeriodReport {
         val days = (end.toEpochDay() - from.toEpochDay() + 1).toInt()
         val prevFrom = from.minusDays(days.toLong())
         val foods = foodsById.value.ifEmpty { db.foods().allOnce().associateBy { it.id } }
@@ -719,15 +747,94 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         val cur = data(from, end)
         val prev = data(prevFrom, from.minusDays(1))
         val metrics = ua.tarilka.data.Report.build(cur, prev, bars.map { (a, b) -> data(a, b) }, targets.value, prefs.stepsGoal.value)
-        val uk = ua.tarilka.data.isUkrainian()
-        val labels = bars.map { (a, _) ->
-            when (period) {
-                Period.WEEK -> a.dayOfWeek.getDisplayName(java.time.format.TextStyle.NARROW_STANDALONE, java.util.Locale.getDefault())
-                Period.MONTH -> "${a.dayOfMonth}.%02d".format(a.monthValue)
-                Period.YEAR -> a.month.getDisplayName(java.time.format.TextStyle.NARROW_STANDALONE, if (uk) java.util.Locale.forLanguageTag("uk") else java.util.Locale.ENGLISH)
-            }
+        return PeriodReport(metrics, bars.map { label(it.first) }, ua.tarilka.data.Report.highlights(metrics), cur.habits.days)
+    }
+
+    // ---- PDF report ----
+
+    /** Everything about one day that a PDF report may show. */
+    data class ReportDay(
+        val date: LocalDate,
+        val entries: List<DiaryEntry>,
+        val fluidMl: Double,
+        val weight: ua.tarilka.data.WeightEntry?,
+        val sleep: Double?,
+        val bowel: ua.tarilka.data.BowelEntry?,
+        val workouts: List<ua.tarilka.data.WorkoutEntry>,
+        val steps: Long?,
+        val note: String?,
+        val periodDay: ua.tarilka.data.PeriodDay?,
+        val inPeriod: Boolean,
+    )
+
+    data class ReportData(
+        val from: LocalDate,
+        val to: LocalDate,
+        val summary: PeriodReport,
+        val days: List<ReportDay>,
+        val periods: List<ua.tarilka.data.PeriodEntry>,
+        val cycle: ua.tarilka.data.CycleInfo?,
+        val targets: Targets,
+        val profile: Profile,
+    )
+
+    /** Writes a PDF report to [uri]; [context] gives the texts in the app's language. */
+    fun exportPdf(context: android.content.Context, uri: android.net.Uri, from: LocalDate, to: LocalDate, parts: Set<ua.tarilka.ui.ReportPart>, withProfile: Boolean) =
+        viewModelScope.launch {
+            val app = getApplication<Application>()
+            runCatching {
+                val data = reportData(from, to)
+                kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                    app.contentResolver.openOutputStream(uri)?.use { out ->
+                        PdfReport.write(context, out, data, parts, withProfile, prefs.mealTimes.value)
+                    } ?: error("no output")
+                }
+            }.onSuccess { dataMessage.value = app.getString(ua.tarilka.R.string.pdf_saved) }
+                .onFailure { dataMessage.value = app.getString(ua.tarilka.R.string.pdf_failed) }
         }
-        return PeriodReport(metrics, labels, ua.tarilka.data.Report.highlights(metrics), cur.habits.days)
+
+    /** The first day with any entry: "all time" starts there. */
+    suspend fun firstEntryDay(): LocalDate {
+        val candidates = listOfNotNull(
+            db.diary().range(0, LocalDate.now().toEpochDay()).minOfOrNull { it.day },
+            db.weights().allOnce().minOfOrNull { it.day },
+            db.notes().allOnce().minOfOrNull { it.day },
+        )
+        return candidates.minOrNull()?.let(LocalDate::ofEpochDay) ?: LocalDate.now()
+    }
+
+    suspend fun reportData(from: LocalDate, to: LocalDate): ReportData {
+        val r = from.toEpochDay()..to.toEpochDay()
+        val uk = ua.tarilka.data.isUkrainian()
+        val summary = reportFor(from, to, barsFor(from, to)) { a ->
+            if (to.toEpochDay() - from.toEpochDay() > 186) {
+                a.month.getDisplayName(java.time.format.TextStyle.SHORT_STANDALONE, if (uk) java.util.Locale.forLanguageTag("uk") else java.util.Locale.ENGLISH)
+            } else "${a.dayOfMonth}.%02d".format(a.monthValue)
+        }
+        val diary = db.diary().range(r.first, r.last).groupBy { it.day }
+        val fluids = (
+            db.fluids().totalsOnce(r.first, r.last) +
+                db.fluids().drinksFromDiaryRange(r.first, r.last, ua.tarilka.data.FluidRules.ALCOHOL, ua.tarilka.data.FluidRules.MILK_DRINKS, ua.tarilka.data.FluidRules.SOUPS).first()
+            ).groupBy { it.day }.mapValues { (_, l) -> l.sumOf { it.ml } }
+        val weights = db.weights().allOnce().filter { it.day in r }.associateBy { it.day }
+        val sleep = sleepRange(from, to)
+        val bowel = db.bowel().range(r.first, r.last).associateBy { it.day }
+        val workouts = db.workouts().range(r.first, r.last).groupBy { it.day }
+        val steps = if (prefs.stepsEnabled) stepsByDay(from, to) else emptyMap()
+        val notes = db.notes().allOnce().filter { it.day in r }.associate { it.day to it.text }
+        val cyclePeriods = periods.value
+        val pDays = periodDays.value.associateBy { it.day }
+        val days = r.map { d ->
+            ReportDay(
+                LocalDate.ofEpochDay(d), diary[d].orEmpty().sortedBy { it.createdAt }, fluids[d] ?: 0.0, weights[d], sleep[d], bowel[d],
+                workouts[d].orEmpty(), steps[d]?.takeIf { it > 0 }, notes[d], pDays[d],
+                cyclePeriods.any { p -> d in p.start..(p.end ?: (p.start + 6)) },
+            )
+        }
+        return ReportData(
+            from, to, summary, days, cyclePeriods.filter { it.start <= r.last && (it.end ?: it.start) >= r.first - 60 },
+            cycle.value, targets.value, profile.value,
+        )
     }
 
     /** Plain-text summary of a period ending today, compared with the period before, for the AI. */

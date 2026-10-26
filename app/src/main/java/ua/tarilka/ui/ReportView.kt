@@ -57,18 +57,9 @@ fun ReportView(report: MainViewModel.PeriodReport) {
     }
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
         // The main points, from simple rules (no AI needed).
-        val hl = report.highlights
-        val lines = buildList {
-            hl.improved?.let { add(stringResource(R.string.report_improved, name(it.key), number(it.key, it.prev ?: 0.0), number(it.key, it.value))) }
-            hl.attention?.let { add(stringResource(R.string.report_attention, name(it.key), valueText(it))) }
-            hl.steady?.let { add(stringResource(R.string.report_steady, name(it.key))) }
-        }
+        val ctx = androidx.compose.ui.platform.LocalContext.current
         Text(stringResource(R.string.report_main), style = MaterialTheme.typography.titleSmall)
-        Text(
-            if (lines.isEmpty() || metrics.none { it.prev != null }) (lines + stringResource(R.string.report_no_compare)).joinToString("\n")
-            else lines.joinToString("\n"),
-            style = MaterialTheme.typography.bodyMedium,
-        )
+        Text(highlightLines(ctx, metrics, report.highlights).joinToString("\n"), style = MaterialTheme.typography.bodyMedium)
         // Bar labels once, above all the charts.
         Row(Modifier.fillMaxWidth().padding(top = 4.dp)) {
             report.barLabels.forEach {
@@ -102,12 +93,7 @@ private fun MetricRow(m: Metric, onClick: () -> Unit) {
             Text(name(m.key), style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
             Text(": " + valueText(m), style = MaterialTheme.typography.bodyMedium.merge(Numbers), modifier = Modifier.weight(1f))
         }
-        val change = when {
-            m.key == Key.WEIGHT || m.prev == null -> null
-            m.change > 0 -> stringResource(R.string.report_better, number(m.key, m.prev))
-            m.change < 0 -> stringResource(R.string.report_worse, number(m.key, m.prev))
-            else -> stringResource(R.string.report_same, number(m.key, m.prev))
-        }
+        val change = metricChange(androidx.compose.ui.platform.LocalContext.current, m)
         change?.let { Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant) }
         Bars(m.series, m.seriesTarget, levelColor(m.level))
     }
@@ -140,7 +126,16 @@ private fun Bars(series: List<Double?>, target: Double?, color: Color) {
 }
 
 @Composable
-private fun name(k: Key): String = stringResource(
+private fun name(k: Key): String = metricName(androidx.compose.ui.platform.LocalContext.current, k)
+
+@Composable
+private fun number(k: Key, v: Double): String = metricNumber(androidx.compose.ui.platform.LocalContext.current, k, v)
+
+@Composable
+private fun valueText(m: Metric): String = metricValue(androidx.compose.ui.platform.LocalContext.current, m)
+
+/** The measure's name; plain functions so the PDF report says exactly the same. */
+fun metricName(c: android.content.Context, k: Key): String = c.getString(
     when (k) {
         Key.KCAL -> R.string.m_kcal
         Key.PROTEIN -> R.string.m_protein
@@ -161,35 +156,51 @@ private fun name(k: Key): String = stringResource(
 )
 
 /** The bare number in the measure's unit (for "it was …"). */
-@Composable
-private fun number(k: Key, v: Double): String = when (k) {
-    Key.FLUID -> (v / 1000).f1() + " " + stringResource(R.string.unit_l)
-    Key.SLEEP -> v.f1() + " " + stringResource(R.string.unit_h)
+fun metricNumber(c: android.content.Context, k: Key, v: Double): String = when (k) {
+    Key.FLUID -> (v / 1000).f1() + " " + c.getString(R.string.unit_l)
+    Key.SLEEP -> v.f1() + " " + c.getString(R.string.unit_h)
     Key.ALCOHOL, Key.FASTFOOD, Key.BOWEL -> v.f1()
     Key.SWEETS, Key.LATE, Key.REASONS -> v.f0() + "%"
     Key.WEIGHT -> (if (v > 0) "+" else "") + v.f1()
     else -> v.f0()
 }
 
-@Composable
-private fun valueText(m: Metric): String {
+fun metricValue(c: android.content.Context, m: Metric): String {
     val v = m.value
     val t = m.target ?: 0.0
     return when (m.key) {
-        Key.KCAL -> stringResource(R.string.mv_kcal, v.f0(), t.f0())
-        Key.PROTEIN, Key.FIBER -> stringResource(R.string.mv_grams, v.f0(), t.f0())
-        Key.FLUID -> stringResource(R.string.mv_litres, (v / 1000).f1(), (t / 1000).f1())
-        Key.VEG -> stringResource(R.string.mv_grams, v.f0(), "400")
-        Key.SWEETS, Key.LATE -> stringResource(R.string.mv_pct_kcal, v.f0())
-        Key.SLEEP -> stringResource(R.string.mv_sleep, v.f1())
-        Key.STEPS -> stringResource(R.string.mv_of, v.f0(), t.f0())
-        Key.ACTIVITY -> stringResource(R.string.mv_activity, v.f0())
-        Key.ALCOHOL -> stringResource(R.string.per_week, v.f1())
-        Key.FASTFOOD -> stringResource(R.string.mv_days_week, v.f1())
-        Key.REASONS -> stringResource(R.string.mv_reasons, v.f0())
-        Key.BOWEL -> stringResource(R.string.mv_days_week, v.f1())
-        Key.WEIGHT -> stringResource(R.string.mv_weight, number(Key.WEIGHT, v))
+        Key.KCAL -> c.getString(R.string.mv_kcal, v.f0(), t.f0())
+        Key.PROTEIN, Key.FIBER -> c.getString(R.string.mv_grams, v.f0(), t.f0())
+        Key.FLUID -> c.getString(R.string.mv_litres, (v / 1000).f1(), (t / 1000).f1())
+        Key.VEG -> c.getString(R.string.mv_grams, v.f0(), "400")
+        Key.SWEETS, Key.LATE -> c.getString(R.string.mv_pct_kcal, v.f0())
+        Key.SLEEP -> c.getString(R.string.mv_sleep, v.f1())
+        Key.STEPS -> c.getString(R.string.mv_of, v.f0(), t.f0())
+        Key.ACTIVITY -> c.getString(R.string.mv_activity, v.f0())
+        Key.ALCOHOL -> c.getString(R.string.per_week, v.f1())
+        Key.FASTFOOD -> c.getString(R.string.mv_days_week, v.f1())
+        Key.REASONS -> c.getString(R.string.mv_reasons, v.f0())
+        Key.BOWEL -> c.getString(R.string.mv_days_week, v.f1())
+        Key.WEIGHT -> c.getString(R.string.mv_weight, metricNumber(c, Key.WEIGHT, v))
     }
+}
+
+/** "better than before (was …)", or null without a comparison. */
+fun metricChange(c: android.content.Context, m: Metric): String? {
+    val p = m.prev ?: return null
+    if (m.key == Key.WEIGHT) return null
+    val was = metricNumber(c, m.key, p)
+    return c.getString(if (m.change > 0) R.string.report_better else if (m.change < 0) R.string.report_worse else R.string.report_same, was)
+}
+
+/** The main points as lines. */
+fun highlightLines(c: android.content.Context, metrics: List<Metric>, hl: ua.tarilka.data.Report.Highlights): List<String> {
+    val lines = buildList {
+        hl.improved?.let { add(c.getString(R.string.report_improved, metricName(c, it.key), metricNumber(c, it.key, it.prev ?: 0.0), metricNumber(c, it.key, it.value))) }
+        hl.attention?.let { add(c.getString(R.string.report_attention, metricName(c, it.key), metricValue(c, it))) }
+        hl.steady?.let { add(c.getString(R.string.report_steady, metricName(c, it.key))) }
+    }
+    return if (metrics.none { it.prev != null }) lines + c.getString(R.string.report_no_compare) else lines
 }
 
 @Composable

@@ -25,6 +25,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -486,6 +488,7 @@ private fun DataSection(vm: MainViewModel) {
     val date = java.time.LocalDate.now().toString()
     var askPassword by remember { mutableStateOf(false) }
     var password by remember { mutableStateOf("") }
+    var pdfDialog by remember { mutableStateOf(false) }
     /** null = no dialog, false = clear the diary, true = delete all personal data */
     var clearing by remember { mutableStateOf<Boolean?>(null) }
     val exportJson = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { uri ->
@@ -513,6 +516,7 @@ private fun DataSection(vm: MainViewModel) {
                     Text(stringResource(R.string.import_backup))
                 }
                 OutlinedButton(onClick = { exportCsv.launch("tarilka-diary-$date.csv") }) { Text(stringResource(R.string.export_csv)) }
+                OutlinedButton(onClick = { pdfDialog = true }) { Text(stringResource(R.string.pdf_button)) }
             }
             FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 TextButton(onClick = { clearing = false }) {
@@ -527,6 +531,7 @@ private fun DataSection(vm: MainViewModel) {
             }
         }
     }
+    if (pdfDialog) PdfDialog(vm) { pdfDialog = false }
     clearing?.let { everything ->
         var alsoHc by remember { mutableStateOf(true) }
         androidx.compose.material3.AlertDialog(
@@ -674,6 +679,15 @@ private fun ProtectionSection() {
                 androidx.compose.material3.Switch(checked = on, onCheckedChange = { confirm = true })
             }
             Text(stringResource(R.string.protect_hint), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            // The one way to lose the diary: always in sight while protection is on.
+            if (on) {
+                Text(
+                    "⚠ " + stringResource(R.string.protect_warning),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.tertiary,
+                    fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold,
+                )
+            }
             msg?.let { Text(stringResource(it), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.tertiary) }
         }
     }
@@ -692,4 +706,98 @@ private fun ProtectionSection() {
             dismissButton = { TextButton(onClick = { confirm = false }) { Text(stringResource(R.string.cancel)) } },
         )
     }
+}
+
+/** PDF report: period, what to include (with ready-made sets), and whether to add the profile. */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun PdfDialog(vm: MainViewModel, onDismiss: () -> Unit) {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val today = java.time.LocalDate.now()
+    // 0 day, 1 week, 2 month, 3 own dates, 4 all time
+    var span by rememberSaveable { mutableStateOf(2) }
+    var day by remember { mutableStateOf(today) }
+    var from by remember { mutableStateOf(today.minusDays(29)) }
+    var to by remember { mutableStateOf(today) }
+    var parts by remember { mutableStateOf(ReportPresets.DIETITIAN) }
+    var profile by remember { mutableStateOf(false) }
+    var first by remember { mutableStateOf<java.time.LocalDate?>(null) }
+    LaunchedEffect(Unit) { first = vm.firstEntryDay() }
+    fun range(): Pair<java.time.LocalDate, java.time.LocalDate> = when (span) {
+        0 -> day to day
+        1 -> today.minusDays(6) to today
+        2 -> today.minusDays(29) to today
+        3 -> minOf(from, to) to maxOf(from, to)
+        else -> (first ?: today) to today
+    }
+    fun pick(initial: java.time.LocalDate, onPicked: (java.time.LocalDate) -> Unit) {
+        android.app.DatePickerDialog(context, { _, y, m, d -> onPicked(java.time.LocalDate.of(y, m + 1, d)) }, initial.year, initial.monthValue - 1, initial.dayOfMonth)
+            .apply { datePicker.maxDate = System.currentTimeMillis() }.show()
+    }
+    val save = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/pdf")) { uri ->
+        if (uri != null) {
+            val (a, b) = range()
+            vm.exportPdf(context, uri, a, b, parts, profile)
+        }
+        onDismiss()
+    }
+    val names = mapOf(
+        ReportPart.SUMMARY to R.string.pdf_part_summary, ReportPart.FOOD to R.string.pdf_part_food,
+        ReportPart.REASONS to R.string.pdf_part_reasons, ReportPart.FLUID to R.string.m_fluid,
+        ReportPart.WEIGHT to R.string.m_weight, ReportPart.SLEEP to R.string.m_sleep,
+        ReportPart.ACTIVITY to R.string.pdf_part_activity, ReportPart.BOWEL to R.string.m_bowel,
+        ReportPart.CYCLE to R.string.cycle_title, ReportPart.NOTES to R.string.pdf_part_notes,
+    )
+    androidx.compose.material3.AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.pdf_button)) },
+        text = {
+            Column(
+                Modifier.verticalScroll(androidx.compose.foundation.rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                Text(stringResource(R.string.pdf_period_title), style = MaterialTheme.typography.labelLarge)
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    listOf(R.string.pdf_span_day, R.string.period_week, R.string.period_month, R.string.pdf_span_own, R.string.pdf_span_all)
+                        .forEachIndexed { i, res -> FilterChip(span == i, { span = i }, { Text(stringResource(res)) }) }
+                }
+                when (span) {
+                    0 -> TextButton(onClick = { pick(day) { day = it } }) { Text(shortDate(day.toEpochDay())) }
+                    3 -> Row {
+                        TextButton(onClick = { pick(from) { from = it } }) { Text(shortDate(from.toEpochDay())) }
+                        Text("–", modifier = Modifier.align(Alignment.CenterVertically))
+                        TextButton(onClick = { pick(to) { to = it } }) { Text(shortDate(to.toEpochDay())) }
+                    }
+                    else -> Unit
+                }
+                Text(stringResource(R.string.pdf_what), style = MaterialTheme.typography.labelLarge)
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    FilterChip(parts == ReportPresets.DIETITIAN, { parts = ReportPresets.DIETITIAN }, { Text(stringResource(R.string.pdf_preset_diet)) })
+                    FilterChip(parts == ReportPresets.CYCLE, { parts = ReportPresets.CYCLE }, { Text(stringResource(R.string.pdf_preset_cycle)) })
+                    FilterChip(parts == ReportPresets.ALL, { parts = ReportPresets.ALL }, { Text(stringResource(R.string.pdf_preset_all)) })
+                }
+                ReportPart.entries.forEach { p ->
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.fillMaxWidth().clickable { parts = if (p in parts) parts - p else parts + p },
+                    ) {
+                        androidx.compose.material3.Checkbox(checked = p in parts, onCheckedChange = { parts = if (it) parts + p else parts - p })
+                        Text(stringResource(names.getValue(p)), style = MaterialTheme.typography.bodyMedium)
+                    }
+                }
+                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth().clickable { profile = !profile }) {
+                    androidx.compose.material3.Checkbox(checked = profile, onCheckedChange = { profile = it })
+                    Text(stringResource(R.string.pdf_with_profile), style = MaterialTheme.typography.bodyMedium)
+                }
+                Text(stringResource(R.string.pdf_privacy), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        },
+        confirmButton = {
+            TextButton(enabled = parts.isNotEmpty(), onClick = {
+                val (a, b) = range()
+                save.launch(if (a == b) "tarilka-$a.pdf" else "tarilka-${a}_$b.pdf")
+            }) { Text(stringResource(R.string.pdf_create)) }
+        },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) } },
+    )
 }

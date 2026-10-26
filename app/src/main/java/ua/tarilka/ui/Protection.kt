@@ -31,7 +31,6 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -65,9 +64,19 @@ object Protection {
     fun deviceSecure(activity: FragmentActivity): Boolean =
         activity.getSystemService(KeyguardManager::class.java)?.isDeviceSecure == true
 
-    /** Hides the app's content from the recent-apps preview while protection is on (screenshots stay possible). */
+    /**
+     * Keeps the diary out of the recent-apps preview while protection is on: from Android 13 without
+     * blocking screenshots; on Android 12 only by marking the window secure.
+     */
     fun applyRecents(activity: FragmentActivity) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) activity.setRecentsScreenshotEnabled(!enabled.value)
+        val on = enabled.value
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            activity.setRecentsScreenshotEnabled(!on)
+        } else if (on) {
+            activity.window.addFlags(android.view.WindowManager.LayoutParams.FLAG_SECURE)
+        } else {
+            activity.window.clearFlags(android.view.WindowManager.LayoutParams.FLAG_SECURE)
+        }
     }
 
     private fun prompt(activity: FragmentActivity, cipher: Cipher, title: Int, onOk: (Cipher) -> Unit) {
@@ -92,21 +101,26 @@ object Protection {
         prompt.authenticate(info, BiometricPrompt.CryptoObject(cipher))
     }
 
-    /** The unwrap cipher, or null (and the "key gone" state) when the hardware key was invalidated. */
-    private fun unlockCipher(app: TarilkaApp): Cipher? = try {
-        KeyVault(app).cipherForUnlock()
-    } catch (e: KeyPermanentlyInvalidatedException) {
-        KeyVault(app).markInvalidated()
-        invalid.value = true
-        null
-    } catch (e: Exception) {
-        message.value = R.string.lock_failed
-        null
+    /** The unwrap cipher, or null (and the "key gone" state) when the hardware key is invalidated or missing. */
+    private fun unlockCipher(app: TarilkaApp): Cipher? {
+        val vault = KeyVault(app)
+        return try {
+            if (vault.isKeyMissing()) throw KeyPermanentlyInvalidatedException()
+            vault.cipherForUnlock()
+        } catch (e: KeyPermanentlyInvalidatedException) {
+            vault.markInvalidated()
+            invalid.value = true
+            null
+        } catch (e: Exception) {
+            message.value = R.string.lock_failed
+            null
+        }
     }
 
     fun unlock(activity: FragmentActivity) {
         val app = activity.application as TarilkaApp
         if (busy.value || app.dbState.value != null) return
+        val gen = app.lockGen.get()
         val cipher = unlockCipher(app) ?: return
         prompt(activity, cipher, R.string.lock_unlock_title) { ok ->
             busy.value = true
@@ -115,21 +129,12 @@ object Protection {
                     val secret = KeyVault(app).finishUnlock(ok)
                     val key = sqlCipherRawKey(secret)
                     secret.fill(0)
-                    app.openDb(key)
+                    // If the screen went off meanwhile, this does not open it.
+                    app.openDb(key, gen)
                 }.onFailure { message.value = R.string.lock_failed }
                 busy.value = false
             }
         }
-    }
-
-    /** Takes the database away from the screens and closes it, so it can be converted. */
-    private suspend fun detach(activity: FragmentActivity, app: TarilkaApp) {
-        withContext(Dispatchers.Main) {
-            app.closeDb(now = false)
-            activity.viewModelStore.clear()
-        }
-        // Let the screens' work stop before the files change.
-        delay(2000)
     }
 
     fun enable(activity: FragmentActivity) {
@@ -139,27 +144,37 @@ object Protection {
         val cipher = runCatching { vault.cipherForSetup() }.getOrElse { message.value = R.string.lock_failed; return }
         prompt(activity, cipher, R.string.protect_confirm_title) { ok ->
             busy.value = true
+            app.converting = true
             app.scope.launch {
-                var key: ByteArray? = null
+                var swapped = false
                 runCatching {
                     val secret = vault.finishSetup(ok)
-                    key = sqlCipherRawKey(secret)
+                    val key = sqlCipherRawKey(secret)
                     secret.fill(0)
-                    detach(activity, app)
-                    DbCrypt.encrypt(app, key!!)
+                    app.closeDb().join()
+                    val gen = app.lockGen.get()
+                    DbCrypt.encrypt(app, key)
+                    // From here the file is encrypted: protection is on whatever happens next.
+                    swapped = true
                     app.prefs.appLock = true
                     enabled.value = true
-                    app.openDb(key)
                     message.value = R.string.protect_on_done
+                    app.openDb(key, gen)
                 }.onFailure {
-                    // Back to the plain database, exactly as it was.
-                    vault.reset()
-                    app.prefs.appLock = false
-                    enabled.value = false
-                    if (app.dbState.value == null) runCatching { app.openDb(null) }
-                    message.value = R.string.protect_failed
+                    if (swapped) {
+                        // Encrypted and the key is kept: it opens with fingerprint or PIN.
+                        app.prefs.appLock = true
+                        enabled.value = true
+                    } else {
+                        // Back to the plain database, exactly as it was.
+                        vault.reset()
+                        app.prefs.appLock = false
+                        enabled.value = false
+                        if (app.dbState.value == null) runCatching { app.openDb(null) }
+                        message.value = R.string.protect_failed
+                    }
                 }
-                withContext(Dispatchers.Main) { applyRecents(activity) }
+                app.converting = false
                 busy.value = false
             }
         }
@@ -170,26 +185,38 @@ object Protection {
         val cipher = unlockCipher(app) ?: return
         prompt(activity, cipher, R.string.protect_confirm_title) { ok ->
             busy.value = true
+            app.converting = true
             app.scope.launch {
                 val vault = KeyVault(app)
                 var key: ByteArray? = null
+                var swapped = false
                 runCatching {
                     val secret = vault.finishUnlock(ok)
                     key = sqlCipherRawKey(secret)
                     secret.fill(0)
-                    detach(activity, app)
+                    app.closeDb().join()
                     DbCrypt.decrypt(app, key!!)
+                    // From here the file is plain: protection is off whatever happens next.
+                    swapped = true
                     app.prefs.appLock = false
                     enabled.value = false
                     vault.reset()
-                    app.openDb(null)
+                    app.prefs.clearCache()
                     message.value = R.string.protect_off_done
+                    app.openDb(null)
                 }.onFailure {
-                    // Still encrypted and still protected: open it again with the same key.
-                    if (app.dbState.value == null) key?.let { k -> runCatching { app.openDb(k) } }
-                    message.value = R.string.protect_failed
+                    if (swapped) {
+                        app.prefs.appLock = false
+                        enabled.value = false
+                        runCatching { vault.reset() }
+                        if (app.dbState.value == null) runCatching { app.openDb(null) }
+                    } else {
+                        // Still encrypted and still protected: it opens again with fingerprint or PIN.
+                        message.value = R.string.protect_failed
+                    }
                 }
-                withContext(Dispatchers.Main) { applyRecents(activity) }
+                key?.fill(0)
+                app.converting = false
                 busy.value = false
             }
         }
@@ -198,15 +225,16 @@ object Protection {
     /** Only when the key is gone: an empty diary, protection off. A backup can then be restored. */
     fun startFresh(activity: FragmentActivity) {
         val app = activity.application as TarilkaApp
-        app.closeDb(now = true)
-        activity.viewModelStore.clear()
-        activity.deleteDatabase(AppDatabase.NAME)
-        KeyVault(app).reset()
-        app.prefs.appLock = false
-        enabled.value = false
-        invalid.value = false
-        app.openDb(null)
-        applyRecents(activity)
+        app.scope.launch {
+            app.closeDb().join()
+            activity.deleteDatabase(AppDatabase.NAME)
+            KeyVault(app).reset()
+            app.prefs.appLock = false
+            app.prefs.clearCache()
+            enabled.value = false
+            invalid.value = false
+            app.openDb(null)
+        }
     }
 }
 

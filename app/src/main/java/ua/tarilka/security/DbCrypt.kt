@@ -30,7 +30,8 @@ object DbCrypt {
             val db = h.writableDatabase
             counts = rowCounts(db)
             // An empty key string attaches a plain (unencrypted) file; "x'…'" is the raw key.
-            db.execSQL("ATTACH DATABASE ? AS target KEY ?", arrayOf<Any>(tmp.path, String(to, Charsets.US_ASCII)))
+            // The key is bound as bytes (a blob), so no copy of it is left in an unwipeable string.
+            db.execSQL("ATTACH DATABASE ? AS target KEY ?", arrayOf<Any>(tmp.path, if (to.isEmpty()) "" else to))
             db.query("SELECT sqlcipher_export('target')").use { it.moveToFirst() }
             db.execSQL("PRAGMA target.user_version = ${AppDatabase.VERSION}")
             db.execSQL("DETACH DATABASE target")
@@ -52,13 +53,20 @@ object DbCrypt {
         deleteWithSidecars(old)
     }
 
-    /** After an interrupted swap: put the complete old file back. */
+    /** After an interrupted swap: put the complete old file back; a leftover old copy is removed. */
     fun recover(context: Context) {
         val main = context.getDatabasePath(AppDatabase.NAME)
         val old = File(main.path + ".old")
         if (!main.exists() && old.exists()) old.renameTo(main)
+        if (main.exists()) deleteWithSidecars(old)
         deleteWithSidecars(context.getDatabasePath(TMP))
     }
+
+    /** A plain SQLite file starts with "SQLite format 3\u0000"; an encrypted one does not. */
+    fun isPlain(file: File): Boolean = file.length() < 16 || runCatching {
+        val head = ByteArray(16)
+        file.inputStream().use { it.read(head) } == 16 && String(head, Charsets.US_ASCII) == "SQLite format 3\u0000"
+    }.getOrDefault(true)
 
     private fun helper(context: Context, name: String, key: ByteArray): SupportSQLiteOpenHelper =
         SupportOpenHelperFactory(key).create(

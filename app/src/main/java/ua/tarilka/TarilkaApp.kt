@@ -46,7 +46,7 @@ class TarilkaApp : Application() {
     override fun onCreate() {
         super.onCreate()
         prefs = Prefs(this)
-        ua.tarilka.security.DbCrypt.recover(this)
+        reconcileProtection()
         // With app protection the database stays closed until fingerprint or the phone PIN.
         if (!prefs.appLock) openDb(null)
         applyThemeMode(prefs.themeMode)
@@ -54,23 +54,120 @@ class TarilkaApp : Application() {
         gemma = GemmaEngine(this, models, scope)
         health = HealthSync(this)
         stepSensor = StepSensor(this, prefs)
+        watchForLock()
         // Alarms can be lost (force stop, clock change); setting them again is cheap.
         runCatching { ua.tarilka.notify.Reminders.schedule(this, missedOnly = true) }
     }
 
-    /** Opens the database (plain, or encrypted with [rawKey]); the built-in foods are refreshed after. */
-    fun openDb(rawKey: ByteArray?) {
+    // ---- app protection: one place for the open database, its key and locking ----
+
+    /** The key of the open encrypted database; wiped when it is closed. */
+    private var currentKey: ByteArray? = null
+    /** Bumped by every lock: an unlock or conversion that started before a lock must not open the database. */
+    val lockGen = java.util.concurrent.atomic.AtomicLong()
+    /** While protection is being turned on or off, a lock request still counts. */
+    @Volatile var converting = false
+    /** Work outside the screens (built-in foods, reminders) that is using the database right now. */
+    private val users = java.util.concurrent.atomic.AtomicInteger()
+
+    /**
+     * After an interrupted switch on or off, the database file decides: a plain file means protection
+     * is off, an encrypted one means it is on (or its key is gone). Also removes a leftover old copy.
+     */
+    private fun reconcileProtection() {
+        ua.tarilka.security.DbCrypt.recover(this)
+        val main = getDatabasePath(AppDatabase.NAME)
+        if (!main.exists()) return
+        val vault = ua.tarilka.security.KeyVault(this)
+        if (ua.tarilka.security.DbCrypt.isPlain(main)) {
+            if (prefs.appLock) { prefs.appLock = false; vault.reset() }
+        } else {
+            if (!prefs.appLock) prefs.appLock = true
+            if (!vault.isSetUp()) vault.markInvalidated()
+        }
+    }
+
+    /**
+     * Opens the database (plain, or encrypted with [rawKey]); the built-in foods are refreshed after.
+     * With a key: if a lock happened since [gen] was taken, it is closed again at once.
+     */
+    fun openDb(rawKey: ByteArray?, gen: Long = lockGen.get()) {
         val d = AppDatabase.create(this, rawKey)
         // Encrypted: open now, so a wrong key fails here and not later in a screen.
         if (rawKey != null) d.openHelper.writableDatabase
+        if (rawKey != null && lockGen.get() != gen) {
+            d.close()
+            rawKey.fill(0)
+            return
+        }
+        currentKey = rawKey
         _db.value = d
-        scope.launch { FoodSeeder.seedIfNeeded(this@TarilkaApp, d, prefs) }
+        scope.launch { withDb { FoodSeeder.seedIfNeeded(this@TarilkaApp, it, prefs) } }
     }
 
-    /** Closes the database: screens switch to the lock screen first, then it is closed. */
-    fun closeDb(now: Boolean = false) {
-        val d = _db.value ?: return
+    /** Runs [block] with the open database, or not at all when it is locked; closing waits for it. */
+    suspend fun <T> withDb(block: suspend (AppDatabase) -> T): T? {
+        val d = _db.value ?: return null
+        users.incrementAndGet()
+        try {
+            if (_db.value !== d) return null
+            return runCatching { block(d) }.getOrNull()
+        } finally {
+            users.decrementAndGet()
+        }
+    }
+
+    /**
+     * Takes the database away from the screens, waits until nothing uses it, closes it and wipes the key.
+     * The returned job ends when it is really closed.
+     */
+    fun closeDb(): kotlinx.coroutines.Job {
+        val d = _db.value ?: return kotlinx.coroutines.CompletableDeferred(Unit)
         _db.value = null
-        if (now) d.close() else scope.launch { kotlinx.coroutines.delay(1500); d.close() }
+        val key = currentKey
+        currentKey = null
+        return scope.launch {
+            // The screens' own work stops when they are cleared; give it a moment, then wait for the rest.
+            kotlinx.coroutines.delay(700)
+            while (users.get() > 0) kotlinx.coroutines.delay(100)
+            runCatching { d.close() }
+            key?.fill(0)
+        }
+    }
+
+    /** Locks the protected diary (screen off, a minute in the background, or by hand). */
+    fun lock() {
+        if (!prefs.appLock && !converting) return
+        lockGen.incrementAndGet()
+        closeDb()
+        // A photo taken just before must not stay unencrypted in the cache.
+        runCatching { ua.tarilka.ai.PhotoUtil.clear(this) }
+    }
+
+    /** Screen off locks at once; coming back after more than a minute away locks too. Kept here, not in a screen. */
+    private fun watchForLock() {
+        androidx.core.content.ContextCompat.registerReceiver(
+            this,
+            object : android.content.BroadcastReceiver() {
+                override fun onReceive(context: android.content.Context, intent: android.content.Intent) = lock()
+            },
+            android.content.IntentFilter(android.content.Intent.ACTION_SCREEN_OFF),
+            androidx.core.content.ContextCompat.RECEIVER_NOT_EXPORTED,
+        )
+        registerActivityLifecycleCallbacks(object : ActivityLifecycleCallbacks {
+            private var started = 0
+            private var awaySince = 0L
+            override fun onActivityStarted(activity: android.app.Activity) {
+                if (started++ == 0 && awaySince > 0 && System.currentTimeMillis() - awaySince > 60_000) lock()
+            }
+            override fun onActivityStopped(activity: android.app.Activity) {
+                if (--started == 0 && !activity.isChangingConfigurations) awaySince = System.currentTimeMillis()
+            }
+            override fun onActivityCreated(activity: android.app.Activity, savedInstanceState: android.os.Bundle?) = Unit
+            override fun onActivityResumed(activity: android.app.Activity) = Unit
+            override fun onActivityPaused(activity: android.app.Activity) = Unit
+            override fun onActivitySaveInstanceState(activity: android.app.Activity, outState: android.os.Bundle) = Unit
+            override fun onActivityDestroyed(activity: android.app.Activity) = Unit
+        })
     }
 }

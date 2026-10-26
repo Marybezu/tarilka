@@ -151,7 +151,8 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         // What reminders need while the diary is locked (app protection): only today's counts.
         viewModelScope.launch {
             combine(day, entries, fluidMl, targets) { d, e, f, t -> listOf(d, e, f, t) }.collect { (d, e, f, t) ->
-                if (d == LocalDate.now()) {
+                // Only with protection on: without it the reminders read the database itself.
+                if (d == LocalDate.now() && prefs.appLock) {
                     @Suppress("UNCHECKED_CAST")
                     prefs.cacheToday((d as LocalDate).toEpochDay(), (e as List<DiaryEntry>).map { it.meal }.toSet(), f as Double, (t as Targets).waterMl)
                 }
@@ -617,6 +618,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         db.cycle().deleteAll()
         db.cycle().deleteAllDays()
         prefs.clearCycle()
+        prefs.clearCache()
         if (everything) {
             db.foods().deleteCustom()
             db.foods().setFavorites(emptyList())

@@ -36,8 +36,13 @@ class Prefs(context: Context) {
      * fluid target. Only these, never what was eaten. Updated while the app is open.
      */
     fun cacheToday(day: Long, meals: Set<Int>, fluidMl: Double, waterTargetMl: Double) {
+        // Rounded to half a litre, so the target does not reveal the weight.
+        val target = (Math.round(waterTargetMl / 500) * 500).toFloat()
         sp.edit().putLong("cacheDay", day).putString("cacheMeals", meals.joinToString(","))
-            .putFloat("cacheFluid", fluidMl.toFloat()).putFloat("cacheWaterTarget", waterTargetMl.toFloat()).apply()
+            .putFloat("cacheFluid", fluidMl.toFloat()).putFloat("cacheWaterTarget", target).apply()
+    }
+    fun clearCache() {
+        sp.edit().remove("cacheDay").remove("cacheMeals").remove("cacheFluid").remove("cacheWaterTarget").apply()
     }
     fun cachedMealLogged(day: Long, meal: Int): Boolean =
         sp.getLong("cacheDay", -1) == day && sp.getString("cacheMeals", "")!!.split(',').contains(meal.toString())
@@ -242,6 +247,7 @@ class Prefs(context: Context) {
     /** Forget the profile and the not-found list; app settings stay. */
     fun clearPersonal() {
         sp.edit().apply { (PROFILE_KEYS + STEP_KEYS).forEach { remove(it) } }.remove("missing").remove("gramsRatios").apply()
+        clearCache()
         _profile.value = Profile()
         _missing.value = emptyMap()
         _cycleTypical.value = -1

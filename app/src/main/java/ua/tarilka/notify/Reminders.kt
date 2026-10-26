@@ -96,20 +96,20 @@ object Reminders {
         val app = context.applicationContext as TarilkaApp
         val today = LocalDate.now().toEpochDay()
         // While app protection keeps the diary locked, only the small cache of today's counts is used.
-        val db = app.dbState.value
         val text: String = when (kind) {
             in 0..2 -> {
-                val logged = db?.let { it.diary().countMeal(today, kind) > 0 } ?: app.prefs.cachedMealLogged(today, kind)
+                val logged = app.withDb { it.diary().countMeal(today, kind) > 0 } ?: app.prefs.cachedMealLogged(today, kind)
                 if (logged) return
                 context.getString(R.string.remind_meal, context.resources.getStringArray(R.array.remind_meals)[kind])
             }
             WATER -> {
-                val drunk = if (db != null) {
-                    db.fluids().mlOnce(today) +
+                val fromDb = app.withDb { db ->
+                    val ml = db.fluids().mlOnce(today) +
                         db.fluids().drinksFromDiary(today, FluidRules.ALCOHOL, FluidRules.MILK_DRINKS, FluidRules.SOUPS).first()
-                } else app.prefs.cachedFluid(today)
-                val target = if (db != null) Nutrition.targets(app.prefs.profile.value, db.weights().allOnce().lastOrNull()?.kg).waterMl
-                else app.prefs.cachedWaterTarget() ?: Nutrition.targets(app.prefs.profile.value, null).waterMl
+                    ml to Nutrition.targets(app.prefs.profile.value, db.weights().allOnce().lastOrNull()?.kg).waterMl
+                }
+                val drunk = fromDb?.first ?: app.prefs.cachedFluid(today)
+                val target = fromDb?.second ?: app.prefs.cachedWaterTarget() ?: Nutrition.targets(app.prefs.profile.value, null).waterMl
                 // Expected by now, spread over 8:00–22:00; remind only when clearly behind.
                 val hour = LocalTime.now().hour + LocalTime.now().minute / 60.0
                 val expected = target * ((hour - 8) / 14).coerceIn(0.0, 1.0)

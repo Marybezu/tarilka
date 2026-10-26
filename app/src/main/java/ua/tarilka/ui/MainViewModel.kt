@@ -702,7 +702,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
                 steps = st.takeIf { it.isNotEmpty() }?.average(), stepsDays = st.size,
                 weight = w.takeIf { it.isNotEmpty() }?.map { it.kg }?.average(),
                 weightTrend = Nutrition.weeklyTrend(w),
-                activityPerDay = if (workoutsOn) workouts.filter { it.day in r }.sumOf(ua.tarilka.data.Workouts::whoMinutes) / n else null,
+                activityPerDay = if (workoutsOn) workouts.filter { it.day in r }.sumOf(ua.tarilka.data.Workouts::whoMinutes).toDouble() / n else null,
             )
         }
         val cur = data(from, end)

@@ -77,14 +77,24 @@ class TarilkaApp : Application() {
     private fun reconcileProtection() {
         ua.tarilka.security.DbCrypt.recover(this)
         val main = getDatabasePath(AppDatabase.NAME)
-        if (!main.exists()) return
-        val vault = ua.tarilka.security.KeyVault(this)
-        if (ua.tarilka.security.DbCrypt.isPlain(main)) {
-            if (prefs.appLock) { prefs.appLock = false; vault.reset() }
-        } else {
-            if (!prefs.appLock) prefs.appLock = true
-            if (!vault.isSetUp()) vault.markInvalidated()
+        // Unknown (unreadable): change nothing.
+        val plain = if (main.exists()) ua.tarilka.security.DbCrypt.isPlain(main) else null
+        runCatching {
+            when {
+                plain == true && prefs.appLock -> {
+                    prefs.appLock = false
+                    prefs.clearCache()
+                    ua.tarilka.security.KeyVault(this).reset()
+                }
+                plain == false -> {
+                    if (!prefs.appLock) prefs.appLock = true
+                    val vault = ua.tarilka.security.KeyVault(this)
+                    if (!vault.isSetUp()) vault.markInvalidated()
+                }
+            }
         }
+        // Starting locked (the process may have ended with the camera open): no photo stays behind.
+        if (prefs.appLock) runCatching { ua.tarilka.ai.PhotoUtil.clear(this) }
     }
 
     /**
@@ -95,23 +105,38 @@ class TarilkaApp : Application() {
         val d = AppDatabase.create(this, rawKey)
         // Encrypted: open now, so a wrong key fails here and not later in a screen.
         if (rawKey != null) d.openHelper.writableDatabase
-        if (rawKey != null && lockGen.get() != gen) {
+        val published = synchronized(gate) {
+            if (rawKey != null && lockGen.get() != gen) {
+                false
+            } else {
+                currentKey = rawKey
+                _db.value = d
+                true
+            }
+        }
+        if (!published) {
             d.close()
-            rawKey.fill(0)
+            rawKey?.fill(0)
             return
         }
-        currentKey = rawKey
-        _db.value = d
-        scope.launch { withDb { FoodSeeder.seedIfNeeded(this@TarilkaApp, it, prefs) } }
+        scope.launch { runCatching { withDb { FoodSeeder.seedIfNeeded(this@TarilkaApp, it, prefs) } } }
     }
 
-    /** Runs [block] with the open database, or not at all when it is locked; closing waits for it. */
+    /** Opening and locking never interleave. */
+    private val gate = Any()
+    /** The close in progress, if any: a conversion waits for it, not just for the database to look closed. */
+    @Volatile private var closing: kotlinx.coroutines.Job? = null
+
+    /**
+     * Runs [block] with the open database, or returns null when it is locked; closing waits for it.
+     * Errors are passed on to the caller (a reminder then simply does not show).
+     */
     suspend fun <T> withDb(block: suspend (AppDatabase) -> T): T? {
         val d = _db.value ?: return null
         users.incrementAndGet()
         try {
             if (_db.value !== d) return null
-            return runCatching { block(d) }.getOrNull()
+            return block(d)
         } finally {
             users.decrementAndGet()
         }
@@ -121,25 +146,27 @@ class TarilkaApp : Application() {
      * Takes the database away from the screens, waits until nothing uses it, closes it and wipes the key.
      * The returned job ends when it is really closed.
      */
-    fun closeDb(): kotlinx.coroutines.Job {
-        val d = _db.value ?: return kotlinx.coroutines.CompletableDeferred(Unit)
+    fun closeDb(): kotlinx.coroutines.Job = synchronized(gate) {
+        val d = _db.value ?: return closing?.takeIf { it.isActive } ?: kotlinx.coroutines.CompletableDeferred(Unit)
         _db.value = null
         val key = currentKey
         currentKey = null
-        return scope.launch {
-            // The screens' own work stops when they are cleared; give it a moment, then wait for the rest.
-            kotlinx.coroutines.delay(700)
+        scope.launch {
+            // The screens' own work stops when they are cleared; give it time, then wait for the rest.
+            kotlinx.coroutines.delay(1500)
             while (users.get() > 0) kotlinx.coroutines.delay(100)
             runCatching { d.close() }
             key?.fill(0)
-        }
+        }.also { closing = it }
     }
 
     /** Locks the protected diary (screen off, a minute in the background, or by hand). */
     fun lock() {
         if (!prefs.appLock && !converting) return
-        lockGen.incrementAndGet()
-        closeDb()
+        synchronized(gate) {
+            lockGen.incrementAndGet()
+            closeDb()
+        }
         // A photo taken just before must not stay unencrypted in the cache.
         runCatching { ua.tarilka.ai.PhotoUtil.clear(this) }
     }
@@ -158,7 +185,10 @@ class TarilkaApp : Application() {
             private var started = 0
             private var awaySince = 0L
             override fun onActivityStarted(activity: android.app.Activity) {
-                if (started++ == 0 && awaySince > 0 && System.currentTimeMillis() - awaySince > 60_000) lock()
+                if (started++ == 0) {
+                    if (awaySince > 0 && System.currentTimeMillis() - awaySince > 60_000) lock()
+                    awaySince = 0
+                }
             }
             override fun onActivityStopped(activity: android.app.Activity) {
                 if (--started == 0 && !activity.isChangingConfigurations) awaySince = System.currentTimeMillis()

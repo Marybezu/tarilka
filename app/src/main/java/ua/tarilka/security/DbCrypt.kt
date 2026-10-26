@@ -62,11 +62,15 @@ object DbCrypt {
         deleteWithSidecars(context.getDatabasePath(TMP))
     }
 
-    /** A plain SQLite file starts with "SQLite format 3\u0000"; an encrypted one does not. */
-    fun isPlain(file: File): Boolean = file.length() < 16 || runCatching {
+    /**
+     * A plain SQLite file starts with "SQLite format 3\u0000"; an encrypted one does not.
+     * Null when it cannot be told (too short or unreadable): then nothing is changed.
+     */
+    fun isPlain(file: File): Boolean? = runCatching {
         val head = ByteArray(16)
-        file.inputStream().use { it.read(head) } == 16 && String(head, Charsets.US_ASCII) == "SQLite format 3\u0000"
-    }.getOrDefault(true)
+        if (file.inputStream().use { it.read(head) } != 16) null
+        else String(head, Charsets.US_ASCII) == "SQLite format 3\u0000"
+    }.getOrNull()
 
     private fun helper(context: Context, name: String, key: ByteArray): SupportSQLiteOpenHelper =
         SupportOpenHelperFactory(key).create(

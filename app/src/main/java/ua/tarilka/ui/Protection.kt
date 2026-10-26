@@ -148,11 +148,12 @@ object Protection {
             app.scope.launch {
                 var swapped = false
                 runCatching {
+                    // Taken before closing: a screen-off during the conversion keeps it locked afterwards.
+                    val gen = app.lockGen.get()
                     val secret = vault.finishSetup(ok)
                     val key = sqlCipherRawKey(secret)
                     secret.fill(0)
                     app.closeDb().join()
-                    val gen = app.lockGen.get()
                     DbCrypt.encrypt(app, key)
                     // From here the file is encrypted: protection is on whatever happens next.
                     swapped = true

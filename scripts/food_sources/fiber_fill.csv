@@ -1,0 +1,6 @@
+# Fibre for USDA foods that have no fibre value in SR Legacy (used only when USDA gives none).
+code;fiber;source
+f30;5.8;Ciqual 2020 (ANSES), black currant
+g21;0.3;USDA FDC 168880, white medium-grain rice, cooked
+l19;4;Malaysian food composition table and product labels, tempeh
+x08;4.9;USDA FNDDS 2708548, burrito with beans and cheese

@@ -5,6 +5,7 @@
               by their exact description ("ref"), so no value is typed by hand
   label.csv   typical label values of Ukrainian products, typed by hand
   dishes.json dishes calculated from ingredients of the two lists above
+  fiber_fill.csv fibre for the few USDA foods that have none in SR Legacy
 
 Usage: build_foods.py <SR Legacy CSV zip or folder> [--report report.md]
 Download: https://fdc.nal.usda.gov/fdc-datasets/FoodData_Central_sr_legacy_food_csv_2018-04.zip
@@ -29,7 +30,11 @@ CATEGORY_ORDER = ["grains", "bread", "veg", "fruit", "meat", "fish", "dairy", "e
 
 def read_csv(path):
     lines = [l for l in path.open(encoding="utf-8") if l.strip() and not l.startswith("#")]
-    return list(csv.DictReader(lines, delimiter=";"))
+    rows = list(csv.DictReader(lines, delimiter=";"))
+    for r in rows:  # "ref" is the last column and some USDA descriptions contain ";"
+        if None in r:
+            r["ref"] = ";".join([r["ref"]] + r.pop(None))
+    return rows
 
 
 def open_sr(src: Path):
@@ -74,6 +79,7 @@ def main() -> int:
     missing = []
     out = []
 
+    fiber_fill = {r["code"]: float(r["fiber"]) for r in read_csv(SRC / "fiber_fill.csv")}
     for r in read_csv(SRC / "usda.csv"):
         ref = r["ref"].strip().lower()
         fid = desc.get(ref)
@@ -97,7 +103,7 @@ def main() -> int:
         out.append({
             "code": r["code"], "category": r["category"], "name_uk": r["name_uk"], "name_en": r["name_en"],
             "kcal": v.get("kcal", 0), "protein": v.get("protein", 0), "fat": v.get("fat", 0),
-            "carbs": v.get("carbs", 0), "fiber": v.get("fiber", 0), "alcohol": v.get("alcohol", 0),
+            "carbs": v.get("carbs", 0), "fiber": v.get("fiber") or fiber_fill.get(r["code"], 0), "alcohol": v.get("alcohol", 0),
             "portion_g": r["portion_g"], "portion_uk": r["portion_uk"], "portion_en": r["portion_en"],
             "source": "USDA", "ref": r["ref"],
         })
@@ -139,6 +145,7 @@ def main() -> int:
         for r in out:
             row = dict(r)
             row["kcal"] = fmt(round(r["kcal"]), 0)
+            row["ref"] = r["ref"].replace(";", ",")  # the app splits rows by ";"
             for k in ("protein", "fat", "carbs", "fiber", "alcohol"):
                 row[k] = fmt(r[k], 2)
             f.write(";".join(str(row[k]) for k in COLUMNS) + "\n")

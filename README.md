@@ -7,7 +7,7 @@
 ## Особливості
 
 - 🔒 **Приватність.** Дозволу на інтернет немає. Дані лише на телефоні, хмарну копію вимкнено. За бажанням щоденник шифрується й відкривається відбитком або PIN-кодом телефона. Резервна копія за вашою дією, за бажанням із паролем (AES-256).
-- 🔬 **База продуктів офлайн.** 599 продуктів: значення USDA FoodData Central, етикетки українських продуктів і ~80 страв, розрахованих за рецептами. Біля кожного продукту видно джерело.
+- 🔬 **База продуктів офлайн.** 677 продуктів: значення USDA FoodData Central, етикетки українських продуктів і ~130 страв (зокрема фастфуд, суші, торти й тістечка), розрахованих за рецептами. Біля кожного продукту видно джерело.
 - 🍽️ **Щоденник.** Кілька продуктів підряд, список текстом («гречка 200 г, котлета»), один час на прийом їжі, свої продукти й рецепти.
 - 🛡️ **Безпечні цілі.** Норма калорій ніколи не нижча за базовий обмін. Схуднення не пропонується до 18 років, при ІМТ нижче 18,5, під час вагітності й годування груддю. ІМТ подано з поясненням.
 - 🌱 **Звички без осуду.** Кольорові плашки «що · скільки · з якої цілі» з порівнянням «краще/гірше» і порадами з опорою на ВООЗ і NICE. Підсумки за тиждень, місяць, рік: головне, кожен показник із графіком. Самоперевірка AUDIT-C.
@@ -33,4 +33,4 @@ Kotlin · Jetpack Compose · Room · [LiteRT-LM](https://github.com/google-ai-ed
 
 ---
 
-**English.** A private, offline food tracker for Android (test version). No internet permission, no accounts; data stays on the phone, with an optional encrypted diary opened by fingerprint or PIN and optional password-encrypted backups. 599 foods (USDA, Ukrainian labels, recipes). Safe targets: never below basal metabolism, no weight-loss target under 18, with a BMI under 18.5, or in pregnancy. Non-judgmental habit badges and per-measure summaries with charts, PDF reports, fluids, steps, weight; optional sleep, workouts, cycle tracking, reminders and on-device Gemma 4 for plate photos and summaries. Written with AI assistance (Claude, Anthropic), directed and tested by the author. Install from [Releases](../../releases/latest). MIT.
+**English.** A private, offline food tracker for Android (test version). No internet permission, no accounts; data stays on the phone, with an optional encrypted diary opened by fingerprint or PIN and optional password-encrypted backups. 677 foods (USDA, Ukrainian labels, recipes). Safe targets: never below basal metabolism, no weight-loss target under 18, with a BMI under 18.5, or in pregnancy. Non-judgmental habit badges and per-measure summaries with charts, PDF reports, fluids, steps, weight; optional sleep, workouts, cycle tracking, reminders and on-device Gemma 4 for plate photos and summaries. Written with AI assistance (Claude, Anthropic), directed and tested by the author. Install from [Releases](../../releases/latest). MIT.

@@ -116,10 +116,11 @@ data class Habits(
         const val MIN_DAYS = 3
 
         /** Juices count as free sugars for the WHO; tomato juice and coconut water do not. */
-        val SUGARY_DRINKS = setOf("dr03", "dr04", "dr05", "dr10", "dr12", "dr17", "dr18", "dr20", "dr21", "dr26", "dr27", "dr29")
+        val SUGARY_DRINKS = setOf("dr03", "dr04", "dr05", "dr10", "dr12", "dr17", "dr18", "dr20", "dr21", "dr26", "dr27", "dr29", "dr35")
         val STARCHY = setOf("v01", "v02", "v03", "v04", "v05", "v32", "v33")
         /** Grams of alcohol per 100 g (USDA). */
-        val ALCOHOL_G = mapOf("dr06" to 3.9, "dr07" to 10.6, "dr08" to 10.3, "dr09" to 33.4, "dr23" to 3.1, "dr24" to 15.3, "dr25" to 21.7)
+        val ALCOHOL_G = mapOf("dr06" to 3.9, "dr07" to 10.6, "dr08" to 10.3, "dr09" to 33.4, "dr23" to 3.1, "dr24" to 15.3, "dr25" to 21.7,
+            "dr31" to 3.7, "dr33" to 3.5, "dr34" to 9.0)
 
         /**
          * Self-help techniques from cognitive behavioural approaches to overeating (NICE NG69 guided self-help).
@@ -149,6 +150,10 @@ data class Habits(
 
         /** In the sweets category but without (much) sugar: chips, popcorn, pretzels, cocoa, unsweetened muesli, protein bars. */
         val NOT_SUGARY = setOf("c12", "c13", "c19", "c31", "c32", "c34", "c43", "c44")
+
+        /** Sushi and maki are in the fast-food list for finding them, but are not fast food for habits. */
+        val NOT_FASTFOOD = setOf("x06", "x20", "x21", "x22", "x23")
+        fun isFastFood(f: Food) = f.category == "fastfood" && f.code !in NOT_FASTFOOD
 
         fun isSweet(f: Food) = (f.category == "sweets" && f.code !in NOT_SUGARY) || f.code in SUGARY_DRINKS
         fun isVegFruit(f: Food) = (f.category == "veg" || f.category == "fruit") && f.code !in STARCHY
@@ -189,7 +194,7 @@ data class Habits(
                 vegFruitG = perDay(entries.filter { food(it)?.let(::isVegFruit) == true }.sumOf { it.grams }),
                 latePct = pct(late),
                 alcoholPerWeek = alcohol * 7 / maxOf(days, 7).coerceAtMost(periodDays),
-                fastFoodDays = byDay.values.count { list -> list.any { food(it)?.category == "fastfood" } },
+                fastFoodDays = byDay.values.count { list -> list.any { food(it)?.let(::isFastFood) == true } },
                 sleepAvg = sleep.values.takeIf { it.isNotEmpty() }?.average(),
                 reasonMeals = meals.size,
                 notHunger = meals.mapNotNull { it.reason }.filter { it != Reasons.HUNGER }.groupingBy { it }.eachCount(),

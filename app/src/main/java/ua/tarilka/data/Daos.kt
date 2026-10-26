@@ -333,10 +333,10 @@ interface CycleDao {
 }
 
 object FluidRules {
-    val ALCOHOL = listOf("dr06", "dr07", "dr08", "dr09", "dr23", "dr24", "dr25")
+    val ALCOHOL = listOf("dr06", "dr07", "dr08", "dr09", "dr23", "dr24", "dr25", "dr31", "dr33", "dr34")
     val MILK_DRINKS = listOf(
         "d01", "d02", "d03", "d04", "d05", "d06", "d21", "d41", "d51", "d52", "d53", "d54", "d58", "d61",
-        "l15", "n20",
+        "d63", "l15", "n20",
     )
     /** Soups and borscht: about 80 % of their weight is water. */
     val SOUPS = listOf("u01", "u02", "u03", "u04", "u05", "u06", "u07", "u32", "u33", "u34", "u35", "u36", "u37", "u73", "u74", "u86", "u87")

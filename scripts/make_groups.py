@@ -7,7 +7,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 FOODS = ROOT / "app/src/main/assets/foods.csv"
 OUT = ROOT / "scripts/food_sources/groups.csv"
-SUGARY_DRINKS = {"dr03","dr04","dr05","dr10","dr12","dr17","dr18","dr20","dr21","dr26","dr27","dr29"}
+SUGARY_DRINKS = {"dr03","dr04","dr05","dr10","dr12","dr17","dr18","dr20","dr21","dr26","dr27","dr29","dr35"}
 NOT_SUGARY = {"c12","c13","c19","c31","c32","c34","c43","c44"}
 STARCHY = {"v01","v02","v03","v04","v05","v32","v33"}
 

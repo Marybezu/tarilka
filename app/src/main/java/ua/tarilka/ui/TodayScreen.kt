@@ -143,7 +143,7 @@ fun TodayScreen(
         item {
             Section {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    CalorieRing(totals.kcal, targets.kcal.takeIf { targets.showKcal })
+                    CalorieRing(totals.kcal, targets.kcal.takeIf { targets.showKcal }, warnOver = targets.limit == null)
                     Spacer(Modifier.width(16.dp))
                     Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         NutrientBar(stringResource(R.string.protein), totals.protein, targets.protein, macros.protein)
@@ -371,7 +371,7 @@ fun TodayScreen(
                         )
                         Spacer(Modifier.height(8.dp))
                     }
-                    WeekBars(day, week, targets.kcal.takeIf { targets.showKcal })
+                    WeekBars(day, week, targets.kcal.takeIf { targets.showKcal }, warnOver = targets.limit == null)
                     // Several full days well below what the body needs at rest: a calm word and a pointer to help.
                     val past = withData.filter { it.day < java.time.LocalDate.now().toEpochDay() }
                     if (past.size >= 4 && past.sumOf { it.kcal } / past.size < targets.bmr) {
@@ -680,7 +680,7 @@ private fun MealSection(
 }
 
 @Composable
-private fun WeekBars(day: LocalDate, week: List<ua.tarilka.data.DayTotal>, target: Double?) {
+private fun WeekBars(day: LocalDate, week: List<ua.tarilka.data.DayTotal>, target: Double?, warnOver: Boolean) {
     val byDay = week.associateBy { it.day }
     val color = LocalMacroColors.current.kcal
     val over = MaterialTheme.colorScheme.tertiary
@@ -699,7 +699,7 @@ private fun WeekBars(day: LocalDate, week: List<ua.tarilka.data.DayTotal>, targe
                     drawRect(track)
                     val h = (k / max).toFloat().coerceIn(0f, 1f) * size.height
                     drawRect(
-                        if (target != null && k > target * 1.1) over else color,
+                        if (warnOver && target != null && k > target * 1.1) over else color,
                         topLeft = androidx.compose.ui.geometry.Offset(0f, size.height - h),
                         size = androidx.compose.ui.geometry.Size(size.width, h),
                     )

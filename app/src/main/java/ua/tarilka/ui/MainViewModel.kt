@@ -515,19 +515,19 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
 
     /** Adds the same foods as in this meal the day before (amounts as they were; times and answers are new). */
     private var repeating = false
-    private var lastRepeat = 0L
+    private var lastRepeat = -1 to 0L
 
     /** Adds yesterday's meal again, at yesterday's clock time (not "now": late filling-in is not late eating). */
     fun repeatYesterday(meal: Int) {
         // A quick double tap adds it once (also right after the first one was saved).
-        if (repeating || System.currentTimeMillis() - lastRepeat < 3000) return
+        if (repeating || (lastRepeat.first == meal && System.currentTimeMillis() - lastRepeat.second < 3000)) return
         val d = day.value.toEpochDay()
         val src = yesterday.value[meal].orEmpty()
         val list = src.map { it.copy(id = 0, day = d, reason = null, hunger = null, hardToStop = false) }
         if (list.isEmpty()) return
         val time = java.time.Instant.ofEpochMilli(src.first().createdAt).atZone(java.time.ZoneId.systemDefault()).toLocalTime()
         repeating = true
-        addEntries(list, time).invokeOnCompletion { repeating = false; lastRepeat = System.currentTimeMillis() }
+        addEntries(list, time).invokeOnCompletion { repeating = false; lastRepeat = meal to System.currentTimeMillis() }
     }
 
     fun addFood(food: Food, grams: Double, meal: Int, time: LocalTime? = null) =

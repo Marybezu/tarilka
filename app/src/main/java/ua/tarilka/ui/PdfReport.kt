@@ -97,7 +97,8 @@ object PdfReport {
                 if (ReportPart.FOOD in parts) {
                     if (t.showKcal) {
                         val k = logged.map { d -> d.entries.sumOf { it.kcal } }.average()
-                        val kLevel = kotlin.math.abs(k - t.kcal).let { if (it <= t.kcal * 0.1) ua.tarilka.data.Habits.Level.GOOD else if (it <= t.kcal * 0.25) ua.tarilka.data.Habits.Level.OK else ua.tarilka.data.Habits.Level.WATCH }
+                        // The same level as the summary's calorie measure (it knows when eating more is fine).
+                        val kLevel = data.summary.metrics.firstOrNull { it.key == Key.KCAL }?.level ?: ua.tarilka.data.Habits.Level.OK
                         add(Triple(c.getString(R.string.pdf_tile_kcal), k.f0() + "\n" + c.getString(R.string.pdf_of, t.kcal.f0() + " " + c.getString(R.string.unit_kcal)), levelColor(kLevel).toArgb()))
                     }
                     val pr = logged.map { d -> d.entries.sumOf { it.protein } }.average()

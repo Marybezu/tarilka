@@ -62,7 +62,7 @@ object Tips {
                         listOf(totals.fiber.roundToInt(), targets.fiber.roundToInt()),
                     )
                 }
-                if (totals.fat > targets.fat * 1.25) {
+                if (totals.fat > targets.fat * 1.25 && targets.showKcal) {
                     tips += Tip(R.string.tip_fat_high, listOf(totals.fat.roundToInt()), sources = Advice.sources(dayEntries, { it.fat }), sourceUnit = R.string.unit_g)
                 }
                 if (totals.protein >= targets.protein * 0.95 && totals.fiber >= targets.fiber * 0.9) {

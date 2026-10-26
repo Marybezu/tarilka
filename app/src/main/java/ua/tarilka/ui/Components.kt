@@ -90,7 +90,7 @@ fun Section(
 
 /** Ring that fills as calories are eaten; turns amber when over the target. */
 @Composable
-fun CalorieRing(eaten: Double, target: Double?, size: Dp = 132.dp) {
+fun CalorieRing(eaten: Double, target: Double?, warnOver: Boolean = true, size: Dp = 132.dp) {
     val track = MaterialTheme.colorScheme.surfaceVariant
     val fill = LocalMacroColors.current.kcal
     val over = MaterialTheme.colorScheme.tertiary
@@ -102,7 +102,7 @@ fun CalorieRing(eaten: Double, target: Double?, size: Dp = 132.dp) {
             val arcSize = Size(this.size.width - stroke, this.size.height - stroke)
             drawArc(track, -90f, 360f, false, Offset(inset, inset), arcSize, style = Stroke(stroke))
             drawArc(
-                if (frac > 1.05f) over else fill, -90f, 360f * frac.coerceIn(0f, 1f), false,
+                if (frac > 1.05f && warnOver) over else fill, -90f, 360f * frac.coerceIn(0f, 1f), false,
                 Offset(inset, inset), arcSize, style = Stroke(stroke, cap = StrokeCap.Round),
             )
         }

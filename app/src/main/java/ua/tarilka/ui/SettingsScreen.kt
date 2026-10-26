@@ -177,8 +177,11 @@ private fun ProfileSection(profile: Profile, onSave: (Profile) -> Unit) {
                 FilterChip(goal == Goal.GAIN, { goal = Goal.GAIN }, { Text(stringResource(R.string.goal_gain)) })
             }
             limit?.let { Text(stringResource(limitText(it)), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant) }
-            Field(stringResource(R.string.custom_kcal), custom, { custom = it })
-            Text(stringResource(R.string.custom_kcal_hint), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            // Under 18 there is no calorie target, so no own one either.
+            if (ageN == null || ageN >= 18) {
+                Field(stringResource(R.string.custom_kcal), custom, { custom = it })
+                Text(stringResource(R.string.custom_kcal_hint), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
             Button(
                 enabled = valid,
                 onClick = {
@@ -186,7 +189,7 @@ private fun ProfileSection(profile: Profile, onSave: (Profile) -> Unit) {
                         Profile(
                             sex = sex, age = ageN!!, heightCm = heightN!!, weightKg = weightN!!,
                             activity = activity, goal = if (limit != null && goal == Goal.LOSE) Goal.MAINTAIN else goal,
-                            customKcal = custom.toNumber()?.toInt()?.takeIf { it in 800..6000 },
+                            customKcal = custom.toNumber()?.toInt()?.takeIf { it in 800..6000 && (ageN ?: 0) >= 18 },
                             pregnant = sex == Sex.FEMALE && pregnant,
                         ),
                     )

@@ -20,12 +20,14 @@ data class Targets(
     val goal: Goal = Goal.MAINTAIN,
     /** The person's own target was below the safety floor and was raised to it. */
     val customRaised: Boolean = false,
+    /** Under 18 (also when pregnant or breastfeeding). */
+    val teen: Boolean = false,
 ) {
     /**
      * Under 18 no calorie number is shown (AAP 2016/2023: no calorie counting for teenagers; adult formulas
      * underestimate growing bodies). Protein, fibre, vegetables and fluids stay.
      */
-    val showKcal: Boolean get() = limit != Limit.TEEN
+    val showKcal: Boolean get() = !teen
 }
 
 /** When a calorie deficit is not appropriate without a doctor. */
@@ -80,7 +82,7 @@ object Nutrition {
             (if (limit == Limit.PREGNANT) 500.0 else 0.0) + (if (p.activity >= 3) 500.0 else 0.0)
         return Targets(
             kcal, protein, fat, carbs, fiber, bmr, tdee, water,
-            bmi = bmi, limit = limit, goal = goal, customRaised = custom != null && custom < floor,
+            bmi = bmi, limit = limit, goal = goal, customRaised = custom != null && custom < floor, teen = p.age < 18,
         )
     }
 

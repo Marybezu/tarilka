@@ -26,6 +26,11 @@ data class Profile(
 class Prefs(context: Context) {
     private val sp = context.getSharedPreferences("tarilka", Context.MODE_PRIVATE)
 
+    private val _noScreenshots = MutableStateFlow(sp.getBoolean("noScreenshots", false))
+    /** No screenshots or screen recording of the app (also hides it in recent apps and screen sharing). */
+    val noScreenshots: StateFlow<Boolean> = _noScreenshots.asStateFlow()
+    fun setNoScreenshots(on: Boolean) { sp.edit().putBoolean("noScreenshots", on).apply(); _noScreenshots.value = on }
+
     /** App protection: the diary is encrypted and opens only after fingerprint or the phone PIN. */
     var appLock: Boolean
         get() = sp.getBoolean("appLock", false)

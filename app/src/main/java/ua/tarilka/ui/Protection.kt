@@ -70,13 +70,12 @@ object Protection {
      */
     fun applyRecents(activity: FragmentActivity) {
         val on = enabled.value
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            activity.setRecentsScreenshotEnabled(!on)
-        } else if (on) {
-            activity.window.addFlags(android.view.WindowManager.LayoutParams.FLAG_SECURE)
-        } else {
-            activity.window.clearFlags(android.view.WindowManager.LayoutParams.FLAG_SECURE)
-        }
+        val noShots = (activity.application as TarilkaApp).prefs.noScreenshots.value
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) activity.setRecentsScreenshotEnabled(!on)
+        // "No screenshots" (the person's choice), or protection on Android 12 where nothing finer exists.
+        val secure = noShots || (on && Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU)
+        if (secure) activity.window.addFlags(android.view.WindowManager.LayoutParams.FLAG_SECURE)
+        else activity.window.clearFlags(android.view.WindowManager.LayoutParams.FLAG_SECURE)
     }
 
     private fun prompt(activity: FragmentActivity, cipher: Cipher, title: Int, onOk: (Cipher) -> Unit) {

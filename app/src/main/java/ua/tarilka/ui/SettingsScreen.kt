@@ -689,6 +689,13 @@ private fun ProtectionSection() {
                 )
             }
             msg?.let { Text(stringResource(it), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.tertiary) }
+            val prefs = (activity.application as ua.tarilka.TarilkaApp).prefs
+            val noShots by prefs.noScreenshots.collectAsState()
+            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth().clickable { prefs.setNoScreenshots(!noShots) }) {
+                Text(stringResource(R.string.no_screenshots), style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
+                androidx.compose.material3.Switch(checked = noShots, onCheckedChange = { prefs.setNoScreenshots(it) })
+            }
+            Text(stringResource(R.string.no_screenshots_hint), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
     if (confirm) {

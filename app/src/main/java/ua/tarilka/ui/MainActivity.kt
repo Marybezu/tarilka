@@ -47,7 +47,8 @@ class MainActivity : AppCompatActivity() {
             val dynamic by prefs.dynamicColor.collectAsState()
             val db by app.dbState.collectAsState()
             val protectedOn by Protection.enabled.collectAsState()
-            LaunchedEffect(protectedOn) { Protection.applyRecents(this@MainActivity) }
+            val noShots by prefs.noScreenshots.collectAsState()
+            LaunchedEffect(protectedOn, noShots) { Protection.applyRecents(this@MainActivity) }
             TarilkaTheme(dynamicColor = dynamic) {
                 if (db == null) {
                     // Locked (or being converted): the screens' view models go, they held the closed database.

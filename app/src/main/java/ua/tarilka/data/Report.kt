@@ -20,7 +20,11 @@ data class Metric(
     val series: List<Double?>,
     /** Target line for the chart, in the series' per-day units. */
     val seriesTarget: Double?,
+    /** When the colour comes from something other than the value itself, what it is and how often. */
+    val cause: Cause? = null,
+    val causeCount: Int = 0,
 ) {
+    enum class Cause { HARD_TO_STOP, LOOSE, HEAVY_DRINKING }
     enum class Key { KCAL, PROTEIN, FIBER, FLUID, VEG, SWEETS, LATE, SLEEP, STEPS, ACTIVITY, ALCOHOL, FASTFOOD, REASONS, BOWEL, WEIGHT }
 }
 
@@ -61,7 +65,7 @@ object Report {
         fun add(
             key: Metric.Key, value: Double?, target: Double?, level: Level, prevValue: Double?,
             minDiff: Double, higherIsBetter: Boolean, series: (PeriodData) -> Double?, seriesTarget: Double?,
-            closenessTo: Double? = null,
+            closenessTo: Double? = null, cause: Metric.Cause? = null, causeCount: Int = 0,
         ) {
             value ?: return
             val change = prevValue?.let { p ->
@@ -74,7 +78,7 @@ object Report {
                     else -> 0
                 }
             } ?: 0
-            out += Metric(key, value, target, level, prevValue, change, bars.map(series), seriesTarget)
+            out += Metric(key, value, target, level, prevValue, change, bars.map(series), seriesTarget, cause, causeCount)
         }
 
         if (h.days >= MIN) {
@@ -125,7 +129,10 @@ object Report {
             )
         }
         if (h.days >= MIN && h.alcoholPerWeek > 0) {
-            add(Metric.Key.ALCOHOL, h.alcoholPerWeek, null, h.alcoholLevel, ph?.alcoholPerWeek, 1.0, false, { it.habits.foodOrNull { alcoholPerWeek / 7 } }, null)
+            add(
+                Metric.Key.ALCOHOL, h.alcoholPerWeek, null, h.alcoholLevel, ph?.alcoholPerWeek, 1.0, false, { it.habits.foodOrNull { alcoholPerWeek / 7 } }, null,
+                cause = Metric.Cause.HEAVY_DRINKING.takeIf { h.heavyDrinkDays > 0 }, causeCount = h.heavyDrinkDays,
+            )
         }
         if (h.days >= MIN && h.fastFoodDays > 0) {
             add(
@@ -138,6 +145,7 @@ object Report {
             add(
                 Metric.Key.REASONS, share(h), 50.0, h.reasonsLevel, prev?.habits?.takeIf { it.reasonMeals >= MIN }?.let(::share),
                 15.0, false, { d -> d.habits.takeIf { it.reasonMeals > 0 }?.let(::share) }, 50.0,
+                cause = Metric.Cause.HARD_TO_STOP.takeIf { h.hardToStop > 0 }, causeCount = h.hardToStop,
             )
         }
         if (h.bowelDays >= MIN) {
@@ -145,6 +153,7 @@ object Report {
             add(
                 Metric.Key.BOWEL, perWeek(h), 3.0, h.bowelLevel, prev?.habits?.takeIf { it.bowelDays >= MIN }?.let(::perWeek),
                 1.0, true, { d -> d.habits.takeIf { it.bowelDays > 0 }?.let { it.bowelMoveDays.toDouble() / it.bowelDays } }, 3.0 / 7,
+                cause = Metric.Cause.LOOSE.takeIf { h.bowelLoose > 0 }, causeCount = h.bowelLoose,
             )
         }
         if (cur.weightTrend != null) {
@@ -176,7 +185,8 @@ object Report {
         fun gap(m: Metric): Double = m.target?.let { abs(m.value - it) / it.coerceAtLeast(1e-6) } ?: 0.0
         val improved = metrics.filter { it.change > 0 }.maxByOrNull(::rel)
         val attention = metrics.filter { it.level == Level.WATCH }.maxByOrNull(::gap)
-        val steady = metrics.filter { it.level == Level.GOOD && it.change >= 0 && it != improved }
+        // "Steadily" needs the period before to compare with.
+        val steady = metrics.filter { it.level == Level.GOOD && it.prev != null && it.change >= 0 && it != improved }
             .sortedByDescending { it.prev != null }.firstOrNull()
         return Highlights(improved, attention, steady)
     }

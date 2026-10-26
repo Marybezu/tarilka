@@ -86,6 +86,7 @@ object PdfReport {
             metrics.forEach { m ->
                 pdf.metric(m, metricName(c, m.key) + ": " + metricValue(c, m), metricChange(c, m))
             }
+            pdf.endLabels()
             pdf.text(c.getString(R.string.report_bars_hint), pdf.small)
             pdf.space(8f)
         }
@@ -136,7 +137,12 @@ object PdfReport {
             pdf.heading(c.getString(R.string.pdf_by_day))
             val dayFmt = DateTimeFormatter.ofPattern("EEE, d.MM.yyyy", c.resources.configuration.locales[0])
             if (nDays > DETAIL_DAYS) {
-                // One line per day.
+                // One line per day, only for days with something in its columns.
+                val tableDays = days.filter { d ->
+                    (ReportPart.FOOD in parts && d.entries.isNotEmpty()) || (ReportPart.FLUID in parts && d.fluidMl > 0) ||
+                        (ReportPart.WEIGHT in parts && d.weight != null) || (ReportPart.SLEEP in parts && d.sleep != null) ||
+                        (ReportPart.ACTIVITY in parts && d.steps != null)
+                }
                 val cols = buildList {
                     add(c.getString(R.string.pdf_col_date) to 1.4f)
                     if (ReportPart.FOOD in parts) { add(c.getString(R.string.unit_kcal) to 0.9f); add(c.getString(R.string.pdf_col_protein) to 0.9f) }
@@ -145,8 +151,8 @@ object PdfReport {
                     if (ReportPart.SLEEP in parts) add(c.getString(R.string.m_sleep) to 0.8f)
                     if (ReportPart.ACTIVITY in parts) add(c.getString(R.string.m_steps) to 0.9f)
                 }
-                pdf.row(cols.map { it.first }, cols.map { it.second }, pdf.bold)
-                days.forEach { d ->
+                if (tableDays.isNotEmpty() && cols.size > 1) pdf.row(cols.map { it.first }, cols.map { it.second }, pdf.bold)
+                tableDays.takeIf { cols.size > 1 }.orEmpty().forEach { d ->
                     val cells = buildList {
                         add(d.date.format(DateTimeFormatter.ofPattern("d.MM.yyyy")))
                         if (ReportPart.FOOD in parts) {
@@ -159,6 +165,12 @@ object PdfReport {
                         if (ReportPart.ACTIVITY in parts) add(d.steps?.toString() ?: "—")
                     }
                     pdf.row(cells, cols.map { it.second }, pdf.body)
+                }
+                // Notes do not fit a table: listed after it.
+                if (ReportPart.NOTES in parts) {
+                    days.filter { !it.note.isNullOrBlank() }.forEach { d ->
+                        pdf.text(d.date.format(DateTimeFormatter.ofPattern("d.MM.yyyy")) + " — " + d.note, pdf.body)
+                    }
                 }
                 pdf.text(c.getString(R.string.pdf_compact_hint), pdf.small)
             } else {
@@ -326,47 +338,63 @@ private class Pdf(c: Context) {
         y += lineH
     }
 
+    /** The bar labels; drawn again at the top of each new page while the measures continue. */
+    private var currentLabels: List<String> = emptyList()
+
     fun labels(labels: List<String>) {
-        if (labels.size > 31) return
+        currentLabels = labels
+        drawLabels()
+    }
+
+    fun endLabels() { currentLabels = emptyList() }
+
+    private fun drawLabels() {
+        val labels = currentLabels
+        if (labels.isEmpty() || labels.size > 31) return
         ensure(14f)
-        val slot = (width - 150f) / labels.size.coerceAtLeast(1)
+        val slot = width / labels.size
         labels.forEachIndexed { i, l ->
-            if (labels.size <= 12 || i % 2 == 0) canvas.drawText(l, m + 150f + i * slot + (slot - small.measureText(l)) / 2, y + 8f, small)
+            if (labels.size <= 12 || i % 2 == 0) canvas.drawText(l, m + i * slot + (slot - small.measureText(l)) / 2, y + 8f, small)
         }
         y += 12f
     }
 
-    /** One measure: coloured dot, name and value, the change, and its bars on the right. */
+    /** One measure: coloured dot with name and value (wrapped, nothing cut), the change, then its bars at full width. */
     fun metric(mtr: Metric, title: String, change: String?) {
-        val rowH = 30f
-        ensure(rowH)
+        val chartH = 22f
+        val titleLayout = StaticLayout.Builder.obtain(title, 0, title.length, bold, (width - 12f).toInt()).build()
+        val changeLayout = change?.let { StaticLayout.Builder.obtain(it, 0, it.length, small, (width - 12f).toInt()).build() }
+        val need = titleLayout.height + (changeLayout?.height ?: 0) + chartH + 10f
+        val before = n
+        ensure(need)
+        if (n != before && currentLabels.isNotEmpty()) { drawLabels(); ensure(need) }
         val dot = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = levelColor(mtr.level).toArgb() }
         canvas.drawCircle(m + 4f, y + 7f, 3.5f, dot)
-        canvas.drawText(TextUtils.ellipsize(title, bold, 135f, TextUtils.TruncateAt.END).toString(), m + 12f, y + 10f, bold)
-        change?.let { canvas.drawText(TextUtils.ellipsize(it, small, 135f, TextUtils.TruncateAt.END).toString(), m + 12f, y + 22f, small) }
-        // Bars
-        val left = m + 150f
-        val bw = width - 150f
+        canvas.save(); canvas.translate(m + 12f, y); titleLayout.draw(canvas); canvas.restore()
+        y += titleLayout.height
+        changeLayout?.let { canvas.save(); canvas.translate(m + 12f, y); it.draw(canvas); canvas.restore(); y += it.height }
+        y += 3f
+        // Bars across the full width, lined up with the labels.
         val values = mtr.series.filterNotNull()
-        val max = (values + listOfNotNull(mtr.seriesTarget)).maxOrNull()?.takeIf { it > 0 } ?: 1.0
-        val slot = bw / mtr.series.size.coerceAtLeast(1)
+        val base = if (mtr.key == Key.WEIGHT) (values.minOrNull() ?: 0.0) - 1.0 else 0.0
+        val max = ((values + listOfNotNull(mtr.seriesTarget)).maxOrNull()?.takeIf { it > base } ?: (base + 1.0)) - base
+        val slot = width / mtr.series.size.coerceAtLeast(1)
         val barW = slot * 0.6f
         val bar = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = levelColor(mtr.level).copy(alpha = 0.7f).toArgb() }
         val empty = Paint().apply { color = 0xFFDDDDDD.toInt() }
-        val chartH = rowH - 6f
         mtr.series.forEachIndexed { i, v ->
-            val x = left + i * slot + (slot - barW) / 2
+            val x = m + i * slot + (slot - barW) / 2
             if (v == null) {
                 canvas.drawRect(x, y + chartH - 1.5f, x + barW, y + chartH, empty)
             } else {
-                val bh = (v / max * chartH).toFloat().coerceAtLeast(1.5f)
+                val bh = ((v - base) / max * chartH).toFloat().coerceAtLeast(1.5f)
                 canvas.drawRoundRect(RectF(x, y + chartH - bh, x + barW, y + chartH), 1.5f, 1.5f, bar)
             }
         }
         mtr.seriesTarget?.let { t ->
-            val ty = y + chartH - (t / max * chartH).toFloat()
-            canvas.drawLine(left, ty, left + bw, ty, Paint().apply { color = grey; strokeWidth = 0.6f; pathEffect = DashPathEffect(floatArrayOf(3f, 3f), 0f) })
+            val ty = y + chartH - ((t - base) / max * chartH).toFloat()
+            canvas.drawLine(m, ty, m + width, ty, Paint().apply { color = grey; strokeWidth = 0.6f; pathEffect = DashPathEffect(floatArrayOf(3f, 3f), 0f) })
         }
-        y += rowH + 4f
+        y += chartH + 6f
     }
 }

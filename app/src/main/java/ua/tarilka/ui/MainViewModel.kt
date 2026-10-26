@@ -645,19 +645,23 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     /** Patterns for the 7 days ending at the selected day (the "Week" card). */
     val weekHabits: StateFlow<Habits?> = combine(
         // Two weeks: the one before gives the alcohol trend.
-        day.flatMapLatest { db.diary().rangeFlow(it.minusDays(13).toEpochDay(), it.toEpochDay()) },
+        day.flatMapLatest { db.diary().rangeFlow(it.minusDays(14).toEpochDay(), it.toEpochDay()) },
         foodsById,
-        combine(day.flatMapLatest { db.sleep().rangeFlow(it.minusDays(6).toEpochDay(), it.toEpochDay()) }, hcSleep, prefs.sleepEnabled, prefs.mealTimes) { manual, hc, on, times ->
+        combine(day.flatMapLatest { db.sleep().rangeFlow(it.minusDays(14).toEpochDay(), it.toEpochDay()) }, hcSleep, prefs.sleepEnabled, prefs.mealTimes) { manual, hc, on, times ->
             (if (on) hc + manual.associate { it.day to it.hours } else emptyMap()) to times
         },
-        day.flatMapLatest { db.bowel().rangeFlow(it.minusDays(13).toEpochDay(), it.toEpochDay()) },
-        day.flatMapLatest { db.workouts().rangeFlow(it.minusDays(13).toEpochDay(), it.toEpochDay()) },
+        day.flatMapLatest { db.bowel().rangeFlow(it.minusDays(14).toEpochDay(), it.toEpochDay()) },
+        day.flatMapLatest { db.workouts().rangeFlow(it.minusDays(14).toEpochDay(), it.toEpochDay()) },
     ) { list, foods, (sleepMap, times), bowel, workouts ->
-        val split = day.value.minusDays(7).toEpochDay()
-        val (cur, prev) = list.partition { it.day > split }
-        Habits.of(cur, foods, 7, sleep = sleepMap, bowel = bowel.filter { it.day > split }, workouts = workouts.filter { it.day > split }, withTimes = times)
-            .copy(prev = Habits.of(prev, foods, 7, bowel = bowel.filter { it.day <= split }, workouts = workouts.filter { it.day <= split }, withTimes = times))
-            .takeIf { it.days >= ua.tarilka.data.Habits.MIN_DAYS }
+        // Today before the evening is still unfinished: the 7 days end yesterday then, so a lone breakfast does not pull averages down.
+        val end = day.value.let { d -> if (d == LocalDate.now() && LocalTime.now().hour < 21) d.minusDays(1) else d }.toEpochDay()
+        val cur = (end - 6)..end
+        val prev = (end - 13)..(end - 7)
+        fun of(r: LongRange) = Habits.of(
+            list.filter { it.day in r }, foods, 7, sleep = sleepMap.filterKeys { it in r },
+            bowel = bowel.filter { it.day in r }, workouts = workouts.filter { it.day in r }, withTimes = times,
+        )
+        of(cur).copy(prev = of(prev)).takeIf { it.days >= ua.tarilka.data.Habits.MIN_DAYS }
     }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
@@ -672,7 +676,8 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     )
 
     suspend fun report(period: Period): PeriodReport {
-        val end = LocalDate.now()
+        // An unfinished today would pull every average down: summaries end yesterday until the evening.
+        val end = LocalDate.now().let { if (LocalTime.now().hour < 21) it.minusDays(1) else it }
         // Bars: days of the week, 7-day stretches of the month, calendar months of the year.
         val bars: List<Pair<LocalDate, LocalDate>> = when (period) {
             Period.WEEK -> (6 downTo 0).map { end.minusDays(it.toLong()).let { d -> d to d } }
@@ -683,9 +688,9 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         val uk = ua.tarilka.data.isUkrainian()
         return reportFor(from, end, bars) { a ->
             when (period) {
-                Period.WEEK -> a.dayOfWeek.getDisplayName(java.time.format.TextStyle.NARROW_STANDALONE, java.util.Locale.getDefault())
+                Period.WEEK -> a.dayOfWeek.getDisplayName(java.time.format.TextStyle.SHORT_STANDALONE, java.util.Locale.getDefault())
                 Period.MONTH -> "${a.dayOfMonth}.%02d".format(a.monthValue)
-                Period.YEAR -> a.month.getDisplayName(java.time.format.TextStyle.NARROW_STANDALONE, if (uk) java.util.Locale.forLanguageTag("uk") else java.util.Locale.ENGLISH)
+                Period.YEAR -> a.month.getDisplayName(java.time.format.TextStyle.SHORT_STANDALONE, if (uk) java.util.Locale.forLanguageTag("uk") else java.util.Locale.ENGLISH)
             }
         }
     }
@@ -707,7 +712,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         end: LocalDate,
         bars: List<Pair<LocalDate, LocalDate>>,
         label: (LocalDate) -> String,
-    ): PeriodReport {
+    ): PeriodReport = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) {
         val days = (end.toEpochDay() - from.toEpochDay() + 1).toInt()
         val prevFrom = from.minusDays(days.toLong())
         val foods = foodsById.value.ifEmpty { db.foods().allOnce().associateBy { it.id } }
@@ -722,19 +727,40 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         val steps = if (prefs.stepsEnabled) stepsByDay(prevFrom, end).filterValues { it > 0 } else emptyMap()
         val weightsAll = db.weights().allOnce()
         val workoutsOn = prefs.workoutsEnabled.value || workouts.isNotEmpty()
+        // Activity counts from when workouts were tracked, so a year is not diluted by months before.
+        val activityFrom = listOfNotNull(
+            workouts.minOfOrNull { it.day },
+            prefs.workoutsSince.takeIf { prefs.workoutsEnabled.value },
+        ).minOrNull()
         val withTimes = prefs.mealTimes.value
+        // Grouped by day once: each bar then only picks its days.
+        val diaryByDay = diary.groupBy { it.day }
+        val bowelByDay = bowel.associateBy { it.day }
+        val workoutsByDay = workouts.groupBy { it.day }
+        val weightByDay = weightsAll.associateBy { it.day }
 
         fun data(a: LocalDate, b: LocalDate): ua.tarilka.data.PeriodData {
             val r = a.toEpochDay()..b.toEpochDay()
             val n = (b.toEpochDay() - a.toEpochDay() + 1).toInt()
-            val h = Habits.of(
-                diary.filter { it.day in r }, foods, n,
-                sleep = sleep.filterKeys { it in r }, bowel = bowel.filter { it.day in r },
-                workouts = workouts.filter { it.day in r }, withTimes = withTimes,
+            val wo = r.flatMap { workoutsByDay[it].orEmpty() }
+            var h = Habits.of(
+                r.flatMap { diaryByDay[it].orEmpty() }, foods, n,
+                sleep = r.mapNotNull { d -> sleep[d]?.let { d to it } }.toMap(), bowel = r.mapNotNull { bowelByDay[it] },
+                workouts = wo, withTimes = withTimes,
             )
-            val fl = fluids.filterKeys { it in r }.values
-            val st = steps.filterKeys { it in r }.values
-            val w = weightsAll.filter { it.day in r }
+            activityFrom?.let { start ->
+                val tracked = (r.last - maxOf(r.first, start) + 1).toInt()
+                if (tracked in 1 until n) {
+                    val weeks = maxOf(tracked, 7) / 7.0
+                    h = h.copy(
+                        activeMinPerWeek = wo.sumOf(ua.tarilka.data.Workouts::whoMinutes) / weeks,
+                        strengthPerWeek = wo.filter { it.type == ua.tarilka.data.Workouts.STRENGTH }.map { it.day }.distinct().size / weeks,
+                    )
+                }
+            }
+            val fl = r.mapNotNull { fluids[it] }
+            val st = r.mapNotNull { steps[it] }
+            val w = r.mapNotNull { weightByDay[it] }
             return ua.tarilka.data.PeriodData(
                 habits = h,
                 fluidMl = fl.takeIf { it.isNotEmpty() }?.average(), fluidDays = fl.size,
@@ -747,7 +773,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         val cur = data(from, end)
         val prev = data(prevFrom, from.minusDays(1))
         val metrics = ua.tarilka.data.Report.build(cur, prev, bars.map { (a, b) -> data(a, b) }, targets.value, prefs.stepsGoal.value)
-        return PeriodReport(metrics, bars.map { label(it.first) }, ua.tarilka.data.Report.highlights(metrics), cur.habits.days)
+        PeriodReport(metrics, bars.map { label(it.first) }, ua.tarilka.data.Report.highlights(metrics), cur.habits.days)
     }
 
     // ---- PDF report ----
@@ -783,7 +809,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         viewModelScope.launch {
             val app = getApplication<Application>()
             runCatching {
-                val data = reportData(from, to)
+                val data = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) { reportData(from, to) }
                 kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
                     app.contentResolver.openOutputStream(uri)?.use { out ->
                         PdfReport.write(context, out, data, parts, withProfile, prefs.mealTimes.value)
@@ -796,7 +822,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     /** The first day with any entry: "all time" starts there. */
     suspend fun firstEntryDay(): LocalDate {
         val candidates = listOfNotNull(
-            db.diary().range(0, LocalDate.now().toEpochDay()).minOfOrNull { it.day },
+            db.diary().firstDay(),
             db.weights().allOnce().minOfOrNull { it.day },
             db.notes().allOnce().minOfOrNull { it.day },
         )
@@ -807,7 +833,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         val r = from.toEpochDay()..to.toEpochDay()
         val uk = ua.tarilka.data.isUkrainian()
         val summary = reportFor(from, to, barsFor(from, to)) { a ->
-            if (to.toEpochDay() - from.toEpochDay() > 186) {
+            if (to.toEpochDay() - from.toEpochDay() + 1 > 186) {
                 a.month.getDisplayName(java.time.format.TextStyle.SHORT_STANDALONE, if (uk) java.util.Locale.forLanguageTag("uk") else java.util.Locale.ENGLISH)
             } else "${a.dayOfMonth}.%02d".format(a.monthValue)
         }

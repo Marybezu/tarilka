@@ -99,6 +99,9 @@ interface DiaryDao {
     @Query("SELECT * FROM diary WHERE day BETWEEN :from AND :to ORDER BY day, createdAt")
     suspend fun range(from: Long, to: Long): List<DiaryEntry>
 
+    @Query("SELECT MIN(day) FROM diary")
+    suspend fun firstDay(): Long?
+
     @Query("SELECT * FROM diary WHERE day BETWEEN :from AND :to ORDER BY day, createdAt")
     fun rangeFlow(from: Long, to: Long): Flow<List<DiaryEntry>>
 

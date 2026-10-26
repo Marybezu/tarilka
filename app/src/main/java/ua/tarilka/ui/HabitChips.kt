@@ -105,7 +105,7 @@ fun HabitChips(
                 stringResource(R.string.late_tips), if (h.lateLevel == Level.WATCH) stringResource(R.string.eating_help) else null,
             )
         }
-        h.sleepAvg?.let { hrs ->
+        h.sleepAvg?.takeIf { h.sleepNights >= Habits.MIN_DAYS }?.let { hrs ->
             Habit(
                 stringResource(R.string.habit_sleep, hrs.f1()), h.sleepLevel,
                 // Closer to 8 hours is better, from either side.
@@ -115,10 +115,11 @@ fun HabitChips(
                 stringResource(R.string.sleep_tips), if (h.sleepLevel == Level.WATCH) stringResource(R.string.sleep_help) else null,
             )
         }
-        if (h.reasonMeals > 0) {
+        if (h.reasonMeals >= Habits.MIN_DAYS) {
             val top = h.notHunger.maxByOrNull { it.value }?.let { REASON_NAMES.getOrNull(it.key) }?.let { stringResource(it) } ?: "—"
             Habit(
-                stringResource(R.string.habit_reasons, h.notHungerTotal, h.reasonMeals), h.reasonsLevel,
+                stringResource(R.string.habit_reasons, h.notHungerTotal, h.reasonMeals) +
+                    (if (h.hardToStop > 0) " · " + stringResource(R.string.cause_hard_to_stop, h.hardToStop) else ""), h.reasonsLevel,
                 h.trend({ if (it.reasonMeals > 0) it.notHungerTotal * 100.0 / it.reasonMeals else null }, 15.0), false,
                 p?.takeIf { it.reasonMeals > 0 }?.let { "${it.notHungerTotal} / ${it.reasonMeals}" },
                 stringResource(R.string.habit_reasons_info), stringResource(R.string.reasons_noticed, top, h.hardToStop),
@@ -133,11 +134,11 @@ fun HabitChips(
                 stringResource(R.string.activity_tips),
             )
         }
-        if (h.bowelDays > 0) {
+        if (h.bowelDays >= Habits.MIN_DAYS) {
             val value = if (h.bowelMoveDays == h.bowelDays) stringResource(R.string.bowel_daily)
             else stringResource(R.string.bowel_days_of, h.bowelMoveDays, h.bowelDays)
             Habit(
-                stringResource(R.string.habit_bowel, value), h.bowelLevel,
+                stringResource(R.string.habit_bowel, value) + (if (h.bowelLoose > 0) " · " + stringResource(R.string.cause_loose, h.bowelLoose) else ""), h.bowelLevel,
                 h.trend({ if (it.bowelDays > 0) it.bowelMoveDays * 7.0 / it.bowelDays else null }, 1.0), true,
                 p?.takeIf { it.bowelDays > 0 }?.let { "${it.bowelMoveDays} / ${it.bowelDays}" },
                 stringResource(R.string.habit_bowel_info), stringResource(R.string.bowel_noticed, h.bowelHard, h.bowelLoose, h.fiberAvg.f0()),
@@ -151,7 +152,8 @@ fun HabitChips(
                 if (h.heavyDrinkDays > 0) add(stringResource(R.string.alcohol_heavy, h.heavyDrinkDays))
             }.joinToString("\n").ifEmpty { null }
             Habit(
-                stringResource(R.string.habit_alcohol, h.alcoholPerWeek.f1(), h.alcoholDays), h.alcoholLevel,
+                stringResource(R.string.habit_alcohol, h.alcoholPerWeek.f1(), h.alcoholDays) +
+                    (if (h.heavyDrinkDays > 0) " · " + stringResource(R.string.cause_heavy, h.heavyDrinkDays) else ""), h.alcoholLevel,
                 h.trend({ it.alcoholPerWeek }, 1.0), false, p?.let { stringResource(R.string.per_week, it.alcoholPerWeek.f1()) },
                 stringResource(R.string.habit_alcohol_info), noticed,
                 stringResource(R.string.alcohol_tips), if (h.alcoholLevel == Level.WATCH) stringResource(R.string.alcohol_help) else null,

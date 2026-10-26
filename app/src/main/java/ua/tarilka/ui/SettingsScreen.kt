@@ -488,7 +488,14 @@ private fun DataSection(vm: MainViewModel) {
     val date = java.time.LocalDate.now().toString()
     var askPassword by remember { mutableStateOf(false) }
     var password by remember { mutableStateOf("") }
-    var pdfDialog by remember { mutableStateOf(false) }
+    // Kept across rotation: the dialog, and what to write while the system "Save as" screen is open.
+    var pdfDialog by rememberSaveable { mutableStateOf(false) }
+    var pdfRequest by rememberSaveable { mutableStateOf<PdfRequest?>(null) }
+    val savePdf = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/pdf")) { uri ->
+        val r = pdfRequest
+        if (uri != null && r != null) vm.exportPdf(context, uri, r.from, r.to, r.parts, r.profile)
+        pdfRequest = null
+    }
     /** null = no dialog, false = clear the diary, true = delete all personal data */
     var clearing by remember { mutableStateOf<Boolean?>(null) }
     val exportJson = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { uri ->
@@ -531,7 +538,13 @@ private fun DataSection(vm: MainViewModel) {
             }
         }
     }
-    if (pdfDialog) PdfDialog(vm) { pdfDialog = false }
+    if (pdfDialog) {
+        PdfDialog(vm, onDismiss = { pdfDialog = false }) { req ->
+            pdfRequest = req
+            pdfDialog = false
+            savePdf.launch(if (req.from == req.to) "tarilka-${req.from}.pdf" else "tarilka-${req.from}_${req.to}.pdf")
+        }
+    }
     clearing?.let { everything ->
         var alsoHc by remember { mutableStateOf(true) }
         androidx.compose.material3.AlertDialog(
@@ -718,16 +731,16 @@ private fun ProtectionSection() {
 /** PDF report: period, what to include (with ready-made sets), and whether to add the profile. */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun PdfDialog(vm: MainViewModel, onDismiss: () -> Unit) {
+private fun PdfDialog(vm: MainViewModel, onDismiss: () -> Unit, onCreate: (PdfRequest) -> Unit) {
     val context = androidx.compose.ui.platform.LocalContext.current
     val today = java.time.LocalDate.now()
     // 0 day, 1 week, 2 month, 3 own dates, 4 all time
     var span by rememberSaveable { mutableStateOf(2) }
-    var day by remember { mutableStateOf(today) }
-    var from by remember { mutableStateOf(today.minusDays(29)) }
-    var to by remember { mutableStateOf(today) }
-    var parts by remember { mutableStateOf(ReportPresets.DIETITIAN) }
-    var profile by remember { mutableStateOf(false) }
+    var day by rememberSaveable { mutableStateOf(today) }
+    var from by rememberSaveable { mutableStateOf(today.minusDays(29)) }
+    var to by rememberSaveable { mutableStateOf(today) }
+    var parts by rememberSaveable { mutableStateOf(ReportPresets.DIETITIAN) }
+    var profile by rememberSaveable { mutableStateOf(false) }
     var first by remember { mutableStateOf<java.time.LocalDate?>(null) }
     LaunchedEffect(Unit) { first = vm.firstEntryDay() }
     fun range(): Pair<java.time.LocalDate, java.time.LocalDate> = when (span) {
@@ -740,13 +753,6 @@ private fun PdfDialog(vm: MainViewModel, onDismiss: () -> Unit) {
     fun pick(initial: java.time.LocalDate, onPicked: (java.time.LocalDate) -> Unit) {
         android.app.DatePickerDialog(context, { _, y, m, d -> onPicked(java.time.LocalDate.of(y, m + 1, d)) }, initial.year, initial.monthValue - 1, initial.dayOfMonth)
             .apply { datePicker.maxDate = System.currentTimeMillis() }.show()
-    }
-    val save = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/pdf")) { uri ->
-        if (uri != null) {
-            val (a, b) = range()
-            vm.exportPdf(context, uri, a, b, parts, profile)
-        }
-        onDismiss()
     }
     val names = mapOf(
         ReportPart.SUMMARY to R.string.pdf_part_summary, ReportPart.FOOD to R.string.pdf_part_food,
@@ -802,9 +808,17 @@ private fun PdfDialog(vm: MainViewModel, onDismiss: () -> Unit) {
         confirmButton = {
             TextButton(enabled = parts.isNotEmpty(), onClick = {
                 val (a, b) = range()
-                save.launch(if (a == b) "tarilka-$a.pdf" else "tarilka-${a}_$b.pdf")
+                onCreate(PdfRequest(a, b, parts, profile))
             }) { Text(stringResource(R.string.pdf_create)) }
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) } },
     )
 }
+
+/** What the PDF report should contain; survives rotation while the system "Save as" screen is open. */
+data class PdfRequest(
+    val from: java.time.LocalDate,
+    val to: java.time.LocalDate,
+    val parts: Set<ReportPart>,
+    val profile: Boolean,
+) : java.io.Serializable

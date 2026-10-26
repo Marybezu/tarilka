@@ -95,18 +95,20 @@ private fun MetricRow(m: Metric, onClick: () -> Unit) {
         }
         val change = metricChange(androidx.compose.ui.platform.LocalContext.current, m)
         change?.let { Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant) }
-        Bars(m.series, m.seriesTarget, levelColor(m.level))
+        Bars(m.series, m.seriesTarget, levelColor(m.level), fromZero = m.key != Key.WEIGHT)
     }
 }
 
 /** Small bars, one per day / week / month, with the target as a dashed line. Empty days are a short tick. */
 @Composable
-private fun Bars(series: List<Double?>, target: Double?, color: Color) {
+private fun Bars(series: List<Double?>, target: Double?, color: Color, fromZero: Boolean = true) {
     val empty = MaterialTheme.colorScheme.outlineVariant
     val line = MaterialTheme.colorScheme.onSurfaceVariant
     Canvas(Modifier.fillMaxWidth().height(34.dp).padding(top = 4.dp)) {
         val values = series.filterNotNull()
-        val max = (values + listOfNotNull(target)).maxOrNull()?.takeIf { it > 0 } ?: 1.0
+        // Weight: from just below the lowest value, so 70 and 72 kg look different.
+        val base = if (fromZero) 0.0 else (values.minOrNull() ?: 0.0) - 1.0
+        val max = ((values + listOfNotNull(target)).maxOrNull()?.takeIf { it > base } ?: (base + 1.0)) - base
         val slot = size.width / series.size.coerceAtLeast(1)
         val w = slot * 0.6f
         series.forEachIndexed { i, v ->
@@ -114,12 +116,12 @@ private fun Bars(series: List<Double?>, target: Double?, color: Color) {
             if (v == null) {
                 drawRect(empty, Offset(x, size.height - 2.dp.toPx()), Size(w, 2.dp.toPx()))
             } else {
-                val h = (v / max * size.height).toFloat().coerceAtLeast(2.dp.toPx())
+                val h = ((v - base) / max * size.height).toFloat().coerceAtLeast(2.dp.toPx())
                 drawRoundRect(color.copy(alpha = 0.7f), Offset(x, size.height - h), Size(w, h), CornerRadius(3.dp.toPx()))
             }
         }
         target?.let {
-            val y = (size.height - it / max * size.height).toFloat()
+            val y = (size.height - (it - base) / max * size.height).toFloat()
             drawLine(line, Offset(0f, y), Offset(size.width, y), strokeWidth = 1.dp.toPx(), pathEffect = PathEffect.dashPathEffect(floatArrayOf(6f, 6f)))
         }
     }
@@ -157,17 +159,32 @@ fun metricName(c: android.content.Context, k: Key): String = c.getString(
 
 /** The bare number in the measure's unit (for "it was …"). */
 fun metricNumber(c: android.content.Context, k: Key, v: Double): String = when (k) {
+    Key.KCAL -> v.f0() + " " + c.getString(R.string.unit_kcal)
+    Key.PROTEIN, Key.FIBER, Key.VEG -> v.f0() + " " + c.getString(R.string.unit_g)
     Key.FLUID -> (v / 1000).f1() + " " + c.getString(R.string.unit_l)
     Key.SLEEP -> v.f1() + " " + c.getString(R.string.unit_h)
-    Key.ALCOHOL, Key.FASTFOOD, Key.BOWEL -> v.f1()
+    Key.ACTIVITY -> c.getString(R.string.mv_min_week, v.f0())
+    Key.ALCOHOL -> c.getString(R.string.per_week, v.f1())
+    Key.FASTFOOD, Key.BOWEL -> c.getString(R.string.mv_days_week, v.f1())
     Key.SWEETS, Key.LATE, Key.REASONS -> v.f0() + "%"
     Key.WEIGHT -> (if (v > 0) "+" else "") + v.f1()
-    else -> v.f0()
+    Key.STEPS -> v.f0()
 }
 
 fun metricValue(c: android.content.Context, m: Metric): String {
     val v = m.value
     val t = m.target ?: 0.0
+    // The colour may come from this, not from the number: say so beside it.
+    val cause = when (m.cause) {
+        Metric.Cause.HARD_TO_STOP -> " · " + c.getString(R.string.cause_hard_to_stop, m.causeCount)
+        Metric.Cause.LOOSE -> " · " + c.getString(R.string.cause_loose, m.causeCount)
+        Metric.Cause.HEAVY_DRINKING -> " · " + c.getString(R.string.cause_heavy, m.causeCount)
+        null -> ""
+    }
+    return cause.let { suffix -> metricValueOnly(c, m, v, t) + suffix }
+}
+
+private fun metricValueOnly(c: android.content.Context, m: Metric, v: Double, t: Double): String {
     return when (m.key) {
         Key.KCAL -> c.getString(R.string.mv_kcal, v.f0(), t.f0())
         Key.PROTEIN, Key.FIBER -> c.getString(R.string.mv_grams, v.f0(), t.f0())

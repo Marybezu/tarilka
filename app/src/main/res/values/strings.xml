@@ -620,7 +620,6 @@
     <string name="pdf_col_date">Date</string>
     <string name="pdf_col_protein">Protein, g</string>
     <string name="pdf_compact_hint">For more than 31 days: one line per day and notes as a list; bowel, workouts and Why I eat appear only in the summary. The full menu is in reports of up to 31 days.</string>
-    <string name="pdf_day_total">Total: %1$s of %2$s kcal · protein %3$s of %4$s g · fibre %5$s of %6$s g</string>
     <string name="pdf_why">Why: %1$s</string>
     <string name="pdf_hunger">hunger %1$d/5</string>
     <string name="pdf_hard_to_stop">hard to stop</string>
@@ -652,4 +651,17 @@
     <string name="auto_backup_off">Turn off</string>
     <string name="auto_backup_done">Copy saved.</string>
     <string name="auto_backup_failed">Could not make the copy. Check the folder.</string>
+    <string name="same_as_yesterday">↻ Same as yesterday</string>
+    <string name="pdf_overview">Overview</string>
+    <string name="pdf_tile_kcal">Calories a day</string>
+    <string name="pdf_tile_protein">Protein a day</string>
+    <string name="pdf_tile_fluid">Fluids a day</string>
+    <string name="pdf_tile_days">Days with entries</string>
+    <string name="pdf_of">of %1$s</string>
+    <string name="pdf_chart_kcal">Calories by day (dashed: target)</string>
+    <string name="pdf_chart_kcal_avg">Calories, daily average per stretch (dashed: target)</string>
+    <string name="pdf_chart_macros">Where the calories came from</string>
+    <string name="pdf_macros_note">WHO and EFSA guide: protein 10–35 %, fat 20–35 %, carbohydrates 45–65 % of calories.</string>
+    <string name="pdf_of_kcal">%1$s of %2$s kcal</string>
+    <string name="pdf_day_rest">Protein %1$s of %2$s g · fibre %3$s of %4$s g</string>
 </resources>

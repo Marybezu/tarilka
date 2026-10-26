@@ -503,6 +503,20 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
 
     private fun millis(d: LocalDate, t: LocalTime) = d.atTime(t).atZone(java.time.ZoneId.systemDefault()).toInstant().toEpochMilli()
 
+    /** The day before's meals, for "Same as yesterday". */
+    val yesterday: StateFlow<Map<Int, List<DiaryEntry>>> = day.flatMapLatest { d ->
+        db.diary().forDay(d.minusDays(1).toEpochDay()).map { list -> list.groupBy { it.meal } }
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyMap())
+
+    /** Adds the same foods as in this meal the day before (amounts as they were; times and answers are new). */
+    fun repeatYesterday(meal: Int) {
+        val d = day.value.toEpochDay()
+        val list = yesterday.value[meal].orEmpty().map {
+            it.copy(id = 0, day = d, reason = null, hunger = null, hardToStop = false)
+        }
+        if (list.isNotEmpty()) addEntries(list)
+    }
+
     fun addFood(food: Food, grams: Double, meal: Int, time: LocalTime? = null) =
         addEntries(listOf(DiaryEntry.of(food, grams, day.value.toEpochDay(), meal)), time)
 

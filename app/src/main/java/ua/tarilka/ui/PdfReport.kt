@@ -2,6 +2,7 @@ package ua.tarilka.ui
 
 import android.content.Context
 import android.graphics.Canvas
+import android.graphics.Color
 import android.graphics.DashPathEffect
 import android.graphics.Paint
 import android.graphics.RectF
@@ -75,6 +76,62 @@ object PdfReport {
             )
         }
         pdf.space(8f)
+
+        // ---- overview: big numbers and charts ----
+        val logged = data.days.filter { it.entries.isNotEmpty() }
+        val t = data.targets
+        if (logged.isNotEmpty() && (ReportPart.FOOD in parts || ReportPart.FLUID in parts || ReportPart.WEIGHT in parts)) {
+            pdf.heading(c.getString(R.string.pdf_overview))
+            fun tint(v: Double, target: Double, good: Double, ok: Double) =
+                levelColor(if (v >= target * good) ua.tarilka.data.Habits.Level.GOOD else if (v >= target * ok) ua.tarilka.data.Habits.Level.OK else ua.tarilka.data.Habits.Level.WATCH).toArgb()
+            val tiles = buildList {
+                if (ReportPart.FOOD in parts) {
+                    val k = logged.map { d -> d.entries.sumOf { it.kcal } }.average()
+                    val kLevel = kotlin.math.abs(k - t.kcal).let { if (it <= t.kcal * 0.1) ua.tarilka.data.Habits.Level.GOOD else if (it <= t.kcal * 0.25) ua.tarilka.data.Habits.Level.OK else ua.tarilka.data.Habits.Level.WATCH }
+                    add(Triple(c.getString(R.string.pdf_tile_kcal), k.f0() + "\n" + c.getString(R.string.pdf_of, t.kcal.f0() + " " + c.getString(R.string.unit_kcal)), levelColor(kLevel).toArgb()))
+                    val pr = logged.map { d -> d.entries.sumOf { it.protein } }.average()
+                    add(Triple(c.getString(R.string.pdf_tile_protein), pr.f0() + " " + c.getString(R.string.unit_g) + "\n" + c.getString(R.string.pdf_of, t.protein.f0() + " " + c.getString(R.string.unit_g)), tint(pr, t.protein, 0.9, 0.7)))
+                }
+                if (ReportPart.FLUID in parts) {
+                    data.days.map { it.fluidMl }.filter { it > 0 }.takeIf { it.isNotEmpty() }?.average()?.let { f ->
+                        add(Triple(c.getString(R.string.pdf_tile_fluid), (f / 1000).f1() + " " + c.getString(R.string.unit_l) + "\n" + c.getString(R.string.pdf_of, (t.waterMl / 1000).f1() + " " + c.getString(R.string.unit_l)), tint(f, t.waterMl, 0.9, 0.7)))
+                    }
+                }
+                add(Triple(c.getString(R.string.pdf_tile_days), "${logged.size}\n" + c.getString(R.string.pdf_of, nDays.toString()), 0xFF4E6E58.toInt()))
+            }
+            pdf.tiles(tiles)
+            if (ReportPart.FOOD in parts) {
+                // Calories: a bar a day up to a month, otherwise the summary's stretches.
+                val kcalMetric = data.summary.metrics.firstOrNull { it.key == Key.KCAL }
+                if (nDays <= DETAIL_DAYS) {
+                    val labelFmt = DateTimeFormatter.ofPattern(if (nDays <= 7) "EEE d" else "d", c.resources.configuration.locales[0])
+                    pdf.barChart(
+                        c.getString(R.string.pdf_chart_kcal),
+                        data.days.map { d -> d.entries.sumOf { it.kcal }.takeIf { it > 0 } },
+                        data.days.map { it.date.format(labelFmt) }, t.kcal, 0xFF8FC9A0.toInt(),
+                    )
+                } else if (kcalMetric != null) {
+                    pdf.barChart(c.getString(R.string.pdf_chart_kcal_avg), kcalMetric.series, data.summary.barLabels, t.kcal, 0xFF8FC9A0.toInt())
+                }
+                val p = logged.sumOf { d -> d.entries.sumOf { it.protein } } * 4
+                val f = logged.sumOf { d -> d.entries.sumOf { it.fat } } * 9
+                val cb = logged.sumOf { d -> d.entries.sumOf { it.carbs } } * 4
+                pdf.stackedBar(
+                    c.getString(R.string.pdf_chart_macros),
+                    listOf(
+                        Triple(c.getString(R.string.protein), p, 0xFFE0857A.toInt()),
+                        Triple(c.getString(R.string.fat), f, 0xFFE3B14D.toInt()),
+                        Triple(c.getString(R.string.carbs), cb, 0xFF7FA6DC.toInt()),
+                    ),
+                    c.getString(R.string.pdf_macros_note),
+                )
+            }
+            if (ReportPart.WEIGHT in parts) {
+                val pts = data.days.mapNotNull { d -> d.weight?.let { d.date.toEpochDay().toDouble() to it.kg } }
+                pdf.lineChart(c.getString(R.string.m_weight) + ", " + c.getString(R.string.kg), pts, data.from.format(dateFmt) to data.to.format(dateFmt))
+            }
+            pdf.space(6f)
+        }
 
         // ---- the main points and the measures ----
         val metrics = data.summary.metrics.filter { partOf(it.key) in parts }
@@ -164,7 +221,7 @@ object PdfReport {
                         if (ReportPart.SLEEP in parts) add(d.sleep?.f1() ?: "—")
                         if (ReportPart.ACTIVITY in parts) add(d.steps?.toString() ?: "—")
                     }
-                    pdf.row(cells, cols.map { it.second }, pdf.body)
+                    pdf.row(cells, cols.map { it.second }, pdf.body, striped = true)
                 }
                 // Notes do not fit a table: listed after it.
                 if (ReportPart.NOTES in parts) {
@@ -181,20 +238,27 @@ object PdfReport {
                 val flows = c.resources.getStringArray(R.array.cycle_flows)
                 val pains = c.resources.getStringArray(R.array.cycle_pains)
                 val meals = listOf(R.string.meal_breakfast, R.string.meal_lunch, R.string.meal_dinner, R.string.meal_snack).map { c.getString(it) }
+                val kcalUnit = c.getString(R.string.unit_kcal)
+                val g = c.getString(R.string.unit_g)
                 days.forEach { d ->
-                    pdf.dayTitle(d.date.format(dayFmt).replaceFirstChar { it.uppercase() })
+                    val dayKcal = d.entries.sumOf { it.kcal }
+                    pdf.dayTitle(d.date.format(dayFmt).replaceFirstChar { it.uppercase() }, if (ReportPart.FOOD in parts && dayKcal > 0) "${dayKcal.f0()} $kcalUnit" else null)
                     if (ReportPart.FOOD in parts && d.entries.isNotEmpty()) {
                         d.entries.groupBy { it.meal }.toSortedMap().forEach { (meal, list) ->
                             val at = if (withTimes && meal != 3) " · " + java.time.Instant.ofEpochMilli(list.first().createdAt).atZone(zone).toLocalTime().format(time) else ""
-                            pdf.text(meals.getOrElse(meal) { "" } + at, pdf.bold)
+                            pdf.twoSides(meals.getOrElse(meal) { "" } + at, "${list.sumOf { it.kcal }.f0()} $kcalUnit", pdf.bold)
                             list.forEach { e ->
-                                val t = if (withTimes && meal == 3) java.time.Instant.ofEpochMilli(e.createdAt).atZone(zone).toLocalTime().format(time) + "  " else ""
+                                val tm = if (withTimes && meal == 3) java.time.Instant.ofEpochMilli(e.createdAt).atZone(zone).toLocalTime().format(time) + "  " else ""
                                 pdf.row(
-                                    listOf(t + (if (e.fromAi) "✦ " else "") + e.name(), "${e.grams.f0()} ${c.getString(R.string.unit_g)}", "${e.kcal.f0()} ${c.getString(R.string.unit_kcal)}",
-                                        "${c.getString(R.string.short_protein)} ${e.protein.f0()} ${c.getString(R.string.short_fat)} ${e.fat.f0()} ${c.getString(R.string.short_carbs)} ${e.carbs.f0()}"),
-                                    listOf(3.2f, 0.8f, 0.9f, 1.6f), pdf.body, indent = 10f,
+                                    listOf(tm + (if (e.fromAi) "✦ " else "") + e.name(), "${e.grams.f0()} $g", "${e.kcal.f0()} $kcalUnit"),
+                                    listOf(4.2f, 1f, 1f), pdf.body, indent = 10f,
                                 )
                             }
+                            pdf.text(
+                                "${c.getString(R.string.short_protein)} ${list.sumOf { it.protein }.f0()} $g · ${c.getString(R.string.short_fat)} ${list.sumOf { it.fat }.f0()} $g · " +
+                                    "${c.getString(R.string.short_carbs)} ${list.sumOf { it.carbs }.f0()} $g",
+                                pdf.small, indent = 10f,
+                            )
                             if (ReportPart.REASONS in parts) {
                                 list.firstOrNull { it.reason != null || it.hunger != null || it.hardToStop }?.let { e ->
                                     val why = listOfNotNull(
@@ -206,10 +270,11 @@ object PdfReport {
                                 }
                             }
                         }
-                        val k = d.entries.sumOf { it.kcal }
                         val pr = d.entries.sumOf { it.protein }
                         val fi = d.entries.sumOf { it.fiber }
-                        pdf.text(c.getString(R.string.pdf_day_total, k.f0(), data.targets.kcal.f0(), pr.f0(), data.targets.protein.f0(), fi.f0(), data.targets.fiber.f0()), pdf.bold)
+                        pdf.space(2f)
+                        pdf.progress(dayKcal, data.targets.kcal, c.getString(R.string.pdf_of_kcal, dayKcal.f0(), data.targets.kcal.f0()))
+                        pdf.text(c.getString(R.string.pdf_day_rest, pr.f0(), data.targets.protein.f0(), fi.f0(), data.targets.fiber.f0()), pdf.small)
                     }
                     val lines = buildList {
                         if (ReportPart.FLUID in parts && d.fluidMl > 0) add(c.getString(R.string.mv_litres, (d.fluidMl / 1000).f1(), (data.targets.waterMl / 1000).f1()).let { c.getString(R.string.m_fluid) + ": " + it })
@@ -259,12 +324,16 @@ private class Pdf(c: Context) {
     private val ink = 0xFF222222.toInt()
     private val grey = 0xFF6B6B6B.toInt()
     private val accent = 0xFF4E6E58.toInt()
-    val body = TextPaint(Paint.ANTI_ALIAS_FLAG).apply { textSize = 10f; color = ink }
+    // Sizes for reading on paper or a phone: body 12 pt, notes 10 pt.
+    val body = TextPaint(Paint.ANTI_ALIAS_FLAG).apply { textSize = 12f; color = ink }
     val bold = TextPaint(body).apply { typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD) }
-    val small = TextPaint(body).apply { textSize = 8.5f; color = grey }
-    val h1 = TextPaint(bold).apply { textSize = 20f; color = accent }
-    private val h2 = TextPaint(bold).apply { textSize = 13f; color = accent }
-    private val day = TextPaint(bold).apply { textSize = 11f }
+    val small = TextPaint(body).apply { textSize = 10f; color = grey }
+    val h1 = TextPaint(bold).apply { textSize = 24f; color = accent }
+    private val h2 = TextPaint(bold).apply { textSize = 16f; color = accent }
+    private val day = TextPaint(bold).apply { textSize = 13f; color = Color.WHITE }
+    private val big = TextPaint(bold).apply { textSize = 20f }
+    private val band = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = accent }
+    private val soft = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = 0xFFEEF2EE.toInt() }
     private val pageNo = c.getString(R.string.pdf_page)
 
     private fun newPage() {
@@ -317,15 +386,149 @@ private class Pdf(c: Context) {
         y += 6f
     }
 
-    fun dayTitle(s: String) {
-        ensure(60f)
-        y += 4f
-        text(s, day)
+    /** A coloured band with the date on the left and the day's total on the right. */
+    fun dayTitle(s: String, right: String? = null) {
+        ensure(70f)
+        y += 8f
+        canvas.drawRoundRect(RectF(m, y, w - m, y + 22f), 4f, 4f, band)
+        canvas.drawText(s, m + 8f, y + 15.5f, day)
+        right?.let { canvas.drawText(it, w - m - 8f - day.measureText(it), y + 15.5f, day) }
+        y += 28f
     }
 
-    fun row(cells: List<String>, weights: List<Float>, paint: TextPaint, indent: Float = 0f) {
-        val lineH = paint.textSize * 1.5f
+    /** "Breakfast · 08:30" on the left, its calories on the right. */
+    fun twoSides(left: String, right: String, paint: TextPaint) {
+        val lineH = paint.textSize * 1.55f
         ensure(lineH)
+        canvas.drawText(TextUtils.ellipsize(left, paint, width * 0.7f, TextUtils.TruncateAt.END).toString(), m, y + paint.textSize, paint)
+        canvas.drawText(right, w - m - paint.measureText(right), y + paint.textSize, paint)
+        y += lineH
+    }
+
+    /** A thin bar: how much of the target, never red (over the target is amber). */
+    fun progress(value: Double, target: Double, label: String) {
+        ensure(30f)
+        val frac = if (target > 0) (value / target).coerceIn(0.0, 1.3) else 0.0
+        val trackW = width * 0.5f
+        canvas.drawRoundRect(RectF(m, y + 4f, m + trackW, y + 12f), 4f, 4f, soft)
+        val col = if (frac > 1.1) 0xFFFFB300.toInt() else 0xFF43A047.toInt()
+        canvas.drawRoundRect(RectF(m, y + 4f, m + trackW * (frac / 1.3).toFloat(), y + 12f), 4f, 4f, Paint(Paint.ANTI_ALIAS_FLAG).apply { color = col })
+        val tx = m + trackW / 1.3f
+        canvas.drawLine(tx, y + 1f, tx, y + 15f, Paint().apply { color = grey; strokeWidth = 1f })
+        canvas.drawText(TextUtils.ellipsize(label, bold, width - trackW - 12f, TextUtils.TruncateAt.END).toString(), m + trackW + 10f, y + 13f, bold)
+        y += 22f
+    }
+
+    /** Big numbers in boxes: what matters at a glance. Value may have a second line after "\n". */
+    fun tiles(items: List<Triple<String, String, Int>>) {
+        if (items.isEmpty()) return
+        val tileH = 62f
+        ensure(tileH + 8f)
+        val gap = 8f
+        val tw = (width - gap * (items.size - 1)) / items.size
+        items.forEachIndexed { i, (title, value, color) ->
+            val x = m + i * (tw + gap)
+            canvas.drawRoundRect(RectF(x, y, x + tw, y + tileH), 6f, 6f, soft)
+            canvas.drawRect(RectF(x, y, x + 4f, y + tileH), Paint().apply { this.color = color })
+            canvas.drawText(TextUtils.ellipsize(title, small, tw - 14f, TextUtils.TruncateAt.END).toString(), x + 10f, y + 16f, small)
+            val lines = value.split("\n")
+            canvas.drawText(TextUtils.ellipsize(lines[0], big, tw - 14f, TextUtils.TruncateAt.END).toString(), x + 10f, y + 40f, big)
+            lines.getOrNull(1)?.let { canvas.drawText(TextUtils.ellipsize(it, small, tw - 14f, TextUtils.TruncateAt.END).toString(), x + 10f, y + 55f, small) }
+        }
+        y += tileH + 10f
+    }
+
+    /** A titled bar chart: one bar per day (or stretch), the target as a dashed line, labels under it. */
+    fun barChart(title: String, values: List<Double?>, labels: List<String>, target: Double?, color: Int) {
+        if (values.isEmpty()) return
+        val chartH = 110f
+        ensure(chartH + 50f)
+        text(title, bold)
+        y += 2f
+        val top = y + 10f
+        val max = ((values.filterNotNull() + listOfNotNull(target)).maxOrNull() ?: 1.0).coerceAtLeast(1.0) * 1.1
+        val slot = width / values.size
+        val bw = slot * 0.65f
+        val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply { this.color = color }
+        canvas.drawLine(m, top + chartH, m + width, top + chartH, Paint().apply { this.color = 0xFFCCCCCC.toInt(); strokeWidth = 0.8f })
+        values.forEachIndexed { i, v ->
+            val x = m + i * slot + (slot - bw) / 2
+            if (v != null && v > 0) {
+                val bh = (v / max * chartH).toFloat()
+                canvas.drawRoundRect(RectF(x, top + chartH - bh, x + bw, top + chartH), 2f, 2f, paint)
+                if (values.size <= 14) {
+                    val t = v.f0()
+                    canvas.drawText(t, x + (bw - small.measureText(t)) / 2, top + chartH - bh - 3f, small)
+                }
+            }
+        }
+        target?.let { t ->
+            val ty = top + chartH - (t / max * chartH).toFloat()
+            canvas.drawLine(m, ty, m + width, ty, Paint().apply { this.color = grey; strokeWidth = 1f; pathEffect = DashPathEffect(floatArrayOf(5f, 4f), 0f) })
+        }
+        val step = when { labels.size <= 16 -> 1; labels.size <= 32 -> 2; else -> (labels.size / 12).coerceAtLeast(1) }
+        labels.forEachIndexed { i, l ->
+            if (i % step == 0) canvas.drawText(l, m + i * slot + (slot - small.measureText(l)) / 2, top + chartH + 13f, small)
+        }
+        y = top + chartH + 22f
+    }
+
+    /** Where the calories came from: protein, fat and carbohydrates as one bar of 100 %. */
+    fun stackedBar(title: String, parts: List<Triple<String, Double, Int>>, note: String) {
+        val total = parts.sumOf { it.second }.takeIf { it > 0 } ?: return
+        ensure(70f)
+        text(title, bold)
+        var x = m
+        val barH = 20f
+        val label = TextPaint(small).apply { color = Color.WHITE }
+        parts.forEach { (name, v, color) ->
+            val pw = (v / total * width).toFloat()
+            canvas.drawRect(RectF(x, y, x + pw, y + barH), Paint().apply { this.color = color })
+            val t = "$name ${(v / total * 100).f0()}%"
+            if (label.measureText(t) < pw - 6f) canvas.drawText(t, x + 4f, y + 14f, label)
+            x += pw
+        }
+        y += barH + 4f
+        text(note, small)
+    }
+
+    /** A simple line for weight, from just below the lowest value. */
+    fun lineChart(title: String, points: List<Pair<Double, Double>>, xLabels: Pair<String, String>) {
+        if (points.size < 2) return
+        val chartH = 90f
+        ensure(chartH + 50f)
+        text(title, bold)
+        val top = y + 10f
+        val minX = points.minOf { it.first }
+        val maxX = points.maxOf { it.first }.coerceAtLeast(minX + 1)
+        val minY = points.minOf { it.second } - 0.5
+        val maxY = points.maxOf { it.second } + 0.5
+        fun px(v: Double) = m + ((v - minX) / (maxX - minX) * (width - 20f)).toFloat() + 10f
+        fun py(v: Double) = top + chartH - ((v - minY) / (maxY - minY) * chartH).toFloat()
+        val line = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = accent; strokeWidth = 2f; style = Paint.Style.STROKE }
+        val path = android.graphics.Path()
+        points.forEachIndexed { i, (a, b) -> if (i == 0) path.moveTo(px(a), py(b)) else path.lineTo(px(a), py(b)) }
+        canvas.drawPath(path, line)
+        val dot = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = accent }
+        points.forEach { (a, b) -> canvas.drawCircle(px(a), py(b), 2.5f, dot) }
+        val first = points.first().second.f1()
+        val last = points.last().second.f1()
+        canvas.drawText(first, px(points.first().first), py(points.first().second) - 6f, small)
+        canvas.drawText(last, px(points.last().first) - small.measureText(last), py(points.last().second) - 6f, small)
+        canvas.drawText(xLabels.first, m, top + chartH + 13f, small)
+        canvas.drawText(xLabels.second, m + width - small.measureText(xLabels.second), top + chartH + 13f, small)
+        y = top + chartH + 22f
+    }
+
+    private var zebra = false
+
+    fun row(cells: List<String>, weights: List<Float>, paint: TextPaint, indent: Float = 0f, striped: Boolean = false) {
+        val lineH = paint.textSize * 1.6f
+        ensure(lineH)
+        if (striped) {
+            zebra = !zebra
+            if (zebra) canvas.drawRect(RectF(m + indent - 2f, y, w - m, y + lineH), soft)
+        }
         val total = weights.sum()
         var x = m + indent
         val avail = width - indent

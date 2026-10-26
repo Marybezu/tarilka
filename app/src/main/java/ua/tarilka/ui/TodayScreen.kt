@@ -99,6 +99,7 @@ fun TodayScreen(
     val activityHint by vm.activityHint.collectAsState()
     val mealTimesOn by vm.mealTimes.collectAsState()
     val cycle by vm.cycle.collectAsState()
+    val yesterday by vm.yesterday.collectAsState()
     var cycleDialog by remember { mutableStateOf(false) }
     var cycleSetup by remember { mutableStateOf(false) }
     val periodsKnown = vm.periods.collectAsState().value.isNotEmpty()
@@ -336,6 +337,7 @@ fun TodayScreen(
                     onDelete = { vm.deleteEntry(it) },
                     time = if (mealTimesOn && meal != 3 && list.isNotEmpty()) vm.mealTimeOf(meal) else null,
                     onTime = { vm.setMealTime(meal, it) },
+                    onRepeat = if (list.isEmpty() && !yesterday[meal].isNullOrEmpty()) { { vm.repeatYesterday(meal) } } else null,
                 )
             }
         }
@@ -544,6 +546,8 @@ private fun MealSection(
     onDelete: (DiaryEntry) -> Unit,
     time: java.time.LocalTime? = null,
     onTime: (java.time.LocalTime) -> Unit = {},
+    /** "Same as yesterday": shown on an empty meal when the day before had one. */
+    onRepeat: (() -> Unit)? = null,
 ) {
     val kcal = entries.sumOf { it.kcal }
     val context = LocalContext.current
@@ -646,6 +650,7 @@ private fun MealSection(
                 }
             }
         }
+        onRepeat?.let { TextButton(onClick = it) { Text(stringResource(R.string.same_as_yesterday)) } }
     }
 }
 

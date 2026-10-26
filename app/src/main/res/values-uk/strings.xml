@@ -620,7 +620,6 @@
     <string name="pdf_col_date">Дата</string>
     <string name="pdf_col_protein">Білок, г</string>
     <string name="pdf_compact_hint">Для періоду понад 31 день — один рядок на день, нотатки списком; кишківник, тренування й «Чому я їм» — лише в підсумках. Детальне меню — у звітах до 31 дня.</string>
-    <string name="pdf_day_total">Разом: %1$s з %2$s ккал · білок %3$s з %4$s г · клітковина %5$s з %6$s г</string>
     <string name="pdf_why">Чому: %1$s</string>
     <string name="pdf_hunger">голод %1$d/5</string>
     <string name="pdf_hard_to_stop">важко було зупинитися</string>
@@ -652,4 +651,17 @@
     <string name="auto_backup_off">Вимкнути</string>
     <string name="auto_backup_done">Копію збережено.</string>
     <string name="auto_backup_failed">Копію зробити не вдалося. Перевірте теку.</string>
+    <string name="same_as_yesterday">↻ Як учора</string>
+    <string name="pdf_overview">Огляд</string>
+    <string name="pdf_tile_kcal">Калорії на день</string>
+    <string name="pdf_tile_protein">Білок на день</string>
+    <string name="pdf_tile_fluid">Рідина на день</string>
+    <string name="pdf_tile_days">Днів із записами</string>
+    <string name="pdf_of">з %1$s</string>
+    <string name="pdf_chart_kcal">Калорії по днях (пунктир — норма)</string>
+    <string name="pdf_chart_kcal_avg">Калорії, середнє за день у кожному відрізку (пунктир — норма)</string>
+    <string name="pdf_chart_macros">Звідки калорії</string>
+    <string name="pdf_macros_note">Орієнтир ВООЗ і EFSA: білки 10–35 %, жири 20–35 %, вуглеводи 45–65 % калорій.</string>
+    <string name="pdf_of_kcal">%1$s з %2$s ккал</string>
+    <string name="pdf_day_rest">Білок %1$s з %2$s г · клітковина %3$s з %4$s г</string>
 </resources>

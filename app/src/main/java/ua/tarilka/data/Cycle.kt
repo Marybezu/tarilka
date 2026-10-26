@@ -55,7 +55,8 @@ data class CycleInfo(
     companion object {
         const val MAX_GAP = 60
 
-        fun of(periods: List<PeriodEntry>, days: List<PeriodDay>, today: Long, typical: Int? = null): CycleInfo {
+        /** [teen]: under 18 cycles of 21–45 days are normal (ACOG), so only those outside are pointed out. */
+        fun of(periods: List<PeriodEntry>, days: List<PeriodDay>, today: Long, typical: Int? = null, teen: Boolean = false): CycleInfo {
             val sorted = periods.sortedBy { it.start }
             val lengths = sorted.zipWithNext { a, b -> (b.start - a.start).toInt() }.filter { it in 10..MAX_GAP }
             val recent = lengths.takeLast(6)
@@ -82,7 +83,7 @@ data class CycleInfo(
                 ovulation = if (avg != null && next != null && !irregular) next - 14 else null,
                 fromTypical = avg == null && next != null,
                 inPeriod = last != null && last.end == null && today - last.start in 0..9,
-                tooShortOrLong = recent.size >= 2 && avg != null && (avg < 21 || avg > 35),
+                tooShortOrLong = recent.size >= 2 && avg != null && (avg < 21 || avg > if (teen) 45 else 35),
                 // Only from a marked end: an unmarked one is more likely forgotten than long.
                 longBleeding = sorted.takeLast(3).any { p -> p.end != null && p.end - p.start + 1 > 7 },
                 longGap = sorted.takeLast(4).zipWithNext { a, b -> b.start - a.start }.any { it > MAX_GAP },

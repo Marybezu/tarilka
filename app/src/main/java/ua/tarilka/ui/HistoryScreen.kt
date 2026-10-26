@@ -105,7 +105,7 @@ fun HistoryScreen(vm: MainViewModel, ai: AiViewModel, onBack: () -> Unit, onOpen
                             )
                         }
                     }
-                    if (d.kcal > 0) {
+                    if (d.kcal > 0 && LocalShowKcal.current) {
                         Text(
                             "${d.kcal.f0()} ${stringResource(R.string.unit_kcal)}",
                             style = MaterialTheme.typography.titleMedium.merge(Numbers),

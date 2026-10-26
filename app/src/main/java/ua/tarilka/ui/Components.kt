@@ -47,6 +47,9 @@ import ua.tarilka.ui.theme.Numbers
 import java.util.Locale
 import kotlin.math.roundToInt
 
+/** Whether calorie numbers are shown at all: not under 18 (see Targets.showKcal). Set once at the root. */
+val LocalShowKcal = androidx.compose.runtime.compositionLocalOf { true }
+
 fun Double.f0(): String = if (isFinite()) roundToInt().toString() else "—"
 fun Double.f1(): String = String.format(Locale.getDefault(), "%.1f", this)
 
@@ -90,7 +93,7 @@ fun Section(
 
 /** Ring that fills as calories are eaten; turns amber when over the target. */
 @Composable
-fun CalorieRing(eaten: Double, target: Double?, warnOver: Boolean = true, size: Dp = 132.dp) {
+fun CalorieRing(eaten: Double, target: Double?, warnOver: Boolean = true, size: Dp = 132.dp, ofText: String? = null) {
     val track = MaterialTheme.colorScheme.surfaceVariant
     val fill = LocalMacroColors.current.kcal
     val over = MaterialTheme.colorScheme.tertiary
@@ -109,7 +112,7 @@ fun CalorieRing(eaten: Double, target: Double?, warnOver: Boolean = true, size: 
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(eaten.f0(), style = MaterialTheme.typography.headlineMedium.merge(Numbers))
             Text(
-                if (target != null) stringResource(R.string.of_kcal, target.f0()) else stringResource(R.string.unit_kcal),
+                ofText ?: if (target != null) stringResource(R.string.of_kcal, target.f0()) else stringResource(R.string.unit_kcal),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -239,7 +242,7 @@ fun GramsDialog(
             }
         },
         confirmButton = {
-            TextButton(enabled = grams != null && grams > 0, onClick = {
+            TextButton(enabled = grams != null && grams > 0 && grams <= 5000, onClick = {
                 val g = grams ?: return@TextButton
                 val t = at
                 if (t != null && onConfirmAt != null) onConfirmAt(g, t) else onConfirm(g)

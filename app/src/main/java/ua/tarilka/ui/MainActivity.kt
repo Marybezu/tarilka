@@ -48,14 +48,17 @@ class MainActivity : AppCompatActivity() {
             val db by app.dbState.collectAsState()
             val protectedOn by Protection.enabled.collectAsState()
             val noShots by prefs.noScreenshots.collectAsState()
+            val profile by prefs.profile.collectAsState()
             LaunchedEffect(protectedOn, noShots) { Protection.applyRecents(this@MainActivity) }
             TarilkaTheme(dynamicColor = dynamic) {
+                androidx.compose.runtime.CompositionLocalProvider(LocalShowKcal provides !(profile.isSet && profile.age < 18)) {
                 if (db == null) {
                     // Locked (or being converted): the screens' view models go, they held the closed database.
                     LaunchedEffect(Unit) { viewModelStore.clear() }
                     LockScreen(onUnlock = { Protection.unlock(this) }, onStartFresh = { Protection.startFresh(this) })
                 } else {
                     AppRoot()
+                }
                 }
             }
         }

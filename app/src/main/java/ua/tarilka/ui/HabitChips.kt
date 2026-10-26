@@ -19,7 +19,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -147,6 +146,8 @@ fun HabitChips(
             )
         }
         if (h.alcoholPerWeek > 0) {
+            // In pregnancy, while breastfeeding and under 18 the advice is simply none: any amount is worth attention.
+            val noneAdvised = pregnant || !LocalShowKcal.current
             val noticed = buildList {
                 if (h.alcoholPerWeek > 7) add(stringResource(R.string.alcohol_many))
                 if (h.perWeek(h.alcoholDays) >= 4) add(stringResource(R.string.alcohol_often))
@@ -154,10 +155,12 @@ fun HabitChips(
             }.joinToString("\n").ifEmpty { null }
             Habit(
                 stringResource(R.string.habit_alcohol, h.alcoholPerWeek.f1(), h.alcoholDays) +
-                    (if (h.heavyDrinkDays > 0) " · " + stringResource(R.string.cause_heavy, h.heavyDrinkDays) else ""), h.alcoholLevel,
+                    (if (h.heavyDrinkDays > 0) " · " + stringResource(R.string.cause_heavy, h.heavyDrinkDays) else ""),
+                if (noneAdvised) Level.WATCH else h.alcoholLevel,
                 h.trend({ it.alcoholPerWeek }, 1.0), false, p?.let { stringResource(R.string.per_week, it.alcoholPerWeek.f1()) },
                 stringResource(R.string.habit_alcohol_info), noticed,
-                stringResource(R.string.alcohol_tips), if (h.alcoholLevel == Level.WATCH) stringResource(R.string.alcohol_help) else null,
+                stringResource(if (noneAdvised) R.string.audit_pregnant else R.string.alcohol_tips),
+                if (h.alcoholLevel == Level.WATCH && !noneAdvised) stringResource(R.string.alcohol_help) else null,
                 withAudit = true,
             )
         }
@@ -197,7 +200,7 @@ fun HabitChips(
             } else null,
         )
     }
-    if (audit) AuditCDialog(sex, pregnant, onSaveNote) { audit = false }
+    if (audit) AuditCDialog(sex, pregnant || !LocalShowKcal.current, onSaveNote) { audit = false }
 }
 
 @Composable

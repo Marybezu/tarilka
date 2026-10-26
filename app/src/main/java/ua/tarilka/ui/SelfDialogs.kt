@@ -89,7 +89,7 @@ fun WorkoutDialog(
                 today.forEach { w ->
                     Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
                         Text(
-                            workoutLine(w, types, levels) + " · ≈ ${Workouts.kcal(w, weightKg).f0()} ${stringResource(R.string.unit_kcal)}",
+                            workoutLine(w, types, levels) + if (LocalShowKcal.current) " · ≈ ${Workouts.kcal(w, weightKg).f0()} ${stringResource(R.string.unit_kcal)}" else "",
                             style = MaterialTheme.typography.bodyMedium,
                             modifier = Modifier.weight(1f),
                         )

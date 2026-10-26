@@ -44,7 +44,8 @@ object Tips {
                 !dayFinished && left > 0 && targets.showKcal ->
                     tips += Tip(R.string.tip_remaining, listOf(left))
                 dayFinished && totals.kcal < targets.kcal * 0.7 ->
-                    tips += Tip(R.string.tip_under, listOf(totals.kcal.roundToInt()), Tip.Kind.WARN)
+                    tips += if (targets.showKcal) Tip(R.string.tip_under, listOf(totals.kcal.roundToInt()), Tip.Kind.WARN)
+                    else Tip(R.string.tip_under_teen, kind = Tip.Kind.WARN)
                 abs(left) <= targets.kcal * 0.1 && targets.showKcal ->
                     tips += Tip(R.string.tip_on_target, kind = Tip.Kind.GOOD)
             }
@@ -62,7 +63,7 @@ object Tips {
                         listOf(totals.fiber.roundToInt(), targets.fiber.roundToInt()),
                     )
                 }
-                if (totals.fat > targets.fat * 1.25 && targets.showKcal) {
+                if (totals.fat > targets.fat * 1.25 && targets.limit == null && targets.showKcal) {
                     tips += Tip(R.string.tip_fat_high, listOf(totals.fat.roundToInt()), sources = Advice.sources(dayEntries, { it.fat }), sourceUnit = R.string.unit_g)
                 }
                 if (totals.protein >= targets.protein * 0.95 && totals.fiber >= targets.fiber * 0.9) {

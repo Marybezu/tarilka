@@ -162,7 +162,7 @@ private fun WaistSection(vm: MainViewModel) {
             val female = profile.sex == ua.tarilka.data.Sex.FEMALE
             val (raised, high) = if (female) 80.0 to 88.0 else 94.0 to 102.0
             // In pregnancy and under 18 the adult thresholds say nothing: only the number, no colour.
-            val rated = !profile.pregnant && profile.age >= 18
+            val rated = profile.isSet && !profile.pregnant && profile.age >= 18
             val level = when {
                 !rated -> null
                 last.cm <= raised -> ua.tarilka.data.Habits.Level.GOOD

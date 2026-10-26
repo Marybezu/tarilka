@@ -4,6 +4,7 @@ import android.content.Context
 import android.net.Uri
 import android.provider.DocumentsContract
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.withContext
 import java.io.File
 
@@ -58,6 +59,8 @@ class ModelStore(private val context: Context) {
                     val buf = ByteArray(1 shl 20)
                     var copied = 0L
                     while (true) {
+                        // Stops when the screen that started it is gone (e.g. the diary locked); the temp file is removed below.
+                        kotlinx.coroutines.currentCoroutineContext().ensureActive()
                         val n = input.read(buf)
                         if (n < 0) break
                         out.write(buf, 0, n)

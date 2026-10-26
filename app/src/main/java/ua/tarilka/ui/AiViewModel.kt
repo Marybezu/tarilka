@@ -87,6 +87,7 @@ class AiViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     fun import(uri: Uri, deleteOriginal: Boolean) = viewModelScope.launch {
+        if (_importProgress.value != null) return@launch // one copy at a time
         _importProgress.value = 0f
         importNote.value = null
         gemma.release()
@@ -257,7 +258,7 @@ class AiViewModel(app: Application) : AndroidViewModel(app) {
         get() = tapp.prefs.plateSize
         set(v) { tapp.prefs.plateSize = v }
 
-    fun setGrams(i: Int, grams: Double) = updateItem(i) { it.copy(grams = grams) }
+    fun setGrams(i: Int, grams: Double) = updateItem(i) { it.copy(grams = grams.coerceIn(0.0, 5000.0)) }
     fun setInclude(i: Int, on: Boolean) = updateItem(i) { it.copy(include = on) }
     fun replaceFood(i: Int, food: Food) = updateItem(i) { it.copy(food = food, include = true) }
 

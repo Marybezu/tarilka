@@ -233,7 +233,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     val cycle: StateFlow<ua.tarilka.data.CycleInfo?> = combine(prefs.cycleEnabled, allPeriods, db.cycle().days(), today, prefs.cycleTypical) { on, periods, days, t, typical ->
-        if (!on) null else ua.tarilka.data.CycleInfo.of(periods, days, t.toEpochDay(), typical.takeIf { it > 0 })
+        if (!on) null else ua.tarilka.data.CycleInfo.of(periods, days, t.toEpochDay(), typical.takeIf { it > 0 }, teen = prefs.profile.value.let { it.isSet && it.age < 18 })
     }.onEach { info ->
         // Reminders read the expected date from preferences (they run without the app open).
         val next = info?.nextStart ?: -1
@@ -517,27 +517,35 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     private var repeating = false
     private var lastRepeat = -1 to 0L
 
-    /** Adds yesterday's meal again, at yesterday's clock time (not "now": late filling-in is not late eating). */
+    /**
+     * Adds yesterday's meal again, each food at its own clock time from yesterday (not "now": late filling-in
+     * is not late eating), but never in the future.
+     */
     fun repeatYesterday(meal: Int) {
         // A quick double tap adds it once (also right after the first one was saved).
         if (repeating || (lastRepeat.first == meal && System.currentTimeMillis() - lastRepeat.second < 3000)) return
-        val d = day.value.toEpochDay()
-        val src = yesterday.value[meal].orEmpty()
-        val list = src.map { it.copy(id = 0, day = d, reason = null, hunger = null, hardToStop = false) }
+        val d = day.value
+        val zone = java.time.ZoneId.systemDefault()
+        val now = System.currentTimeMillis()
+        val list = yesterday.value[meal].orEmpty().mapIndexed { i, e ->
+            val clock = java.time.Instant.ofEpochMilli(e.createdAt).atZone(zone).toLocalTime()
+            val at = (d.atTime(clock).atZone(zone).toInstant().toEpochMilli() + i).coerceAtMost(now + i)
+            e.copy(id = 0, day = d.toEpochDay(), reason = null, hunger = null, hardToStop = false, createdAt = at)
+        }
         if (list.isEmpty()) return
-        val time = java.time.Instant.ofEpochMilli(src.first().createdAt).atZone(java.time.ZoneId.systemDefault()).toLocalTime()
         repeating = true
-        addEntries(list, time).invokeOnCompletion { repeating = false; lastRepeat = meal to System.currentTimeMillis() }
+        addEntries(list, keepTimes = true).invokeOnCompletion { repeating = false; lastRepeat = meal to System.currentTimeMillis() }
     }
 
     fun addFood(food: Food, grams: Double, meal: Int, time: LocalTime? = null) =
         addEntries(listOf(DiaryEntry.of(food, grams, day.value.toEpochDay(), meal)), time)
 
     /** [time] = when it was eaten (chosen by the person); otherwise now, or the meal's usual time on a past day. */
-    fun addEntries(list: List<DiaryEntry>, time: LocalTime? = null) = viewModelScope.launch {
+    fun addEntries(list: List<DiaryEntry>, time: LocalTime? = null, keepTimes: Boolean = false) = viewModelScope.launch {
         val saved = list.mapIndexed { i, e ->
             val d = LocalDate.ofEpochDay(e.day)
             val at = when {
+                keepTimes -> e.createdAt
                 time != null -> millis(d, time) + i // + i keeps several items of one meal apart
                 // Joining a meal that already has a time: same time as its other foods.
                 e.meal != 3 && d == day.value -> mealTimeOf(e.meal)?.let { millis(d, it) + i } ?: if (d == LocalDate.now()) System.currentTimeMillis() + i else millis(d, MEAL_TIMES.getOrElse(e.meal) { LocalTime.NOON }) + i
@@ -921,6 +929,8 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         val time = java.time.format.DateTimeFormatter.ofPattern("HH:mm")
         val zone = java.time.ZoneId.systemDefault()
         fun Double.r() = toInt()
+        // Under 18 the AI never sees a calorie number (it tends to repeat what it sees).
+        fun kc(v: Double) = if (tg.showKcal) "${v.r()} kcal, " else ""
         fun avgFluid(a: LocalDate, b: LocalDate) =
             fluidsByDay.filterKeys { it in a.toEpochDay()..b.toEpochDay() }.values.let { if (it.isEmpty()) null else it.average().r() }
         // Average over days that have steps (Health Connect only goes back about 30 days before access was given).
@@ -935,12 +945,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
                 else "Daily targets: protein ${tg.protein.r()} g, ") +
                     "fiber ${tg.fiber.r()} g, fluids ${tg.waterMl.r()} ml." +
                     (if (tg.limit == ua.tarilka.data.Limit.PREGNANT) " Goal: no weight loss; weight gain in pregnancy is expected." else " Goal: ${tg.goal.name.lowercase()} weight.") +
-                    when (tg.limit) {
-                        ua.tarilka.data.Limit.PREGNANT -> " The person is pregnant or breastfeeding: never suggest eating less or losing weight."
-                        ua.tarilka.data.Limit.TEEN -> " The person is under 18: never suggest eating less or losing weight, and never mention calories or calorie targets; talk about regular meals, vegetables, drinks, sleep and movement."
-                        ua.tarilka.data.Limit.UNDERWEIGHT -> " BMI is under 18.5: never suggest eating less or losing weight; gently suggest a doctor if weight is falling."
-                        null -> ""
-                    },
+                    " " + tg.aiSafety(),
             )
             when (period) {
                 Period.WEEK -> for (i in 0L..6L) {
@@ -952,19 +957,19 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
                     val t = Totals.of(list)
                     val times = list.map { java.time.Instant.ofEpochMilli(it.createdAt).atZone(zone).toLocalTime().format(time) }.distinct()
                     val at = if (prefs.mealTimes.value) "; eaten at ${times.joinToString()}" else ""
-                    appendLine("- $name $d: ${t.kcal.r()} kcal, protein ${t.protein.r()} g, fiber ${t.fiber.r()} g$at$drinks")
+                    appendLine("- $name $d: ${kc(t.kcal)}protein ${t.protein.r()} g, fiber ${t.fiber.r()} g$at$drinks")
                 }
                 Period.MONTH -> for (w in 0 until 4) {
                     val a = from.plusDays(w * 7L)
                     val b = if (w == 3) end else a.plusDays(6)
                     val hw = Habits.of(cur.filter { it.day in a.toEpochDay()..b.toEpochDay() }, foods, groups, (b.toEpochDay() - a.toEpochDay() + 1).toInt())
-                    appendLine("- $a to $b: ${hw.days} days logged, average ${hw.kcalAvg.r()} kcal, protein ${hw.proteinAvg.r()} g")
+                    appendLine("- $a to $b: ${hw.days} days logged, average ${kc(hw.kcalAvg)}protein ${hw.proteinAvg.r()} g")
                 }
                 Period.YEAR -> cur.groupBy { LocalDate.ofEpochDay(it.day).withDayOfMonth(1) }.toSortedMap().forEach { (m, list) ->
                     val hm = Habits.of(list, foods, groups, m.lengthOfMonth())
                     val kg = weights.value.filter { LocalDate.ofEpochDay(it.day).withDayOfMonth(1) == m }.map { it.kg }
                     appendLine(
-                        "- ${m.year}-${"%02d".format(m.monthValue)}: ${hm.days} days logged, average ${hm.kcalAvg.r()} kcal, protein ${hm.proteinAvg.r()} g" +
+                        "- ${m.year}-${"%02d".format(m.monthValue)}: ${hm.days} days logged, average ${kc(hm.kcalAvg)}protein ${hm.proteinAvg.r()} g" +
                             (if (kg.isNotEmpty()) ", weight ${"%.1f".format(java.util.Locale.ROOT, kg.average())} kg" else ""),
                     )
                 }
@@ -972,7 +977,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
             fun line(label: String, now: String, before: String) = appendLine("$label: $now (previous $periodName: $before)")
             line("Days with food logged", "${h.days}", "${hp.days}")
             if (h.days > 0) {
-                line("Average per logged day", "${h.kcalAvg.r()} kcal, protein ${h.proteinAvg.r()} g, fiber ${h.fiberAvg.r()} g", if (hp.days > 0) "${hp.kcalAvg.r()} kcal, protein ${hp.proteinAvg.r()} g" else "no data")
+                line("Average per logged day", "${kc(h.kcalAvg)}protein ${h.proteinAvg.r()} g, fiber ${h.fiberAvg.r()} g", if (hp.days > 0) "${kc(hp.kcalAvg)}protein ${hp.proteinAvg.r()} g" else "no data")
                 line("Sweets and sugary drinks", "${h.sweetsPct.r()} % of calories, ${h.sweetFreeDays} of ${h.days} days without", if (hp.days > 0) "${hp.sweetsPct.r()} %" else "no data")
                 line("Vegetables and fruit", "${h.vegFruitG.r()} g a day (WHO: 400 g or more)", if (hp.days > 0) "${hp.vegFruitG.r()} g" else "no data")
                 if (prefs.mealTimes.value) line("Calories eaten after 22:00", "${h.latePct.r()} %", if (hp.days > 0) "${hp.latePct.r()} %" else "no data")
@@ -1010,7 +1015,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
                     val other = byDay.filterKeys { it !in before }.values
                     appendLine(
                         "Menstruation started on: " + starts.joinToString { LocalDate.ofEpochDay(it).toString() } +
-                            (if (pre.isNotEmpty() && other.isNotEmpty()) "; average kcal in the 7 days before: ${pre.average().r()}, other days: ${other.average().r()}" else "") +
+                            (if (tg.showKcal && pre.isNotEmpty() && other.isNotEmpty()) "; average kcal in the 7 days before: ${pre.average().r()}, other days: ${other.average().r()}" else "") +
                             ". Higher appetite and up to 1–2 kg of water weight before menstruation are normal; mention it kindly if it fits.",
                     )
                 }
@@ -1112,16 +1117,22 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
                 ua.tarilka.data.Backup.encrypt(json, password)
             })
             getApplication<Application>().getString(ua.tarilka.R.string.export_done)
-        }.getOrElse { getApplication<Application>().getString(ua.tarilka.R.string.data_error, it.message ?: "") }
+        }.getOrElse { failedExport(uri, it) }
     }
 
+    /** A failed export leaves no empty file that looks like a backup. */
+    private fun failedExport(uri: android.net.Uri, t: Throwable): String {
+        val app = getApplication<Application>()
+        runCatching { android.provider.DocumentsContract.deleteDocument(app.contentResolver, uri) }
+        return app.getString(ua.tarilka.R.string.data_error, t.message ?: "")
+    }
 
     fun exportCsv(uri: android.net.Uri) = viewModelScope.launch {
         dataMessage.value = runCatching {
             val ukrainian = ua.tarilka.data.isUkrainian()
             writeText(uri, kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) { ua.tarilka.data.Backup.diaryCsv(db, ukrainian) })
             getApplication<Application>().getString(ua.tarilka.R.string.export_done)
-        }.getOrElse { getApplication<Application>().getString(ua.tarilka.R.string.data_error, it.message ?: "") }
+        }.getOrElse { failedExport(uri, it) }
     }
 
     private val MAX_BACKUP_BYTES = 64 * 1024 * 1024

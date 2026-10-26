@@ -89,12 +89,13 @@ object PdfReport {
         // ---- overview: big numbers and charts ----
         val logged = data.days.filter { it.entries.isNotEmpty() }
         val t = data.targets
-        if (logged.isNotEmpty() && (ReportPart.FOOD in parts || ReportPart.FLUID in parts || ReportPart.WEIGHT in parts)) {
+        val anyData = logged.isNotEmpty() || data.days.any { it.fluidMl > 0 || it.weight != null }
+        if (anyData && (ReportPart.FOOD in parts || ReportPart.FLUID in parts || ReportPart.WEIGHT in parts)) {
             pdf.heading(c.getString(R.string.pdf_overview))
             fun tint(v: Double, target: Double, good: Double, ok: Double) =
                 levelColor(if (v >= target * good) ua.tarilka.data.Habits.Level.GOOD else if (v >= target * ok) ua.tarilka.data.Habits.Level.OK else ua.tarilka.data.Habits.Level.WATCH).toArgb()
             val tiles = buildList {
-                if (ReportPart.FOOD in parts) {
+                if (ReportPart.FOOD in parts && logged.isNotEmpty()) {
                     if (t.showKcal) {
                         val k = logged.map { d -> d.entries.sumOf { it.kcal } }.average()
                         // The same level as the summary's calorie measure (it knows when eating more is fine).
@@ -112,7 +113,7 @@ object PdfReport {
                 add(Triple(c.getString(R.string.pdf_tile_days), "${logged.size}\n" + c.getString(R.string.pdf_of, nDays.toString()), 0xFF4E6E58.toInt()))
             }
             pdf.tiles(tiles)
-            if (ReportPart.FOOD in parts && t.showKcal) {
+            if (ReportPart.FOOD in parts && t.showKcal && logged.isNotEmpty()) {
                 // Calories: a bar a day up to a month, otherwise the summary's stretches.
                 val kcalMetric = data.summary.metrics.firstOrNull { it.key == Key.KCAL }
                 if (nDays <= DETAIL_DAYS) {
@@ -169,7 +170,7 @@ object PdfReport {
                 pdf.metric(m, metricName(c, m.key) + ": " + metricValue(c, m), metricChange(c, m))
             }
             pdf.endLabels()
-            pdf.text(c.getString(R.string.report_bars_hint), pdf.small)
+            pdf.text(c.getString(R.string.pdf_bars_hint), pdf.small)
             pdf.space(8f)
         }
 

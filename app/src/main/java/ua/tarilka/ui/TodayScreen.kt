@@ -143,7 +143,9 @@ fun TodayScreen(
         item {
             Section {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    CalorieRing(totals.kcal, targets.kcal.takeIf { targets.showKcal }, warnOver = targets.limit == null)
+                    // Under 18 the ring shows protein instead of calories.
+                    if (LocalShowKcal.current) CalorieRing(totals.kcal, targets.kcal, warnOver = targets.limit == null)
+                    else CalorieRing(totals.protein, targets.protein, warnOver = false, ofText = stringResource(R.string.ring_protein, targets.protein.f0()))
                     Spacer(Modifier.width(16.dp))
                     Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         NutrientBar(stringResource(R.string.protein), totals.protein, targets.protein, macros.protein)
@@ -184,7 +186,7 @@ fun TodayScreen(
                         NutrientBar("👣 " + stringResource(R.string.steps_title), steps!!.toDouble(), stepsGoal.toDouble(), macros.fiber, unit = "")
                     }
                     Text(
-                        "≈ ${kcal.f0()} ${stringResource(R.string.unit_kcal)} · " +
+                        (if (LocalShowKcal.current) "≈ ${kcal.f0()} ${stringResource(R.string.unit_kcal)} · " else "") +
                             stringResource(if (stepsFromHc) R.string.steps_from_hc else R.string.steps_from_sensor),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -372,7 +374,7 @@ fun TodayScreen(
                         )
                         Spacer(Modifier.height(8.dp))
                     }
-                    WeekBars(day, week, targets.kcal.takeIf { targets.showKcal }, warnOver = targets.limit == null)
+                    if (targets.showKcal) WeekBars(day, week, targets.kcal, warnOver = targets.limit == null)
                     // Several full days well below what the body needs at rest: a calm word and a pointer to help.
                     val past = withData.filter { it.day < java.time.LocalDate.now().toEpochDay() }
                     if (past.size >= 4 && past.sumOf { it.kcal } / past.size < targets.bmr) {
@@ -587,7 +589,7 @@ private fun MealSection(
                     android.app.TimePickerDialog(context, { _, h, m -> onTime(java.time.LocalTime.of(h, m)) }, t.hour, t.minute, true).show()
                 }) { Text("%02d:%02d ✎".format(t.hour, t.minute), style = MaterialTheme.typography.labelLarge.merge(Numbers)) }
             }
-            if (entries.isNotEmpty()) {
+            if (entries.isNotEmpty() && LocalShowKcal.current) {
                 Text(
                     "${kcal.f0()} ${stringResource(R.string.unit_kcal)}",
                     style = MaterialTheme.typography.labelLarge.merge(Numbers),
@@ -658,7 +660,10 @@ private fun MealSection(
                         Text(stringResource(R.string.delete))
                     }
                 } else {
-                    Text(e.kcal.f0(), style = MaterialTheme.typography.bodyLarge.merge(Numbers))
+                    Text(
+                        if (LocalShowKcal.current) e.kcal.f0() else "${e.grams.f0()} ${stringResource(R.string.unit_g)}",
+                        style = MaterialTheme.typography.bodyLarge.merge(Numbers),
+                    )
                 }
             }
         } }
@@ -744,7 +749,7 @@ private fun adviceSummary(
     appendLine("Foods eaten $dayWord (" + (if (withTimes) "time, " else "") + "name, amount):")
     entries.forEach {
         val t = java.time.Instant.ofEpochMilli(it.createdAt).atZone(java.time.ZoneId.systemDefault()).toLocalTime().format(time)
-        appendLine("- " + (if (withTimes) "$t " else "") + "${it.nameEn} (${it.nameUk}), ${it.grams.f0()} g, ${it.kcal.f0()} kcal")
+        appendLine("- " + (if (withTimes) "$t " else "") + "${it.nameEn} (${it.nameUk}), ${it.grams.f0()} g" + if (targets.showKcal) ", ${it.kcal.f0()} kcal" else "")
     }
     appendLine("Fluids $dayWord: ${fluidMl.f0()} ml (target ${targets.waterMl.f0()} ml).")
     if (steps != null) appendLine("Steps $dayWord: $steps.")
@@ -759,9 +764,7 @@ private fun adviceSummary(
                 "(target ${targets.fiber.f0()}). The person is under 18: never mention calories or calorie targets."
         },
     )
-    if (targets.limit != null) {
-        appendLine("Important: the person is pregnant or breastfeeding, under 18, or has a BMI under 18.5. Never suggest eating less or losing weight.")
-    }
+    appendLine("Important: " + targets.aiSafety())
     if (tips.isNotEmpty()) {
         appendLine("Notes from the app:")
         tips.forEach { appendLine("- " + context.getString(it.res, *it.args.toTypedArray())) }

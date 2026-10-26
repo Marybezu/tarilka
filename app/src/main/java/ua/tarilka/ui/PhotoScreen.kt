@@ -90,7 +90,8 @@ fun PhotoScreen(
             if (chosen.isNotEmpty()) {
                 BottomAppBar {
                     Text(
-                        "${chosen.sumOf { it.kcal }.f0()} ${stringResource(R.string.unit_kcal)}",
+                        if (LocalShowKcal.current) "${chosen.sumOf { it.kcal }.f0()} ${stringResource(R.string.unit_kcal)}"
+                        else "${chosen.sumOf { it.grams }.f0()} ${stringResource(R.string.unit_g)}",
                         style = MaterialTheme.typography.titleMedium.merge(Numbers),
                         modifier = Modifier
                             .weight(1f)
@@ -279,7 +280,7 @@ private fun ReviewCard(i: Int, item: ReviewItem, ai: AiViewModel, onReplace: (In
                 val conf = if (item.detected.confidence == "low") " · " + stringResource(R.string.low_confidence) else ""
                 Text(sub + conf, style = MaterialTheme.typography.bodySmall, color = if (item.isEstimate) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.onSurfaceVariant)
             }
-            Text(item.kcal.f0(), style = MaterialTheme.typography.titleMedium.merge(Numbers))
+            if (LocalShowKcal.current) Text(item.kcal.f0(), style = MaterialTheme.typography.titleMedium.merge(Numbers))
         }
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(start = 48.dp)) {
             OutlinedTextField(

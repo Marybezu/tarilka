@@ -527,10 +527,27 @@ private fun TipRow(tip: Tip) {
         Tip.Kind.WARN -> MaterialTheme.colorScheme.tertiary
         Tip.Kind.INFO -> MaterialTheme.colorScheme.onSurfaceVariant
     }
-    Row {
-        Text("●", color = color, style = MaterialTheme.typography.bodyMedium)
-        Spacer(Modifier.width(8.dp))
-        Text(stringResource(tip.res, *tip.args.toTypedArray()), style = MaterialTheme.typography.bodyMedium)
+    // Tips with sources open on tap: where it came from today, and what could be swapped.
+    var open by remember { mutableStateOf(false) }
+    Column(if (tip.sources.isNotEmpty()) Modifier.clickable { open = !open } else Modifier) {
+        Row {
+            Text("●", color = color, style = MaterialTheme.typography.bodyMedium)
+            Spacer(Modifier.width(8.dp))
+            Text(
+                stringResource(tip.res, *tip.args.toTypedArray()) + if (tip.sources.isNotEmpty()) " " + stringResource(if (open) R.string.tip_less else R.string.tip_where) else "",
+                style = MaterialTheme.typography.bodyMedium,
+            )
+        }
+        if (open) {
+            val unit = if (tip.sourceUnit != 0) stringResource(tip.sourceUnit) else ""
+            Text(
+                stringResource(R.string.tip_sources, tip.sources.joinToString(", ") { (n, v) -> "$n ${v.f0()} $unit".trim() }) +
+                    (if (tip.res == R.string.tip_fat_high) "\n" + stringResource(R.string.tip_fat_swap) else ""),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(start = 16.dp, top = 2.dp),
+            )
+        }
     }
 }
 

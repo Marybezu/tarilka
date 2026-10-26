@@ -60,6 +60,7 @@ fun ReportView(report: MainViewModel.PeriodReport) {
         val ctx = androidx.compose.ui.platform.LocalContext.current
         Text(stringResource(R.string.report_main), style = MaterialTheme.typography.titleSmall)
         Text(highlightLines(ctx, metrics, report.highlights).joinToString("\n"), style = MaterialTheme.typography.bodyMedium)
+        AdviceBlock(report.advice)
         // Bar labels once, above all the charts.
         Row(Modifier.fillMaxWidth().padding(top = 4.dp)) {
             report.barLabels.forEach {
@@ -237,4 +238,43 @@ private fun info(k: Key): List<String> = when (k) {
     Key.FASTFOOD -> listOf(stringResource(R.string.habit_fastfood_info), stringResource(R.string.fastfood_tips))
     Key.REASONS -> listOf(stringResource(R.string.habit_reasons_info), stringResource(R.string.reasons_tips))
     Key.BOWEL -> listOf(stringResource(R.string.habit_bowel_info), stringResource(R.string.bowel_tips))
+}
+
+/** "What could change" (at most two) and "what is already good" (one), with the person's own foods. */
+@Composable
+fun AdviceBlock(advice: ua.tarilka.data.Advice.Result) {
+    val c = androidx.compose.ui.platform.LocalContext.current
+    if (advice.change.isNotEmpty()) {
+        Text(stringResource(R.string.advice_change), style = MaterialTheme.typography.titleSmall)
+        advice.change.forEach { Text("• " + adviceText(c, it), style = MaterialTheme.typography.bodyMedium) }
+    }
+    advice.good?.let {
+        Text(stringResource(R.string.advice_good), style = MaterialTheme.typography.titleSmall)
+        Text("• " + adviceText(c, it), style = MaterialTheme.typography.bodyMedium)
+    }
+}
+
+/** One suggestion in words; the guideline it follows is named at the end. */
+fun adviceText(c: android.content.Context, i: ua.tarilka.data.Advice.Item): String {
+    val R_ = ua.tarilka.data.Advice.Rule
+    val foods = i.foods.joinToString(", ")
+    val text = if (i.good) when (i.rule) {
+        R_.VEG_FRUIT -> c.getString(R.string.advice_good_veg, i.amount.f0())
+        R_.LEGUMES -> c.getString(R.string.advice_good_legumes, i.amount.f1())
+        R_.FISH -> c.getString(R.string.advice_good_fish, i.amount.f1())
+        R_.REFINED_GRAINS -> c.getString(R.string.advice_good_whole, i.amount.f0(), foods)
+        else -> ""
+    } else when (i.rule) {
+        R_.PROCESSED_MEAT -> c.getString(R.string.advice_processed, i.amount.f1(), foods)
+        R_.RED_MEAT -> c.getString(R.string.advice_red, i.amount.f0(), foods)
+        R_.SUGAR -> c.getString(R.string.advice_sugar, i.amount.f0(), foods)
+        R_.SFA_FOODS -> c.getString(R.string.advice_sfa, i.amount.f0(), foods)
+        R_.FASTFOOD -> c.getString(R.string.advice_fastfood, i.amount.f1(), foods)
+        R_.REFINED_GRAINS -> c.getString(R.string.advice_refined, i.amount.f0(), foods)
+        R_.VEG_FRUIT -> c.getString(R.string.advice_veg, i.amount.f0()) + if (foods.isNotEmpty()) " " + c.getString(R.string.advice_veg_yours, foods) else ""
+        R_.LEGUMES -> c.getString(R.string.advice_legumes)
+        R_.FISH -> c.getString(R.string.advice_fish)
+        R_.NUTS -> c.getString(R.string.advice_nuts)
+    }
+    return text + " (" + c.getString(i.rule.source) + ")"
 }

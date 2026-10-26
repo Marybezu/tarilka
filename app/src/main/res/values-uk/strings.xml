@@ -685,4 +685,35 @@
     <string name="waist_info">Міряйте сантиметром на рівні пупка, на видиху, раз на 2–4 тижні. За ВООЗ ризик для серця й обміну речовин вищий від %1$s см і суттєво вищий від %2$s см. Талія показує те, чого не видно в ІМТ: де саме відкладається жир.</string>
     <string name="waist_hint">Обхват талії доповнює ІМТ: показує, де відкладається жир. Достатньо міряти раз на 2–4 тижні.</string>
     <string name="delete_last">Видалити останній запис</string>
+    <string name="tip_where">Звідки? ▸</string>
+    <string name="tip_less">▾</string>
+    <string name="tip_sources">Найбільше дали: %1$s.</string>
+    <string name="tip_fat_swap" formatted="false">Що можна: частину майонезу замінити йогуртом чи сметаною 15%, ковбасу — запеченою куркою, смажене — запеченим. Горіхи, олія й риба — корисні жири, тут важить лише порція.</string>
+    <string name="advice_change">Що можна змінити</string>
+    <string name="advice_good">Що вже добре</string>
+    <string name="advice_processed">Ковбаси, сосиски, шинка: %1$s дн. на тиждень (%2$s). Спробуйте у 2 з цих днів курку, рибу, яйця чи квасолю: перероблене мʼясо підвищує ризик раку кишківника.</string>
+    <string name="advice_red">Червоне мʼясо: близько %1$s г на тиждень (%2$s). Радять до 350–500 г готового; частину днів можна замінити рибою, птицею чи бобовими.</string>
+    <string name="advice_sugar">Солодке дає %1$s%% калорій (%2$s). Радять до 10%%, а краще до 5%%. Крок на тиждень: половина цукру в чаї, фрукт замість одного з десертів, вода замість солодкого напою.</string>
+    <string name="advice_sfa">Продукти, багаті на насичені жири, дають %1$s%% калорій (%2$s). Можна: олія замість вершкового масла, йогурт замість майонезу, запікати замість смажити.</string>
+    <string name="advice_fastfood">Фастфуд: %1$s дн. на тиждень (%2$s). Домашній варіант того самого зазвичай має менше солі й жиру.</string>
+    <string name="advice_refined">Цільнозернове — лише %1$s%% хліба й каш (переважно %2$s). Частину днів спробуйте гречку, вівсянку чи цільнозерновий хліб.</string>
+    <string name="advice_veg">Овочі й фрукти: %1$s г на день із 400. Додайте ще одну порцію до звичного.</string>
+    <string name="advice_veg_yours">З того, що ви вже їсте: %1$s.</string>
+    <string name="advice_legumes">Бобових майже не було. Квасоля, сочевиця, нут чи горох 2–3 рази на тиждень дають білок і клітковину.</string>
+    <string name="advice_fish">Риби майже не було. Радять 1–2 рази на тиждень, з них раз жирну: оселедець, скумбрію, лосось.</string>
+    <string name="advice_nuts">Жменя горіхів чи насіння (25–30 г) кілька разів на тиждень дає корисні жири, якщо немає алергії.</string>
+    <string name="advice_good_veg">Овочі й фрукти: %1$s г на день, понад 400 г.</string>
+    <string name="advice_good_legumes">Бобові %1$s рази на тиждень.</string>
+    <string name="advice_good_fish">Риба %1$s рази на тиждень, зокрема жирна.</string>
+    <string name="advice_good_whole">Цільнозернове — %1$s%% хліба й каш (%2$s).</string>
+    <string name="src_processed">ВООЗ/IARC, WCRF</string>
+    <string name="src_red">WCRF</string>
+    <string name="src_sugar">ВООЗ</string>
+    <string name="src_sfa">ВООЗ</string>
+    <string name="src_who">ВООЗ</string>
+    <string name="src_fibre">ВООЗ, EFSA</string>
+    <string name="src_veg">ВООЗ</string>
+    <string name="src_legumes">EAT-Lancet, NHS</string>
+    <string name="src_fish">EFSA, NHS</string>
+    <string name="src_nuts">EAT-Lancet</string>
 </resources>

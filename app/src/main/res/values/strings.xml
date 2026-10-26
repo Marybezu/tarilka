@@ -685,4 +685,35 @@
     <string name="waist_info">Measure with a tape at the level of the navel, breathing out, every 2–4 weeks. By WHO, the risk for the heart and metabolism is higher from %1$s cm and substantially higher from %2$s cm. The waist shows what BMI cannot: where fat is stored.</string>
     <string name="waist_hint">The waist adds to BMI: it shows where fat is stored. Measuring every 2–4 weeks is enough.</string>
     <string name="delete_last">Delete the last entry</string>
+    <string name="tip_where">Where from? ▸</string>
+    <string name="tip_less">▾</string>
+    <string name="tip_sources">Most of it came from: %1$s.</string>
+    <string name="tip_fat_swap" formatted="false">Options: swap some mayonnaise for yoghurt or 15% sour cream, sausage for baked chicken, fried for baked. Nuts, oil and fish are healthy fats; only the portion matters there.</string>
+    <string name="advice_change">What could change</string>
+    <string name="advice_good">What is already good</string>
+    <string name="advice_processed">Sausages, frankfurters, ham: %1$s days a week (%2$s). Try chicken, fish, eggs or beans on 2 of those days: processed meat raises the risk of bowel cancer.</string>
+    <string name="advice_red">Red meat: about %1$s g a week (%2$s). Up to 350–500 g cooked is advised; some days can be fish, poultry or beans.</string>
+    <string name="advice_sugar">Sweet foods give %1$s%% of calories (%2$s). Under 10%%, ideally 5%%, is advised. A step for the week: half the sugar in tea, fruit instead of one dessert, water instead of a sweet drink.</string>
+    <string name="advice_sfa">Foods rich in saturated fat give %1$s%% of calories (%2$s). Options: oil instead of butter, yoghurt instead of mayonnaise, bake instead of fry.</string>
+    <string name="advice_fastfood">Fast food: %1$s days a week (%2$s). A home-made version of the same usually has less salt and fat.</string>
+    <string name="advice_refined">Only %1$s%% of bread and grains is whole grain (mostly %2$s). On some days try buckwheat, oats or whole-grain bread.</string>
+    <string name="advice_veg">Vegetables and fruit: %1$s g a day of 400. Add one more portion to what you usually have.</string>
+    <string name="advice_veg_yours">From what you already eat: %1$s.</string>
+    <string name="advice_legumes">Hardly any beans or lentils. Beans, lentils, chickpeas or peas 2–3 times a week give protein and fibre.</string>
+    <string name="advice_fish">Hardly any fish. 1–2 times a week is advised, once oily: herring, mackerel, salmon.</string>
+    <string name="advice_nuts">A handful of nuts or seeds (25–30 g) several times a week gives healthy fats, if there is no allergy.</string>
+    <string name="advice_good_veg">Vegetables and fruit: %1$s g a day, over 400 g.</string>
+    <string name="advice_good_legumes">Beans or lentils %1$s times a week.</string>
+    <string name="advice_good_fish">Fish %1$s times a week, oily included.</string>
+    <string name="advice_good_whole">%1$s%% of bread and grains is whole grain (%2$s).</string>
+    <string name="src_processed">WHO/IARC, WCRF</string>
+    <string name="src_red">WCRF</string>
+    <string name="src_sugar">WHO</string>
+    <string name="src_sfa">WHO</string>
+    <string name="src_who">WHO</string>
+    <string name="src_fibre">WHO, EFSA</string>
+    <string name="src_veg">WHO</string>
+    <string name="src_legumes">EAT-Lancet, NHS</string>
+    <string name="src_fish">EFSA, NHS</string>
+    <string name="src_nuts">EAT-Lancet</string>
 </resources>

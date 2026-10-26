@@ -126,7 +126,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         val now = LocalTime.now().hour
         val finished = d.isBefore(LocalDate.now()) || now >= 21
         val afternoon = d == LocalDate.now() && now >= 15
-        Tips.forDay(t, tg, n, finished, rest[1] as Profile, rest[2] as Double?, rest[3] as Double?, fluid, afternoon, st, goal)
+        Tips.forDay(t, tg, n, finished, rest[1] as Profile, rest[2] as Double?, rest[3] as Double?, fluid, afternoon, st, goal, entries.value)
     }.combine(
         // Workouts tracked for a week or more and none in the last 7 days: a gentle word, at most once a week, never daily.
         combine(prefs.workoutsEnabled, day, today) { on, d, t -> Triple(on, d, t) }.flatMapLatest { (on, d, t) ->
@@ -688,6 +688,8 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         val barLabels: List<String>,
         val highlights: ua.tarilka.data.Report.Highlights,
         val days: Int,
+        /** What could change and what is already good, from the person's own foods. */
+        val advice: ua.tarilka.data.Advice.Result = ua.tarilka.data.Advice.Result(emptyList(), null),
     )
 
     suspend fun report(period: Period): PeriodReport {
@@ -788,7 +790,11 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         val cur = data(from, end)
         val prev = data(prevFrom, from.minusDays(1))
         val metrics = ua.tarilka.data.Report.build(cur, prev, bars.map { (a, b) -> data(a, b) }, targets.value, prefs.stepsGoal.value)
-        PeriodReport(metrics, bars.map { label(it.first) }, ua.tarilka.data.Report.highlights(metrics), cur.habits.days)
+        val advice = ua.tarilka.data.Advice.of(
+            (from.toEpochDay()..end.toEpochDay()).flatMap { diaryByDay[it].orEmpty() }, foods,
+            ua.tarilka.data.FoodGroups.load(getApplication()), cur.habits.days, mayReduce = targets.value.limit == null,
+        )
+        PeriodReport(metrics, bars.map { label(it.first) }, ua.tarilka.data.Report.highlights(metrics), cur.habits.days, advice)
     }
 
     // ---- PDF report ----

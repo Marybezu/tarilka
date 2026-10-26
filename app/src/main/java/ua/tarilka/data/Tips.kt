@@ -5,7 +5,15 @@ import kotlin.math.abs
 import kotlin.math.roundToInt
 
 /** A recommendation: a string resource plus integer format args. */
-data class Tip(val res: Int, val args: List<Any> = emptyList(), val kind: Kind = Kind.INFO) {
+data class Tip(
+    val res: Int,
+    val args: List<Any> = emptyList(),
+    val kind: Kind = Kind.INFO,
+    /** "Where from": the day's biggest sources (name, amount), shown on tap. */
+    val sources: List<Pair<String, Double>> = emptyList(),
+    /** The unit of [sources]: grams or kcal. */
+    val sourceUnit: Int = 0,
+) {
     enum class Kind { GOOD, INFO, WARN }
 }
 
@@ -23,6 +31,7 @@ object Tips {
         afternoon: Boolean = false,
         steps: Long? = null,
         stepsGoal: Int = 8_000,
+        dayEntries: List<DiaryEntry> = emptyList(),
     ): List<Tip> {
         val tips = mutableListOf<Tip>()
         if (entries == 0) {
@@ -31,7 +40,7 @@ object Tips {
             val left = (targets.kcal - totals.kcal).roundToInt()
             when {
                 totals.kcal > targets.kcal * 1.1 ->
-                    tips += Tip(R.string.tip_over, listOf(-left), Tip.Kind.WARN)
+                    tips += Tip(R.string.tip_over, listOf(-left), Tip.Kind.WARN, Advice.sources(dayEntries, { it.kcal }), R.string.unit_kcal)
                 !dayFinished && left > 0 ->
                     tips += Tip(R.string.tip_remaining, listOf(left))
                 dayFinished && totals.kcal < targets.kcal * 0.7 ->
@@ -54,7 +63,7 @@ object Tips {
                     )
                 }
                 if (totals.fat > targets.fat * 1.25) {
-                    tips += Tip(R.string.tip_fat_high, listOf(totals.fat.roundToInt()))
+                    tips += Tip(R.string.tip_fat_high, listOf(totals.fat.roundToInt()), sources = Advice.sources(dayEntries, { it.fat }), sourceUnit = R.string.unit_g)
                 }
                 if (totals.protein >= targets.protein * 0.95 && totals.fiber >= targets.fiber * 0.9) {
                     tips += Tip(R.string.tip_balance_good, kind = Tip.Kind.GOOD)

@@ -138,6 +138,17 @@ object PdfReport {
         if (ReportPart.SUMMARY in parts && metrics.isNotEmpty()) {
             pdf.heading(c.getString(R.string.report_main))
             highlightLines(c, metrics, ua.tarilka.data.Report.highlights(metrics)).forEach { pdf.text("• $it", pdf.body) }
+            if (ReportPart.FOOD in parts) {
+                if (data.summary.advice.change.isNotEmpty()) {
+                    pdf.space(4f)
+                    pdf.text(c.getString(R.string.advice_change), pdf.bold)
+                    data.summary.advice.change.forEach { pdf.text("• " + adviceText(c, it), pdf.body) }
+                }
+                data.summary.advice.good?.let {
+                    pdf.text(c.getString(R.string.advice_good), pdf.bold)
+                    pdf.text("• " + adviceText(c, it), pdf.body)
+                }
+            }
             pdf.space(6f)
             pdf.labels(data.summary.barLabels)
             metrics.forEach { m ->

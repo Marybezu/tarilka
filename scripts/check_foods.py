@@ -75,6 +75,19 @@ def main() -> int:
         # check the hand-entered rows only.
         if d["source"] != "USDA" and abs(calc - kcal) > tol and code not in KCAL_EXCEPTIONS:
             problems.append(f"{code} {d['name_en']}: kcal {kcal} vs macros {calc:.0f}")
+    # Food groups: known names, existing codes.
+    groups_file = Path(__file__).resolve().parent.parent / "app/src/main/assets/food_groups.csv"
+    known = {"PROCESSED_MEAT", "RED_MEAT", "POULTRY", "FISH", "OILY_FISH", "LEGUMES", "NUTS", "WHOLE_GRAIN",
+             "REFINED_GRAIN", "SFA_RICH", "FASTFOOD", "SUGARY_DRINK", "SWEETS", "VEG_FRUIT"}
+    codes = seen
+    for line in groups_file.read_text(encoding="utf-8").splitlines():
+        if not line or line.startswith("#") or line.startswith("code;"):
+            continue
+        c, g = line.split(";")[:2]
+        if c not in codes:
+            problems.append(f"food_groups: unknown code {c}")
+        if g not in known:
+            problems.append(f"food_groups: unknown group {g} for {c}")
     print(f"{len(data)} foods checked")
     for p in problems:
         print("PROBLEM:", p)

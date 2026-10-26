@@ -514,12 +514,18 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyMap())
 
     /** Adds the same foods as in this meal the day before (amounts as they were; times and answers are new). */
+    private var repeating = false
+
+    /** Adds yesterday's meal again, at yesterday's clock time (not "now": late filling-in is not late eating). */
     fun repeatYesterday(meal: Int) {
+        if (repeating) return // a quick double tap adds it once
         val d = day.value.toEpochDay()
-        val list = yesterday.value[meal].orEmpty().map {
-            it.copy(id = 0, day = d, reason = null, hunger = null, hardToStop = false)
-        }
-        if (list.isNotEmpty()) addEntries(list)
+        val src = yesterday.value[meal].orEmpty()
+        val list = src.map { it.copy(id = 0, day = d, reason = null, hunger = null, hardToStop = false) }
+        if (list.isEmpty()) return
+        val time = java.time.Instant.ofEpochMilli(src.first().createdAt).atZone(java.time.ZoneId.systemDefault()).toLocalTime()
+        repeating = true
+        addEntries(list, time).invokeOnCompletion { repeating = false }
     }
 
     fun addFood(food: Food, grams: Double, meal: Int, time: LocalTime? = null) =
@@ -785,7 +791,10 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
                 steps = st.takeIf { it.isNotEmpty() }?.average(), stepsDays = st.size,
                 weight = w.takeIf { it.isNotEmpty() }?.map { it.kg }?.average(),
                 weightTrend = Nutrition.weeklyTrend(w),
-                activityPerDay = if (workoutsOn) workouts.filter { it.day in r }.sumOf(ua.tarilka.data.Workouts::whoMinutes).toDouble() / n else null,
+                // No value for a stretch that ended before workouts were tracked: a made-up zero is not "before".
+                activityPerDay = if (workoutsOn && activityFrom?.let { it <= r.last } != false) {
+                    workouts.filter { it.day in r }.sumOf(ua.tarilka.data.Workouts::whoMinutes).toDouble() / n
+                } else null,
             )
         }
         val cur = data(from, end)
@@ -838,7 +847,11 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
                     } ?: error("no output")
                 }
             }.onSuccess { dataMessage.value = app.getString(ua.tarilka.R.string.pdf_saved) }
-                .onFailure { dataMessage.value = app.getString(ua.tarilka.R.string.pdf_failed) }
+                .onFailure {
+                    // No half-written file left behind.
+                    runCatching { android.provider.DocumentsContract.deleteDocument(app.contentResolver, uri) }
+                    dataMessage.value = app.getString(ua.tarilka.R.string.pdf_failed)
+                }
         }
 
     /** The first day with any entry: "all time" starts there. */
@@ -1103,6 +1116,9 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
 
     // ---- automatic backup ----
 
+    /** The chosen password while the folder picker is open. */
+    var autoBackupPending: String? = null
+
     /** Turns on the weekly copy into [folder] with [password], and makes the first copy at once. */
     fun setUpAutoBackup(folder: android.net.Uri, password: String) = viewModelScope.launch {
         val app = getApplication<Application>()
@@ -1195,7 +1211,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         }.onSuccess { plain ->
             encryptedImport.value = null
             wrongPassword.value = false
-            pendingImport.value = plain to ua.tarilka.data.Backup.peek(plain)
+            pendingImport.value = plain to kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) { ua.tarilka.data.Backup.peek(plain) }
         }.onFailure { wrongPassword.value = true }
     }
 

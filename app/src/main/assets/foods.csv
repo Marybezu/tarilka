@@ -76,7 +76,7 @@ u103;bread;Пампушки з часником;Pampushky (garlic buns);321;7.27
 u104;bread;Паска;Paska (Easter bread);372;7.74;11.72;59.07;1.64;0;80;шматок;slice;RECIPE;
 u107;bread;Хачапурі по-імеретинськи;Khachapuri (Imeretian, cheese bread);294;11.97;13.58;29.9;1;0;150;шматок;piece;RECIPE;
 u116;veg;Лечо;Lecho (pepper and tomato stew);90;1.16;5.63;10.15;2.11;0;100;порція;serving;RECIPE;
-u118;veg;Помідори мариновані;Pickled tomatoes;27;0.85;0.19;6.27;1.16;0;100;шт;piece;RECIPE;
+u118;veg;Помідори мариновані;Pickled tomatoes;27;0.85;0.19;6.27;1.16;0;70;шт;piece;RECIPE;
 u119;veg;Гриби мариновані;Pickled mushrooms;39;1.81;1.28;6.44;2.33;0;50;порція;serving;RECIPE;
 u120;veg;Салат з морської капусти;Seaweed salad;100;1.44;6.47;10.61;1.32;0;100;порція;serving;RECIPE;
 v01;veg;Картопля варена;Potatoes, boiled;86;1.71;0.1;20.01;1.8;0;200;порція;serving;USDA;Potatoes, boiled, cooked without skin, flesh, without salt
@@ -158,7 +158,7 @@ v76;veg;Морська капуста (свіжа);Kelp, raw;43;1.68;0.56;9.57;1
 v77;veg;Овочева суміш варена;Mixed vegetables, boiled;65;2.86;0.15;13.09;4.4;0;150;порція;serving;USDA;Vegetables, mixed, frozen, cooked, boiled, drained, without salt
 v78;veg;Фенхель;Fennel;31;1.24;0.2;7.3;3.1;0;100;порція;serving;USDA;Fennel, bulb, raw
 v79;veg;Едамаме;Edamame;121;11.91;5.2;8.91;5.2;0;100;порція;serving;USDA;Edamame, frozen, prepared
-v80;veg;Капуста кале;Kale;35;2.92;1.49;4.42;4.1;0;50;жменя;handful;USDA;Kale, raw
+v80;veg;Кейл (капуста кале);Kale;35;2.92;1.49;4.42;4.1;0;50;жменя;handful;USDA;Kale, raw
 v81;veg;Буряк консервований;Canned beets;31;0.91;0.14;7.21;1.8;0;100;порція;serving;USDA;Beets, canned, drained solids
 v82;veg;Ревінь;Rhubarb;21;0.9;0.2;4.54;1.8;0;100;порція;serving;USDA;Rhubarb, raw
 v83;veg;Ікра кабачкова;Squash caviar (spread);97;1.2;7;7.4;1.2;0;50;порція;serving;LABEL;
@@ -274,7 +274,7 @@ m49;meat;Сервелат;Cervelat sausage;458;15;44;0.5;0;0;20;кілька с�
 m50;meat;Паштет печінковий;Liver pâté;304;11;28;2;0;0;30;порція;serving;LABEL;
 m51;meat;Яловичина тушкована (консерва);Canned stewed beef;215;15;17;0.5;0;0;100;порція;serving;LABEL;
 m52;meat;Курячі крильця смажені (в паніровці);Fried chicken wings, breaded;310;21.14;20.09;11.19;0.1;0;58;шт;piece;USDA;Fast Foods, Fried Chicken, Wing, meat and skin and breading
-m53;meat;Шкварки (снек);Pork cracklings / pork rinds;544;61.3;31.3;0;0;0;30;жменя;handful;USDA;Snacks, pork skins, plain
+m53;meat;Чипси зі свинячої шкірки;Pork rinds (snack);544;61.3;31.3;0;0;0;30;жменя;handful;USDA;Snacks, pork skins, plain
 m54;meat;Печінка куряча сира;Chicken liver, raw;119;16.92;4.83;0.73;0;0;;;;USDA;Chicken, liver, all classes, raw
 m55;meat;Ковбаса напівкопчена;Semi-smoked sausage;326;14.1;28.72;1.63;0;0;30;скибка;slice;USDA;Polish sausage, pork
 u112;meat;Шашлик курячий;Chicken shashlik (thigh);198;28.09;8.74;0;0;0;200;порція;serving;RECIPE;
@@ -315,9 +315,9 @@ s33;fish;Лосось сирий (дикий);Wild salmon, raw;142;19.84;6.34;0;
 s34;fish;Оселедець солоний (філе);Salted herring fillet;215;19;15.4;0;0;0;50;порція;serving;LABEL;
 s35;fish;Скумбрія копчена;Smoked mackerel;223;20.7;15.5;0;0;0;100;порція;serving;LABEL;
 s36;fish;Кілька в томаті;Sprats in tomato sauce;181;13;13;3;0;0;100;порція;serving;LABEL;
-s37;fish;Ікра минтаю;Pollock roe;143;22.32;6.42;1.5;0;0;30;ложка;tbsp;USDA;Fish, roe, mixed species, raw
+s37;fish;Ікра минтаю;Pollock roe;143;22.32;6.42;1.5;0;0;20;ложка;tbsp;USDA;Fish, roe, mixed species, raw
 s38;fish;Шпроти в олії;Smoked sprats in oil;330;15;30;0.3;0;0;50;порція;serving;LABEL;
-s39;fish;Мойва запечена;Capelin, baked;170;28;6;0;0;0;150;порція;serving;LABEL;
+s39;fish;Мойва запечена;Capelin, baked;157;19;9;0;0;0;150;порція;serving;LABEL;
 s40;fish;Товстолоб;Silver carp, raw;118;17;5.5;0;0;0;150;порція;serving;LABEL;
 s41;fish;Оселедець в олії (філе);Herring fillets in oil;260;16;22;0;0;0;50;порція;serving;LABEL;
 d01;dairy;Молоко 1%;Milk 1%;42;3.37;0.97;4.99;0;0;250;склянка;glass;USDA;Milk, lowfat, fluid, 1% milkfat, with added vitamin A and vitamin D
@@ -347,7 +347,7 @@ d24;dairy;Згущене молоко;Sweetened condensed milk;321;7.91;8.7;54.4
 d25;dairy;Молоко сухе;Dry whole milk;496;26.32;26.71;38.42;0;0;;;;USDA;Milk, dry, whole, without added vitamin D
 d26;dairy;Зернистий сир 2%;Cottage cheese 2%;81;10.45;2.27;4.76;0;0;150;порція;serving;USDA;Cheese, cottage, lowfat, 2% milkfat
 d27;dairy;Зернистий сир 4%;Cottage cheese 4%;98;11.12;4.3;3.38;0;0;150;порція;serving;USDA;Cheese, cottage, creamed, large or small curd
-d28;dairy;Рікота;Ricotta;150;7.54;10.18;7.27;0;0;50;порція;serving;USDA;Cheese, ricotta, whole milk
+d28;dairy;Рикота;Ricotta;150;7.54;10.18;7.27;0;0;50;порція;serving;USDA;Cheese, ricotta, whole milk
 d29;dairy;Пармезан;Parmesan;392;35.75;25;3.22;0;0;10;ложка;tbsp;USDA;Cheese, parmesan, hard
 d30;dairy;Чедер;Cheddar;410;24.25;33.82;2.13;0;0;20;скибка;slice;USDA;Cheese, cheddar
 d31;dairy;Едам;Edam;357;24.99;28.57;1.43;0;0;20;скибка;slice;USDA;Cheese, edam
@@ -473,7 +473,7 @@ c21;sweets;Батончик злаковий;Granola bar;471;10.1;19.8;64.4;5.3;
 c22;sweets;Печиво з шоколадом;Chocolate chip cookies;492;5.1;24.72;65.36;2;0;15;шт;piece;USDA;Cookies, chocolate chip, commercially prepared, regular, higher fat
 c23;sweets;Імбирне печиво / пряники;Gingersnaps;416;5.6;9.8;76.9;2.2;0;10;шт;piece;USDA;Cookies, gingersnaps
 c24;sweets;Брауні;Brownie;405;4.8;16.3;63.9;2.1;0;60;шт;piece;USDA;Cookies, brownies, commercially prepared
-c25;sweets;Чізкейк;Cheesecake;321;5.5;22.5;25.5;0.4;0;100;шматок;piece;USDA;Cake, cheesecake, commercially prepared
+c25;sweets;Чизкейк;Cheesecake;321;5.5;22.5;25.5;0.4;0;100;шматок;piece;USDA;Cake, cheesecake, commercially prepared
 c26;sweets;Пиріг яблучний;Apple pie;237;1.9;11;34;1.6;0;120;шматок;piece;USDA;Pie, apple, commercially prepared, enriched flour
 c27;sweets;Торт шоколадний;Chocolate cake;389;3.48;20.05;52.84;2.2;0;100;шматок;piece;USDA;Cake, chocolate, commercially prepared with chocolate frosting, in-store bakery
 c28;sweets;Бісквіт;Sponge cake;290;5.4;2.7;61;0.5;0;60;шматок;piece;USDA;Cake, sponge, commercially prepared
@@ -508,7 +508,7 @@ u93;sweets;Тістечко «Картопля»;Kartoshka (chocolate crumb cake
 u94;sweets;Трубочка з кремом;Cream horn (puff pastry tube);402;5.63;16.94;56.97;0.89;0;40;шт;piece;RECIPE;
 u95;sweets;Кошик із кремом;Shortcrust tartlet with buttercream;479;5.62;28.01;50.93;1.02;0;50;шт;piece;RECIPE;
 u96;sweets;Макарон (мигдальне тістечко);French macaron;455;7.21;22.27;60.28;3.05;0;15;шт;piece;RECIPE;
-u97;sweets;Тірамісу;Tiramisu;283;5.22;19.9;21.48;0.41;0;120;порція;serving;RECIPE;
+u97;sweets;Тирамісу;Tiramisu;283;5.22;19.9;21.48;0.41;0;120;порція;serving;RECIPE;
 u98;sweets;Торт «Медовик»;Honey cake (Medovyk);322;4.68;13.42;45.77;0.7;0;100;шматок;slice;RECIPE;
 u99;sweets;Торт «Київський»;Kyiv cake;475;5.74;27.93;53.14;1.67;0;80;шматок;slice;RECIPE;
 u100;sweets;Торт «Празький»;Prague cake;436;6.71;28.35;40.59;2.54;0;100;шматок;slice;RECIPE;
@@ -647,10 +647,10 @@ u88;dishes;Пельмені магазинні (заморожені);Pelmeni, s
 u89;dishes;Вареники з картоплею магазинні (заморожені);Varenyky with potato, store-bought frozen;175;6;2.5;31;1.5;0;250;порція;serving;LABEL;
 u106;dishes;Кутя;Kutia (wheat with poppy seeds and honey);201;5.28;8.55;29.36;5.05;0;100;порція;serving;RECIPE;
 u108;dishes;Гречаники;Hrechanyky (buckwheat and meat patties);227;10.45;14.79;13.32;1.51;0;70;шт;piece;RECIPE;
-u109;dishes;Зрази картопляні з м'ясом;Potato zrazy with meat filling;181;6.67;8.46;19.49;1.53;0;100;шт;piece;RECIPE;
+u109;dishes;Зрази картопляні з мʼясом;Potato zrazy with meat filling;181;6.67;8.46;19.49;1.53;0;100;шт;piece;RECIPE;
 u110;dishes;Котлети рибні;Fish cakes (patties);164;14.8;7.77;8.91;0.64;0;80;шт;piece;RECIPE;
 u111;dishes;Оладки печінкові;Liver pancakes;213;14.97;11.91;10.45;0.49;0;40;шт;piece;RECIPE;
-u113;dishes;Млинці з м'ясом;Crepes with meat filling;227;15.46;11.04;15.87;0.63;0;90;шт;piece;RECIPE;
+u113;dishes;Млинці з мʼясом;Crepes with meat filling;227;15.46;11.04;15.87;0.63;0;90;шт;piece;RECIPE;
 u114;dishes;Спагеті болоньєзе;Spaghetti bolognese;173;7.99;7.07;18.91;1.74;0;350;тарілка;plate;RECIPE;
 x01;fastfood;Піца сирна;Cheese pizza;266;11.39;9.69;33.33;2.3;0;110;шматок;slice;USDA;Fast food, pizza chain, 14" pizza, cheese topping, regular crust
 x02;fastfood;Бургер;Hamburger;250;12.5;10;28;1.5;0;200;шт;piece;LABEL;
@@ -664,8 +664,8 @@ x09;fastfood;Локшина швидкого приготування (суха)
 x10;fastfood;Картопля фрі (духовка);Oven fries;158;2.75;5.48;25.55;2;0;120;порція;serving;USDA;Potatoes, french fried, all types, salt added in processing, frozen, home-prepared, oven heated
 x11;fastfood;Цибулеві кільця;Onion rings;411;3.86;25.23;43.58;2.7;0;100;порція;serving;USDA;Fast foods, onion rings, breaded and fried
 x12;fastfood;Сендвіч з куркою;Chicken sandwich;250;16.28;11.19;20.89;1.4;0;180;шт;piece;USDA;Fast foods, chicken fillet sandwich, plain with pickles
-x13;fastfood;Чізбургер;Cheeseburger;270;13.49;12.9;25.46;1.9;0;127;шт;piece;USDA;Fast foods, cheeseburger, single, regular patty, with condiments
-x14;fastfood;Бургер подвійний (чізбургер);Double cheeseburger;282;16.24;16.18;17.97;0.9;0;165;шт;piece;USDA;Fast foods, cheeseburger, double, regular patty, with condiments
+x13;fastfood;Чизбургер;Cheeseburger;270;13.49;12.9;25.46;1.9;0;127;шт;piece;USDA;Fast foods, cheeseburger, single, regular patty, with condiments
+x14;fastfood;Бургер подвійний (чизбургер);Double cheeseburger;282;16.24;16.18;17.97;0.9;0;165;шт;piece;USDA;Fast foods, cheeseburger, double, regular patty, with condiments
 x15;fastfood;Кебаб (донер) у піті;Doner kebab in pita;201;11.86;9.67;15.93;1;0;355;шт;piece;RECIPE;
 x16;fastfood;Піца «Маргарита»;Pizza Margherita;266;10.17;10.24;32.59;1.55;0;65;шматок;slice;RECIPE;
 x17;fastfood;Панині з шинкою й сиром;Ham and cheese panini;254;13.33;10.01;27.61;1.23;0;180;шт;piece;RECIPE;

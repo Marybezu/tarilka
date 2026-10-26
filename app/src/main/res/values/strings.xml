@@ -671,7 +671,7 @@
     <string name="intro_start">Start</string>
     <string name="next">Next</string>
     <string name="crash_title">Tarilka closed with an error last time</string>
-    <string name="crash_text">You can send a technical description of the error to help fix it. It contains no diary entries, only the error\'s name and places in the code. A GitHub page opens where you can review everything before sending.</string>
+    <string name="crash_text">You can send a technical description of the error to help fix it. It contains no diary entries, only the error\'s name and places in the code. A public GitHub page opens where you can review and edit everything before sending.</string>
     <string name="crash_send">Send</string>
     <string name="crash_no">No, thanks</string>
     <string name="crash_issue_title">App error</string>

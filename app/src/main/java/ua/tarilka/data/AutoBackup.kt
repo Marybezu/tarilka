@@ -12,6 +12,7 @@ import java.time.LocalDate
  */
 object AutoBackup {
     private const val PREFIX = "tarilka-auto-"
+    private const val PART = ".part"
     private const val KEEP = 4
     const val EVERY_DAYS = 7
 
@@ -32,8 +33,22 @@ object AutoBackup {
             val r = context.contentResolver
             val parent = DocumentsContract.buildDocumentUriUsingTree(tree, DocumentsContract.getTreeDocumentId(tree))
             val today = LocalDate.now()
-            val file = DocumentsContract.createDocument(r, parent, "application/json", "$PREFIX$today.json") ?: error("no file")
-            r.openOutputStream(file, "wt")?.use { it.write(text.toByteArray(Charsets.UTF_8)) } ?: error("no output")
+            val name = "$PREFIX$today.json"
+            // Written under a temporary name first: a failed write never leaves a broken copy among the kept ones,
+            // and a second copy on the same day replaces the first instead of pushing out an older week.
+            val part = DocumentsContract.createDocument(r, parent, "application/octet-stream", "$PREFIX$today$PART") ?: error("no file")
+            runCatching {
+                r.openOutputStream(part, "wt")?.use { it.write(text.toByteArray(Charsets.UTF_8)) } ?: error("no output")
+            }.onFailure { runCatching { DocumentsContract.deleteDocument(r, part) }; throw it }
+            children(context, tree).filter { it.second == name }.forEach { (id, _) ->
+                DocumentsContract.deleteDocument(r, DocumentsContract.buildDocumentUriUsingTree(tree, id))
+            }
+            if (runCatching { DocumentsContract.renameDocument(r, part, name) }.getOrNull() == null) {
+                // The folder's app cannot rename: write the copy under its own name, then drop the temporary file.
+                val file = DocumentsContract.createDocument(r, parent, "application/json", name) ?: error("no file")
+                r.openOutputStream(file, "wt")?.use { it.write(text.toByteArray(Charsets.UTF_8)) } ?: error("no output")
+                runCatching { DocumentsContract.deleteDocument(r, part) }
+            }
             prune(context, tree, KEEP)
             prefs.autoBackupLast = today.toEpochDay()
             prefs.autoBackupProblem = false
@@ -49,20 +64,27 @@ object AutoBackup {
         prefs.autoBackupFolder?.let { runCatching { prune(context, Uri.parse(it), 0) } }
     }
 
-    /** Only the [keep] newest copies made by this feature stay; nothing else in the folder is touched. */
+    /** Only the [keep] newest copies made by this feature stay (and no leftover temporary files); nothing else is touched. */
     private fun prune(context: Context, tree: Uri, keep: Int) {
         val r = context.contentResolver
-        val children = DocumentsContract.buildChildDocumentsUriUsingTree(tree, DocumentsContract.getTreeDocumentId(tree))
-        val ours = mutableListOf<Pair<String, String>>()
-        r.query(children, arrayOf(DocumentsContract.Document.COLUMN_DOCUMENT_ID, DocumentsContract.Document.COLUMN_DISPLAY_NAME), null, null, null)?.use { c ->
-            while (c.moveToNext()) {
-                val name = c.getString(1) ?: continue
-                if (name.startsWith(PREFIX) && name.endsWith(".json")) ours += c.getString(0) to name
-            }
-        }
-        ours.sortedByDescending { it.second }.drop(keep).forEach { (id, _) ->
+        val ours = children(context, tree)
+        val copies = ours.filter { it.second.endsWith(".json") }.sortedByDescending { it.second }.drop(keep)
+        (copies + ours.filter { it.second.endsWith(PART) }).forEach { (id, _) ->
             runCatching { DocumentsContract.deleteDocument(r, DocumentsContract.buildDocumentUriUsingTree(tree, id)) }
         }
+    }
+
+    /** Files in the folder made by this feature: (document id, name). */
+    private fun children(context: Context, tree: Uri): List<Pair<String, String>> {
+        val children = DocumentsContract.buildChildDocumentsUriUsingTree(tree, DocumentsContract.getTreeDocumentId(tree))
+        val ours = mutableListOf<Pair<String, String>>()
+        context.contentResolver.query(children, arrayOf(DocumentsContract.Document.COLUMN_DOCUMENT_ID, DocumentsContract.Document.COLUMN_DISPLAY_NAME), null, null, null)?.use { c ->
+            while (c.moveToNext()) {
+                val name = c.getString(1) ?: continue
+                if (name.startsWith(PREFIX)) ours += c.getString(0) to name
+            }
+        }
+        return ours
     }
 
     /** The folder's name for the settings line. */

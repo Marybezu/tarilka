@@ -60,7 +60,7 @@ class FoodDraft(val initial: Food?) {
     var recipeLoaded = initial?.recipe == null
 
     private val name get() = nameUk.isNotBlank() || nameEn.isNotBlank()
-    val valid: Boolean get() = name && if (isRecipe) items.isNotEmpty() else kcal.toNumber() != null
+    val valid: Boolean get() = name && if (isRecipe) items.isNotEmpty() else kcal.toNumber()?.let { it <= 900 } == true
 
     fun build(): Food {
         val uk = nameUk.trim().ifEmpty { nameEn.trim() }

@@ -318,8 +318,11 @@ object Backup {
                 prefs.saveProfile(
                     Profile(
                         sex = runCatching { Sex.valueOf(p.getString("sex")) }.getOrDefault(Sex.FEMALE),
-                        age = p.optInt("age", 30), heightCm = p.optInt("heightCm", 165),
-                        weightKg = p.optDouble("weightKg", 65.0), activity = p.optInt("activity", 1),
+                        // Values out of range (a damaged file) fall back to the defaults.
+                        age = p.optInt("age", 30).takeIf { it in 14..100 } ?: 30,
+                        heightCm = p.optInt("heightCm", 165).takeIf { it in 100..250 } ?: 165,
+                        weightKg = p.optDouble("weightKg", 65.0).takeIf { it in 25.0..350.0 } ?: 65.0,
+                        activity = p.optInt("activity", 1).coerceIn(0, 4),
                         goal = runCatching { Goal.valueOf(p.getString("goal")) }.getOrDefault(Goal.MAINTAIN),
                         customKcal = if (p.isNull("customKcal")) null else p.optInt("customKcal"),
                         pregnant = p.optBoolean("pregnant", false),

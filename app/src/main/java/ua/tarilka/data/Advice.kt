@@ -56,7 +56,8 @@ object Advice {
     fun of(entries: List<DiaryEntry>, foods: Map<Long, Food>, groups: Map<String, FoodGroup>, days: Int, mayReduce: Boolean): Result {
         if (days < Habits.MIN_DAYS || entries.isEmpty()) return Result(emptyList(), null)
         fun group(e: DiaryEntry): FoodGroup? = e.foodId?.let(foods::get)?.code?.let(groups::get)
-        val perWeek = 7.0 / days.coerceAtLeast(1)
+        // Same span as the measures (Habits): a few logged days are not stretched to a whole week.
+        val perWeek = 7.0 / maxOf(days, 7)
         val byGroup = entries.groupBy { group(it) }
         fun daysWith(g: FoodGroup) = byGroup[g].orEmpty().map { it.day }.distinct().size
         fun top(list: List<DiaryEntry>, n: Int = 3) = list.groupBy { it.name() }.entries

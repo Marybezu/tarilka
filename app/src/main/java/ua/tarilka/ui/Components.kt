@@ -50,8 +50,8 @@ import kotlin.math.roundToInt
 fun Double.f0(): String = roundToInt().toString()
 fun Double.f1(): String = String.format(Locale.getDefault(), "%.1f", this)
 
-/** Accepts both "72,5" and "72.5". */
-fun String.toNumber(): Double? = trim().replace(',', '.').toDoubleOrNull()
+/** A number typed by the person: comma or dot, never negative, NaN or infinite. */
+fun String.toNumber(): Double? = trim().replace(',', '.').toDoubleOrNull()?.takeIf { it.isFinite() && it >= 0 }
 
 @Composable
 fun mealName(meal: Int): String = stringResource(

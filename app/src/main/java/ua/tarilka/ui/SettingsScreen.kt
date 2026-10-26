@@ -833,12 +833,12 @@ private fun AutoBackupRow(vm: MainViewModel) {
     var setup by rememberSaveable { mutableStateOf(false) }
     var pw1 by remember { mutableStateOf("") }
     var pw2 by remember { mutableStateOf("") }
-    // The password waits here while the folder picker is open (only in memory, never saved in plain text).
-    var pending by remember { mutableStateOf<String?>(null) }
+    // The password waits in the view model while the folder picker is open: only in memory, and it survives
+    // turning the phone.
     val pickFolder = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocumentTree()) { uri ->
-        val pw = pending
+        val pw = vm.autoBackupPending
         if (uri != null && pw != null) vm.setUpAutoBackup(uri, pw)
-        pending = null
+        vm.autoBackupPending = null
         pw1 = ""; pw2 = ""
     }
     val on = remember(version) { ua.tarilka.data.AutoBackup.isSetUp(app.prefs) }
@@ -883,7 +883,7 @@ private fun AutoBackupRow(vm: MainViewModel) {
                 }
             },
             confirmButton = {
-                TextButton(enabled = ok, onClick = { pending = pw1; setup = false; pickFolder.launch(null) }) { Text(stringResource(R.string.auto_backup_choose)) }
+                TextButton(enabled = ok, onClick = { vm.autoBackupPending = pw1; setup = false; pickFolder.launch(null) }) { Text(stringResource(R.string.auto_backup_choose)) }
             },
             dismissButton = { TextButton(onClick = { setup = false; pw1 = ""; pw2 = "" }) { Text(stringResource(R.string.cancel)) } },
         )

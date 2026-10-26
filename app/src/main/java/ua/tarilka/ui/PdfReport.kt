@@ -50,6 +50,15 @@ object PdfReport {
 
     fun write(c: Context, out: OutputStream, data: MainViewModel.ReportData, parts: Set<ReportPart>, withProfile: Boolean, withTimes: Boolean) {
         val pdf = Pdf(c)
+        try {
+            draw(c, pdf, data, parts, withProfile, withTimes)
+            pdf.doc.writeTo(out)
+        } finally {
+            pdf.doc.close()
+        }
+    }
+
+    private fun draw(c: Context, pdf: Pdf, data: MainViewModel.ReportData, parts: Set<ReportPart>, withProfile: Boolean, withTimes: Boolean) {
         val dateFmt = DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM)
         val time = DateTimeFormatter.ofPattern("HH:mm")
         val zone = java.time.ZoneId.systemDefault()
@@ -201,7 +210,8 @@ object PdfReport {
                 (ReportPart.BOWEL in parts && d.bowel != null) || (ReportPart.NOTES in parts && !d.note.isNullOrBlank()) ||
                 (ReportPart.CYCLE in parts && (d.inPeriod || d.periodDay != null))
         }
-        if (days.isNotEmpty() && (dayParts.isNotEmpty() || ReportPart.CYCLE in parts)) {
+        // Over a month the days are a table, which has no cycle column: cycle alone then has no day section.
+        if (days.isNotEmpty() && (dayParts.isNotEmpty() || (ReportPart.CYCLE in parts && nDays <= DETAIL_DAYS))) {
             pdf.heading(c.getString(R.string.pdf_by_day))
             val dayFmt = DateTimeFormatter.ofPattern("EEE, d.MM.yyyy", c.resources.configuration.locales[0])
             if (nDays > DETAIL_DAYS) {
@@ -315,8 +325,6 @@ object PdfReport {
         pdf.space(10f)
         pdf.text(c.getString(R.string.pdf_footer), pdf.small)
         pdf.finish()
-        pdf.doc.writeTo(out)
-        pdf.doc.close()
     }
 }
 

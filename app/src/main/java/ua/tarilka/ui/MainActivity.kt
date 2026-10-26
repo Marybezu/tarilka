@@ -65,7 +65,12 @@ class MainActivity : AppCompatActivity() {
     @Deprecated("Activity Result API uses this internally")
     override fun startActivityForResult(intent: android.content.Intent, requestCode: Int, options: Bundle?) {
         app.holdLock()
-        super.startActivityForResult(intent, requestCode, options)
+        try {
+            super.startActivityForResult(intent, requestCode, options)
+        } catch (e: RuntimeException) {
+            app.releaseLock() // nothing opened: no reason to keep the diary open
+            throw e
+        }
     }
 
     @Deprecated("Activity Result API uses this internally")

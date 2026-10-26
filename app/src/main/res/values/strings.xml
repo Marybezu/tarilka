@@ -344,7 +344,7 @@
     <string name="reasons_tips">What helps:\n• before eating, name what you feel: hunger, tiredness, sadness, boredom, stress?\n• a 10–15 minute pause: a walk, a call, a glass of water; the wave usually passes;\n• regular meals during the day, no strict restriction;\n• if you ate more than you meant to, no guilt: one evening does not cancel the week.</string>
     <string name="fastfood_tips">What helps:\n• keep a simple quick home option at hand;\n• when eating out, a smaller portion and no sugary drink;\n• add vegetables or a salad.</string>
     <string name="reminders_title">Reminders</string>
-    <string name="reminders_hint">All off; switch on only what you need. They come only when useful: if a meal is already logged, there is no reminder. The lock screen shows only Reminder, no details.</string>
+    <string name="reminders_hint">All off; switch on only what you need. They come only when useful: if a meal is already logged, there is no reminder. On a screen locked with a PIN or fingerprint only Reminder shows, no details, and cycle reminders do not show at all. They are not sent to a watch.</string>
     <string name="remind_meal">Time to log %1$s.</string>
     <string name="remind_water">%1$s of %2$s L so far. Time for a glass of water.</string>
     <string name="remind_sleep">Time to wind down for sleep: dim the lights, put the phone away.</string>
@@ -568,7 +568,7 @@
     <string name="mi_weight">Weight change along the trend line, kg a week. Weight swings with water and the cycle, so the trend over several weeks matters, not single days. More than 1% of body weight a week is too fast.</string>
     <string name="protect_title">App protection</string>
     <string name="protect_switch">Encrypt the diary and open with fingerprint or PIN</string>
-    <string name="protect_hint">The diary (food, fluids, weight, sleep, cycle, notes) is encrypted with a key kept in the phone\'s secure hardware. Tarilka opens with your fingerprint or the phone PIN and locks when the screen turns off or after a minute in the background. Not encrypted: the profile (including pregnancy), settings, daily steps, the expected next period date and a few of today\'s numbers (for reminders) and the Not found list. Entries in Health Connect are not covered.</string>
+    <string name="protect_hint">The diary (food, fluids, weight, sleep, cycle, notes) is encrypted with a key kept in the phone\'s secure hardware. Tarilka opens with your fingerprint or the phone PIN and locks when the screen turns off or after a minute in the background (up to 10 minutes while a file picker or the camera opened by Tarilka is on top). Not encrypted: the profile (including pregnancy), settings, daily steps, the expected next period date and a few of today\'s numbers (for reminders) and the Not found list. Entries in Health Connect are not covered.</string>
     <string name="protect_on_title">Turn on protection?</string>
     <string name="protect_on_text">⚠ Important: if you ever remove the phone\'s screen lock completely (PIN and fingerprint), Android destroys the key and the diary can no longer be opened, only restored from a backup. Adding a new fingerprint does not reset the key.\n\nSo first make an encrypted backup: Options → Data → Export backup.\n\nEntries in Health Connect are not covered by this protection.</string>
     <string name="protect_on_confirm">Turn on</string>

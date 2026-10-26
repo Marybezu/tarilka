@@ -34,10 +34,12 @@ object Recipe {
         val byId = foods.associateBy { it.id }
         val arr = o.optJSONArray("items") ?: JSONArray()
         val items = (0 until arr.length()).mapNotNull { i ->
-            val it = arr.getJSONObject(i)
-            val f = if (it.has("code")) byCode[it.getString("code")] else byId[it.optLong("id")]
-            f?.let { RecipeItem(it, arr.getJSONObject(i).getDouble("g")) }
+            // A damaged entry (from a damaged backup) is skipped instead of breaking the recipe.
+            val e = arr.optJSONObject(i) ?: return@mapNotNull null
+            val f = if (e.has("code")) byCode[e.optString("code")] else byId[e.optLong("id")]
+            val g = e.optDouble("g").takeIf { it.isFinite() && it > 0 } ?: return@mapNotNull null
+            f?.let { RecipeItem(it, g) }
         }
-        return items to (if (o.isNull("cooked")) null else o.getDouble("cooked"))
+        return items to o.optDouble("cooked").takeIf { it.isFinite() && it > 0 }
     }
 }

@@ -27,7 +27,9 @@ jobs:
           python3 scripts/check_foods.py | tee -a food-report.md || true
           cat food-report.md >> "$GITHUB_STEP_SUMMARY"
       - name: Save result for review (branch foods-generated)
+        env:
+          TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           mkdir -p "$RUNNER_TEMP/out" && cp app/src/main/assets/foods.csv food-report.md "$RUNNER_TEMP/out/" && cd "$RUNNER_TEMP/out"
           git init -q && git checkout -q -b foods-generated && git add . && git -c user.name=ci -c user.email=ci@localhost commit -qm "generated foods"
-          git push -qf "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}" foods-generated
+          git push -qf "https://x-access-token:$TOKEN@github.com/${{ github.repository }}" foods-generated

@@ -10,7 +10,7 @@ data class Targets(
     val fiber: Double,
     val bmr: Double,
     val tdee: Double,
-    /** Daily fluid, ml: about 30 ml per kg of body weight. */
+    /** Daily drinks, ml (EFSA adequate intake from drinks, see [Nutrition.targets]). */
     val waterMl: Double = 2000.0,
     /** Body mass index, kg/m². */
     val bmi: Double = 0.0,
@@ -43,14 +43,17 @@ object Nutrition {
         // or with a BMI under 18.5 (WHO: underweight).
         val limit = limitFor(p.sex, p.pregnant, p.age, bmi)
         val goal = if (limit != null && p.goal == Goal.LOSE) Goal.MAINTAIN else p.goal
-        val goalKcal = when (goal) {
+        // Pregnancy and breastfeeding need more: EFSA +70 / +260 / +500 kcal by trimester, +500 while breastfeeding.
+        // One switch covers both, so about +300 is added; the doctor knows better.
+        val extra = if (limit == Limit.PREGNANT) 300.0 else 0.0
+        val goalKcal = extra + when (goal) {
             Goal.LOSE -> tdee - minOf(500.0, tdee * 0.2)
             Goal.MAINTAIN -> tdee
             Goal.GAIN -> tdee + minOf(400.0, tdee * 0.12)
         }
         // Safety floor: never below the basal metabolic rate or a general minimum, also for the
         // person's own target; with a limit, never below what the body uses in a day.
-        val floor = if (limit != null) tdee else max(bmr, if (p.sex == Sex.MALE) 1500.0 else 1200.0)
+        val floor = if (limit != null) tdee + extra else max(bmr, if (p.sex == Sex.MALE) 1500.0 else 1200.0)
         val custom = p.customKcal?.toDouble()
         val kcal = max(custom ?: goalKcal, floor)
         val proteinPerKg = when (goal) {
@@ -58,13 +61,17 @@ object Nutrition {
             Goal.MAINTAIN -> 1.2
             Goal.GAIN -> 1.6
         }
-        // With obesity, protein is counted from the weight at a BMI of 25 (ESPEN), not the actual weight.
-        val proteinWeight = if (bmi > 30) 25.0 * (p.heightCm / 100.0) * (p.heightCm / 100.0) else w
+        // Above a BMI of 25, protein is counted from the weight at a BMI of 25 (ESPEN), not the actual weight,
+        // so it stays within about a third of the calories.
+        val proteinWeight = if (bmi > 25) 25.0 * (p.heightCm / 100.0) * (p.heightCm / 100.0) else w
         val protein = proteinPerKg * proteinWeight
         val fat = kcal * 0.30 / 9
         val carbs = max(0.0, (kcal - protein * 4 - fat * 9) / 4)
         val fiber = max(25.0, kcal / 1000 * 14)
-        val water = (w * 30).coerceIn(1500.0, 3500.0)
+        // EFSA adequate intake of water from drinks (about 80 % of 2.0 / 2.5 L), more in pregnancy and
+        // breastfeeding (+0.3 / +0.7 L) and with a very active day.
+        val water = (if (p.sex == Sex.MALE) 2000.0 else 1600.0) +
+            (if (limit == Limit.PREGNANT) 500.0 else 0.0) + (if (p.activity >= 3) 500.0 else 0.0)
         return Targets(
             kcal, protein, fat, carbs, fiber, bmr, tdee, water,
             bmi = bmi, limit = limit, goal = goal, customRaised = custom != null && custom < floor,

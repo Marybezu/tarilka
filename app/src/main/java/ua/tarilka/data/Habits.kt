@@ -115,9 +115,6 @@ data class Habits(
         /** Fewer logged days than this say too little: no badges, no trends. */
         const val MIN_DAYS = 3
 
-        /** Juices count as free sugars for the WHO; tomato juice and coconut water do not. */
-        val SUGARY_DRINKS = setOf("dr03", "dr04", "dr05", "dr10", "dr12", "dr17", "dr18", "dr20", "dr21", "dr26", "dr27", "dr29", "dr35")
-        val STARCHY = setOf("v01", "v02", "v03", "v04", "v05", "v32", "v33")
         /** Grams of alcohol per 100 g (USDA). */
         val ALCOHOL_G = mapOf("dr06" to 3.9, "dr07" to 10.6, "dr08" to 10.3, "dr09" to 33.4, "dr23" to 3.1, "dr24" to 15.3, "dr25" to 21.7,
             "dr31" to 3.7, "dr33" to 3.5, "dr34" to 9.0)
@@ -148,19 +145,21 @@ data class Habits(
             "Tell someone close about your goal; it makes it easier to keep.",
         )
 
-        /** In the sweets category but without (much) sugar: chips, popcorn, pretzels, cocoa, unsweetened muesli, protein bars. */
-        val NOT_SUGARY = setOf("c12", "c13", "c19", "c31", "c32", "c34", "c43", "c44")
-
-        /** Sushi and maki are in the fast-food list for finding them, but are not fast food for habits. */
-        val NOT_FASTFOOD = setOf("x06", "x20", "x21", "x22", "x23")
-        fun isFastFood(f: Food) = f.category == "fastfood" && f.code !in NOT_FASTFOOD
-
-        fun isSweet(f: Food) = (f.category == "sweets" && f.code !in NOT_SUGARY) || f.code in SUGARY_DRINKS
-        fun isVegFruit(f: Food) = (f.category == "veg" || f.category == "fruit") && f.code !in STARCHY
+        /**
+         * Built-in foods are judged by their reviewed food group (assets/food_groups.csv, the same list as the advice):
+         * juices count as sugar (WHO free sugars), potatoes are not vegetables, sushi is not fast food.
+         * Own foods have no group and are judged by their category.
+         */
+        private fun has(f: Food, groups: Map<String, FoodGroup>, vararg g: FoodGroup, category: (String) -> Boolean) =
+            f.code?.let { groups[it] in g } ?: category(f.category)
+        fun isSweet(f: Food, groups: Map<String, FoodGroup>) = has(f, groups, FoodGroup.SWEETS, FoodGroup.SUGARY_DRINK) { it == "sweets" }
+        fun isVegFruit(f: Food, groups: Map<String, FoodGroup>) = has(f, groups, FoodGroup.VEG_FRUIT) { it == "veg" || it == "fruit" }
+        fun isFastFood(f: Food, groups: Map<String, FoodGroup>) = has(f, groups, FoodGroup.FASTFOOD) { it == "fastfood" }
 
         fun of(
             entries: List<DiaryEntry>,
             foods: Map<Long, Food>,
+            groups: Map<String, FoodGroup>,
             periodDays: Int,
             zone: ZoneId = ZoneId.systemDefault(),
             sleep: Map<Long, Double> = emptyMap(),
@@ -169,7 +168,7 @@ data class Habits(
             withTimes: Boolean = true,
         ): Habits {
             fun food(e: DiaryEntry) = e.foodId?.let(foods::get)
-            fun sweet(e: DiaryEntry) = food(e)?.let(::isSweet) == true
+            fun sweet(e: DiaryEntry) = food(e)?.let { isSweet(it, groups) } == true
             val byDay = entries.groupBy { it.day }
             val days = byDay.size
             val kcal = entries.sumOf { it.kcal }
@@ -191,17 +190,17 @@ data class Habits(
                 fiberAvg = perDay(entries.sumOf { it.fiber }),
                 sweetsPct = pct(entries.filter(::sweet).sumOf { it.kcal }),
                 sweetFreeDays = byDay.values.count { list -> list.none(::sweet) },
-                vegFruitG = perDay(entries.filter { food(it)?.let(::isVegFruit) == true }.sumOf { it.grams }),
+                vegFruitG = perDay(entries.filter { food(it)?.let { f -> isVegFruit(f, groups) } == true }.sumOf { it.grams }),
                 latePct = pct(late),
                 alcoholPerWeek = alcohol * 7 / maxOf(days, 7).coerceAtMost(periodDays),
-                fastFoodDays = byDay.values.count { list -> list.any { food(it)?.let(::isFastFood) == true } },
+                fastFoodDays = byDay.values.count { list -> list.any { food(it)?.let { f -> isFastFood(f, groups) } == true } },
                 sleepAvg = sleep.values.takeIf { it.isNotEmpty() }?.average(),
                 reasonMeals = meals.size,
                 notHunger = meals.mapNotNull { it.reason }.filter { it != Reasons.HUNGER }.groupingBy { it }.eachCount(),
                 hardToStop = meals.count { it.hardToStop },
                 alcoholDays = alcoholByDay.count { it > 0 },
                 heavyDrinkDays = alcoholByDay.count { it >= 60 },
-                vegGoodDays = byDay.values.count { list -> list.filter { food(it)?.let(::isVegFruit) == true }.sumOf { it.grams } >= 400 },
+                vegGoodDays = byDay.values.count { list -> list.filter { food(it)?.let { f -> isVegFruit(f, groups) } == true }.sumOf { it.grams } >= 400 },
                 lateDays = byDay.values.count { list ->
                     val k = list.sumOf { it.kcal }
                     k > 0 && list.filter(::isLate).sumOf { it.kcal } >= k / 4

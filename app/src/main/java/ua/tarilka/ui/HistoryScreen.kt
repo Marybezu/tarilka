@@ -127,7 +127,7 @@ private fun Summaries(vm: MainViewModel, ai: AiViewModel, dayCount: Int) {
     val model by ai.model.collectAsState()
     val text by ai.summary.collectAsState()
     val loading by ai.summaryLoading.collectAsState()
-    val clipboard = androidx.compose.ui.platform.LocalClipboardManager.current
+    val context = androidx.compose.ui.platform.LocalContext.current
     Section(Modifier.padding(16.dp), title = stringResource(R.string.summaries_title)) {
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -159,7 +159,7 @@ private fun Summaries(vm: MainViewModel, ai: AiViewModel, dayCount: Int) {
                     HorizontalDivider()
                     Text(text!!, style = MaterialTheme.typography.bodyMedium)
                     Row {
-                        TextButton(onClick = { clipboard.setText(androidx.compose.ui.text.AnnotatedString(text!!)) }) { Text(stringResource(R.string.copy)) }
+                        TextButton(onClick = { Feedback.copyPrivate(context, text!!) }) { Text(stringResource(R.string.copy)) }
                         TextButton(onClick = ai::clearSummary) { Text(stringResource(R.string.hide)) }
                     }
                 }

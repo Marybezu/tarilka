@@ -65,7 +65,7 @@ class LogicTest {
         assertEquals(104.0, t.protein, 0.01)
         val tiny = Nutrition.targets(p.copy(customKcal = null, weightKg = 45.0, activity = 0), null)
         assertTrue("never below the safety floor", tiny.kcal >= 1200)
-        assertEquals(1950.0, t.waterMl, 0.01)
+        assertEquals(1600.0, t.waterMl, 0.01)
     }
 
     @Test
@@ -144,7 +144,7 @@ class LogicTest {
         )
         val h = ua.tarilka.data.Habits.of(
             listOf(e(1, 1, 400.0), e(1, 3, 500.0), e(2, 2, 40.0, hour = 23), e(2, 4, 200.0)),
-            foods, 7, zone,
+            foods, mapOf("f01" to ua.tarilka.data.FoodGroup.VEG_FRUIT, "s01" to ua.tarilka.data.FoodGroup.SWEETS), 7, zone,
         )
         assertEquals(2, h.days)
         assertEquals(1, h.sweetFreeDays)
@@ -163,7 +163,7 @@ class LogicTest {
         val r = ua.tarilka.data.Reasons
         // Two items added together for one meal count as one answer.
         val list = listOf(e(1, 0, r.HUNGER), e(1, 2, r.STRESS), e(1, 2, r.STRESS), e(2, 3, r.BOREDOM, hard = true), e(2, 1, null))
-        val h = ua.tarilka.data.Habits.of(list, emptyMap(), 7, sleep = mapOf(1L to 6.0, 2L to 7.0))
+        val h = ua.tarilka.data.Habits.of(list, emptyMap(), emptyMap(), 7, sleep = mapOf(1L to 6.0, 2L to 7.0))
         assertEquals(3, h.reasonMeals)
         assertEquals(2, h.notHungerTotal)
         assertEquals(1, h.hardToStop)
@@ -180,13 +180,13 @@ class LogicTest {
             protein = 0.0, fat = 0.0, carbs = 0.0, fiber = 0.0,
         )
         // Two glasses a week: some alcohol, amber.
-        assertEquals(ua.tarilka.data.Habits.Level.OK, ua.tarilka.data.Habits.of(listOf(glass(1, 150.0), glass(3, 150.0)), foods, 7).alcoholLevel)
+        assertEquals(ua.tarilka.data.Habits.Level.OK, ua.tarilka.data.Habits.of(listOf(glass(1, 150.0), glass(3, 150.0)), foods, emptyMap(), 7).alcoholLevel)
         // One evening with a bottle (750 ml ≈ 8 drinks): a heavy day, orange.
-        val bottle = ua.tarilka.data.Habits.of(listOf(glass(1, 750.0)), foods, 7)
+        val bottle = ua.tarilka.data.Habits.of(listOf(glass(1, 750.0)), foods, emptyMap(), 7)
         assertEquals(1, bottle.heavyDrinkDays)
         assertEquals(ua.tarilka.data.Habits.Level.WATCH, bottle.alcoholLevel)
         // A small glass on 5 days: frequent, orange.
-        assertEquals(ua.tarilka.data.Habits.Level.WATCH, ua.tarilka.data.Habits.of((1L..5L).map { glass(it, 100.0) }, foods, 7).alcoholLevel)
+        assertEquals(ua.tarilka.data.Habits.Level.WATCH, ua.tarilka.data.Habits.of((1L..5L).map { glass(it, 100.0) }, foods, emptyMap(), 7).alcoholLevel)
     }
 
     @Test
@@ -196,7 +196,7 @@ class LogicTest {
         val bowel = listOf(ua.tarilka.data.BowelEntry(1, 1, 1), ua.tarilka.data.BowelEntry(3, 0), ua.tarilka.data.BowelEntry(5, 1, 0))
         val W = ua.tarilka.data.WorkoutEntry(day = 1, type = 0, minutes = 30, intensity = 1)
         val workouts = listOf(W, W.copy(day = 3, type = 1, intensity = 2), W.copy(day = 5, type = 3, minutes = 40), W.copy(day = 6, intensity = 0))
-        val h = ua.tarilka.data.Habits.of(food, emptyMap(), 7, bowel = bowel, workouts = workouts)
+        val h = ua.tarilka.data.Habits.of(food, emptyMap(), emptyMap(), 7, bowel = bowel, workouts = workouts)
         assertEquals(2, h.bowelMoveDays)
         assertEquals(1, h.bowelHard)
         // 2 movements in 3 recorded days ≈ 4.7 a week: fine, but one hard day → amber
@@ -271,7 +271,7 @@ class LogicTest {
             val t = Nutrition.targets(p, null)
             assertEquals(Goal.MAINTAIN, t.goal)
             assertTrue(t.limit != null)
-            assertEquals(t.tdee, t.kcal, 0.01)
+            assertEquals(t.tdee + if (p.pregnant) 300.0 else 0.0, t.kcal, 0.01)
         }
         // Protein with obesity: from the weight at BMI 25, not the actual weight.
         val big = Nutrition.targets(adult.copy(weightKg = 140.0), null)

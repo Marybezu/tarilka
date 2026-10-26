@@ -80,7 +80,7 @@ fun SettingsScreen(vm: MainViewModel, ai: AiViewModel, padding: PaddingValues) {
                 Spacer(Modifier.height(6.dp))
                 Text(stringResource(R.string.water_target, (targets.waterMl / 1000).f1()), style = MaterialTheme.typography.bodyMedium)
                 Text(stringResource(R.string.water_own_note), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                if (profile.isSet) BmiLine(targets.bmi, profile.age)
+                if (profile.isSet) BmiLine(targets.bmi, profile.age, targets.limit == ua.tarilka.data.Limit.PREGNANT)
             }
         }
         item { ActivitySection(vm) }
@@ -586,10 +586,11 @@ private fun DataSection(vm: MainViewModel) {
                     }
                     PasswordField(stringResource(R.string.password), password) { password = it }
                     if (password.isNotEmpty()) PasswordField(stringResource(R.string.password_repeat), repeat) { repeat = it }
+                    if (password.isNotEmpty() && password.length < 8) Text(stringResource(R.string.auto_backup_short), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.tertiary)
                 }
             },
             confirmButton = {
-                TextButton(enabled = password.isEmpty() || password == repeat, onClick = {
+                TextButton(enabled = password.isEmpty() || (password.length >= 8 && password == repeat), onClick = {
                     askPassword = false
                     vm.exportPassword = password
                     exportJson.launch("tarilka-$date.json")
@@ -649,7 +650,6 @@ private fun PasswordField(label: String, value: String, onChange: (String) -> Un
 @Composable
 private fun MissingSection(vm: MainViewModel) {
     val missing by vm.missing.collectAsState()
-    val clipboard = androidx.compose.ui.platform.LocalClipboardManager.current
     val text = missing.entries.sortedByDescending { it.value }.joinToString("\n") { "${it.key} (${it.value})" }
     Section(title = stringResource(R.string.missing_title)) {
         Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -664,7 +664,7 @@ private fun MissingSection(vm: MainViewModel) {
             val issueBody = stringResource(R.string.missing_issue_body, Feedback.version(context), text)
             androidx.compose.foundation.layout.FlowRow {
                 TextButton(onClick = { Feedback.open(context, issueTitle, issueBody) }) { Text(stringResource(R.string.send_list)) }
-                TextButton(onClick = { clipboard.setText(androidx.compose.ui.text.AnnotatedString(text)) }) {
+                TextButton(onClick = { Feedback.copyPrivate(context, text) }) {
                     Text(stringResource(R.string.copy_list))
                 }
                 TextButton(onClick = vm::clearMissing) { Text(stringResource(R.string.clear)) }

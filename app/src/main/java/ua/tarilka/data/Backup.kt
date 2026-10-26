@@ -18,7 +18,7 @@ object Backup {
     const val VERSION = 3
 
     private const val ENCRYPTED = "tarilka-backup-encrypted"
-    private const val ITERATIONS = 310_000
+    private const val ITERATIONS = 600_000
 
     /** AES-256-GCM with a key derived from the password (PBKDF2-HMAC-SHA256). */
     fun encrypt(plain: String, password: String): String {
@@ -44,7 +44,7 @@ object Backup {
         val c = javax.crypto.Cipher.getInstance("AES/GCM/NoPadding")
         c.init(
             javax.crypto.Cipher.DECRYPT_MODE,
-            key(password, b64.decode(o.getString("salt")), o.getInt("iterations")),
+            key(password, b64.decode(o.getString("salt")), o.getInt("iterations").also { require(it in 100_000..2_000_000) { "iterations" } }),
             javax.crypto.spec.GCMParameterSpec(128, b64.decode(o.getString("iv"))),
         )
         return String(c.doFinal(b64.decode(o.getString("data"))), Charsets.UTF_8)

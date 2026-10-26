@@ -149,7 +149,8 @@ object Reminders {
             Intent(context, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP),
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
-        // What the lock screen shows: nothing about food or drinks.
+        // What the lock screen shows when the phone hides private content: nothing about food or drinks.
+        // Cycle reminders are never shown there, whatever the phone setting.
         val public = NotificationCompat.Builder(context, CHANNEL)
             .setSmallIcon(R.drawable.ic_notification)
             .setContentTitle(context.getString(R.string.app_name))
@@ -162,7 +163,7 @@ object Reminders {
             .setStyle(NotificationCompat.BigTextStyle().bigText(text))
             .setContentIntent(open)
             .setAutoCancel(true)
-            .setVisibility(NotificationCompat.VISIBILITY_PRIVATE)
+            .setVisibility(if (kind >= CYCLE_BEFORE && kind <= CYCLE_LATE) NotificationCompat.VISIBILITY_SECRET else NotificationCompat.VISIBILITY_PRIVATE)
             .setPublicVersion(public)
             .build()
         runCatching { nm.notify(kind, n) }

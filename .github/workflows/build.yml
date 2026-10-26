@@ -38,10 +38,10 @@ jobs:
         shell: bash
         run: |
           set -o pipefail
-          # Every library is checked against gradle/verification-metadata.xml. The very first run writes that file
-          # (it goes to the ci-logs branch and is then committed); later runs fail on any changed library.
-          if [ -f gradle/verification-metadata.xml ]; then VERIFY=""; else VERIFY="--write-verification-metadata sha256"; fi
-          gradle --no-daemon $VERIFY testReleaseUnitTest assembleRelease 2>&1 | tee build.log
+          # Every library is checked against gradle/verification-metadata.xml (refreshed only by deps.yml);
+          # the build fails on any changed library, and without the file.
+          test -f gradle/verification-metadata.xml || { echo "gradle/verification-metadata.xml is missing" | tee build.log; exit 1; }
+          gradle --no-daemon testReleaseUnitTest assembleRelease 2>&1 | tee build.log
 
       - name: Check permissions (no internet, only what is expected)
         shell: bash

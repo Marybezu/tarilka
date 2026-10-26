@@ -32,7 +32,7 @@ import ua.tarilka.data.Sex
  */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun AuditCDialog(sex: Sex, onSaveNote: ((String) -> Unit)? = null, onDismiss: () -> Unit) {
+fun AuditCDialog(sex: Sex, pregnant: Boolean, onSaveNote: ((String) -> Unit)? = null, onDismiss: () -> Unit) {
     val answers = remember { mutableStateListOf<Int?>(null, null, null) }
     var saved by remember { mutableStateOf(false) }
     val questions = listOf(
@@ -78,7 +78,10 @@ fun AuditCDialog(sex: Sex, onSaveNote: ((String) -> Unit)? = null, onDismiss: ()
                     }
                     Text(stringResource(R.string.audit_score, score), style = MaterialTheme.typography.titleMedium)
                     Text(
-                        stringResource(listOf(R.string.audit_none, R.string.audit_low, R.string.audit_risk, R.string.audit_high)[level]),
+                        stringResource(
+                            if (pregnant && level > 0) R.string.audit_pregnant
+                            else listOf(R.string.audit_none, R.string.audit_low, R.string.audit_risk, R.string.audit_high)[level],
+                        ),
                         style = MaterialTheme.typography.bodyMedium,
                     )
                     // Saved only if the person asks: one line with the score, never the answers.

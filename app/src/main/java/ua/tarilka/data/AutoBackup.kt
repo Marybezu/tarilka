@@ -34,7 +34,7 @@ object AutoBackup {
             val today = LocalDate.now()
             val file = DocumentsContract.createDocument(r, parent, "application/json", "$PREFIX$today.json") ?: error("no file")
             r.openOutputStream(file, "wt")?.use { it.write(text.toByteArray(Charsets.UTF_8)) } ?: error("no output")
-            prune(context, tree)
+            prune(context, tree, KEEP)
             prefs.autoBackupLast = today.toEpochDay()
             prefs.autoBackupProblem = false
             true
@@ -44,8 +44,13 @@ object AutoBackup {
         }
     }
 
-    /** Only the newest copies made by this feature stay; nothing else in the folder is touched. */
-    private fun prune(context: Context, tree: Uri) {
+    /** Deletes every copy made by this feature (when all personal data is deleted). */
+    fun deleteCopies(context: Context, prefs: Prefs) {
+        prefs.autoBackupFolder?.let { runCatching { prune(context, Uri.parse(it), 0) } }
+    }
+
+    /** Only the [keep] newest copies made by this feature stay; nothing else in the folder is touched. */
+    private fun prune(context: Context, tree: Uri, keep: Int) {
         val r = context.contentResolver
         val children = DocumentsContract.buildChildDocumentsUriUsingTree(tree, DocumentsContract.getTreeDocumentId(tree))
         val ours = mutableListOf<Pair<String, String>>()
@@ -55,7 +60,7 @@ object AutoBackup {
                 if (name.startsWith(PREFIX) && name.endsWith(".json")) ours += c.getString(0) to name
             }
         }
-        ours.sortedByDescending { it.second }.drop(KEEP).forEach { (id, _) ->
+        ours.sortedByDescending { it.second }.drop(keep).forEach { (id, _) ->
             runCatching { DocumentsContract.deleteDocument(r, DocumentsContract.buildDocumentUriUsingTree(tree, id)) }
         }
     }

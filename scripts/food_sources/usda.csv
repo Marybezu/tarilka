@@ -245,7 +245,7 @@ v76;veg;Морська капуста (свіжа);Kelp, raw;50;порція;ser
 v77;veg;Овочева суміш варена;Mixed vegetables, boiled;150;порція;serving;Vegetables, mixed, frozen, cooked, boiled, drained, without salt
 v78;veg;Фенхель;Fennel;100;порція;serving;Fennel, bulb, raw
 v79;veg;Едамаме;Edamame;100;порція;serving;Edamame, frozen, prepared
-v80;veg;Капуста кале;Kale;50;жменя;handful;Kale, raw
+v80;veg;Кейл (капуста кале);Kale;50;жменя;handful;Kale, raw
 v81;veg;Буряк консервований;Canned beets;100;порція;serving;Beets, canned, drained solids
 v82;veg;Ревінь;Rhubarb;100;порція;serving;Rhubarb, raw
 f28;fruit;Нектарин;Nectarine;150;шт;piece;Nectarines, raw
@@ -330,7 +330,7 @@ d24;dairy;Згущене молоко;Sweetened condensed milk;20;ложка;tbs
 d25;dairy;Молоко сухе;Dry whole milk;;;;Milk, dry, whole, without added vitamin D
 d26;dairy;Зернистий сир 2%;Cottage cheese 2%;150;порція;serving;Cheese, cottage, lowfat, 2% milkfat
 d27;dairy;Зернистий сир 4%;Cottage cheese 4%;150;порція;serving;Cheese, cottage, creamed, large or small curd
-d28;dairy;Рікота;Ricotta;50;порція;serving;Cheese, ricotta, whole milk
+d28;dairy;Рикота;Ricotta;50;порція;serving;Cheese, ricotta, whole milk
 d29;dairy;Пармезан;Parmesan;10;ложка;tbsp;Cheese, parmesan, hard
 d30;dairy;Чедер;Cheddar;20;скибка;slice;Cheese, cheddar
 d31;dairy;Едам;Edam;20;скибка;slice;Cheese, edam
@@ -397,7 +397,7 @@ c21;sweets;Батончик злаковий;Granola bar;25;шт;piece;Snacks, g
 c22;sweets;Печиво з шоколадом;Chocolate chip cookies;15;шт;piece;Cookies, chocolate chip, commercially prepared, regular, higher fat
 c23;sweets;Імбирне печиво / пряники;Gingersnaps;10;шт;piece;Cookies, gingersnaps
 c24;sweets;Брауні;Brownie;60;шт;piece;Cookies, brownies, commercially prepared
-c25;sweets;Чізкейк;Cheesecake;100;шматок;piece;Cake, cheesecake, commercially prepared
+c25;sweets;Чизкейк;Cheesecake;100;шматок;piece;Cake, cheesecake, commercially prepared
 c26;sweets;Пиріг яблучний;Apple pie;120;шматок;piece;Pie, apple, commercially prepared, enriched flour
 c27;sweets;Торт шоколадний;Chocolate cake;100;шматок;piece;Cake, chocolate, commercially prepared with chocolate frosting, in-store bakery
 c28;sweets;Бісквіт;Sponge cake;60;шматок;piece;Cake, sponge, commercially prepared
@@ -447,15 +447,15 @@ v86;veg;Гарбуз печений;Pumpkin, baked;150;порція;serving;Squa
 dr30;drinks;Чай каркаде;Hibiscus tea;250;чашка;cup;Beverages, tea, hibiscus, brewed
 u86;dishes;Бульйон курячий;Chicken broth;300;тарілка;bowl;Soup, stock, chicken, home-prepared
 u87;dishes;Бульйон яловичий;Beef broth;300;тарілка;bowl;Soup, stock, beef, home-prepared
-x13;fastfood;Чізбургер;Cheeseburger;127;шт;piece;Fast foods, cheeseburger; single, regular patty, with condiments
-x14;fastfood;Бургер подвійний (чізбургер);Double cheeseburger;165;шт;piece;Fast foods, cheeseburger; double, regular patty; with condiments
+x13;fastfood;Чизбургер;Cheeseburger;127;шт;piece;Fast foods, cheeseburger; single, regular patty, with condiments
+x14;fastfood;Бургер подвійний (чизбургер);Double cheeseburger;165;шт;piece;Fast foods, cheeseburger; double, regular patty; with condiments
 m52;meat;Курячі крильця смажені (в паніровці);Fried chicken wings, breaded;58;шт;piece;Fast Foods, Fried Chicken, Wing, meat and skin and breading
 c46;sweets;Цукерки-трюфелі;Chocolate truffles;12;шт;piece;Candies, truffles, prepared-from-recipe
 d63;dairy;Сироватка молочна;Whey (from cottage cheese), fluid;250;склянка;glass;Whey, acid, fluid
 d64;dairy;Протеїн сироватковий (порошок);Whey protein powder;30;мірна ложка;scoop;Beverages, Protein powder whey based
-m53;meat;Шкварки (снек);Pork cracklings / pork rinds;30;жменя;handful;Snacks, pork skins, plain
+m53;meat;Чипси зі свинячої шкірки;Pork rinds (snack);30;жменя;handful;Snacks, pork skins, plain
 m54;meat;Печінка куряча сира;Chicken liver, raw;;;;Chicken, liver, all classes, raw
-s37;fish;Ікра минтаю;Pollock roe;30;ложка;tbsp;Fish, roe, mixed species, raw
+s37;fish;Ікра минтаю;Pollock roe;20;ложка;tbsp;Fish, roe, mixed species, raw
 c47;sweets;Ірис (цукерки);Toffee / caramels (iris);8;шт;piece;Candies, caramels
 c48;sweets;Грильяж;Nut brittle (hryliazh);15;шт;piece;Candies, peanut brittle, prepared-from-recipe
 m55;meat;Ковбаса напівкопчена;Semi-smoked sausage;30;скибка;slice;Polish sausage, pork

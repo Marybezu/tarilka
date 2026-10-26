@@ -370,9 +370,15 @@ fun TodayScreen(
                         Spacer(Modifier.height(8.dp))
                     }
                     WeekBars(day, week, targets.kcal)
+                    // Several full days well below what the body needs at rest: a calm word and a pointer to help.
+                    val past = withData.filter { it.day < java.time.LocalDate.now().toEpochDay() }
+                    if (past.size >= 4 && past.sumOf { it.kcal } / past.size < targets.bmr) {
+                        Spacer(Modifier.height(8.dp))
+                        Text(stringResource(R.string.week_under), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.tertiary)
+                    }
                     habits?.let {
                         Spacer(Modifier.height(10.dp))
-                        HabitChips(it, sex = profile.sex, onSaveNote = vm::appendNoteToday, workoutsTracked = vm.workoutsTracked.collectAsState().value)
+                        HabitChips(it, sex = profile.sex, pregnant = profile.sex == ua.tarilka.data.Sex.FEMALE && profile.pregnant, onSaveNote = vm::appendNoteToday, workoutsTracked = vm.workoutsTracked.collectAsState().value)
                     }
                     TextButton(onClick = onHistory) { Text(stringResource(R.string.summaries_link)) }
                 }

@@ -105,7 +105,15 @@ class TarilkaApp : Application() {
     fun openDb(rawKey: ByteArray?, gen: Long = lockGen.get()) {
         val d = AppDatabase.create(this, rawKey)
         // Encrypted: open now, so a wrong key fails here and not later in a screen.
-        if (rawKey != null) d.openHelper.writableDatabase
+        if (rawKey != null) {
+            try {
+                d.openHelper.writableDatabase
+            } catch (e: Exception) {
+                runCatching { d.close() }
+                rawKey.fill(0)
+                throw e
+            }
+        }
         val published = synchronized(gate) {
             if (rawKey != null && lockGen.get() != gen) {
                 false
@@ -189,14 +197,20 @@ class TarilkaApp : Application() {
         registerActivityLifecycleCallbacks(object : ActivityLifecycleCallbacks {
             private var started = 0
             private var awaySince = 0L
+            private var timer: kotlinx.coroutines.Job? = null
             override fun onActivityStarted(activity: android.app.Activity) {
                 if (started++ == 0) {
-                    if (awaySince > 0 && System.currentTimeMillis() - awaySince > 60_000) lock()
+                    timer?.cancel()
+                    if (awaySince > 0 && System.currentTimeMillis() - awaySince > AWAY_MS) lock()
                     awaySince = 0
                 }
             }
             override fun onActivityStopped(activity: android.app.Activity) {
-                if (--started == 0 && !activity.isChangingConfigurations) awaySince = System.currentTimeMillis()
+                if (--started == 0 && !activity.isChangingConfigurations) {
+                    awaySince = System.currentTimeMillis()
+                    // Also close the diary while the app stays in the background, not only on return.
+                    timer = scope.launch { kotlinx.coroutines.delay(AWAY_MS); lock() }
+                }
             }
             override fun onActivityCreated(activity: android.app.Activity, savedInstanceState: android.os.Bundle?) = Unit
             override fun onActivityResumed(activity: android.app.Activity) = Unit
@@ -206,3 +220,6 @@ class TarilkaApp : Application() {
         })
     }
 }
+
+/** How long the app may stay in the background before the protected diary closes. */
+private const val AWAY_MS = 60_000L

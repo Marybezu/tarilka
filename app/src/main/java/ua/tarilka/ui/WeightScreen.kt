@@ -114,7 +114,7 @@ fun WeightScreen(vm: MainViewModel, padding: PaddingValues) {
                     style = MaterialTheme.typography.bodyMedium,
                 )
                 val profile by vm.profile.collectAsState()
-                if (profile.isSet) BmiLine(targets.bmi, profile.age)
+                if (profile.isSet) BmiLine(targets.bmi, profile.age, targets.limit == ua.tarilka.data.Limit.PREGNANT)
             }
         }
         if (weights.isNotEmpty()) {
@@ -159,7 +159,10 @@ private fun WaistSection(vm: MainViewModel) {
             Spacer(Modifier.height(6.dp))
             val female = profile.sex == ua.tarilka.data.Sex.FEMALE
             val (raised, high) = if (female) 80.0 to 88.0 else 94.0 to 102.0
+            // In pregnancy and under 18 the adult thresholds say nothing: only the number, no colour.
+            val rated = !profile.pregnant && profile.age >= 18
             val level = when {
+                !rated -> null
                 last.cm <= raised -> ua.tarilka.data.Habits.Level.GOOD
                 last.cm <= high -> ua.tarilka.data.Habits.Level.OK
                 else -> ua.tarilka.data.Habits.Level.WATCH
@@ -169,10 +172,10 @@ private fun WaistSection(vm: MainViewModel) {
                 "● " + stringResource(R.string.waist_last, last.cm.f1(), shortDate(last.day)) +
                     (if (list.size > 1) " · " + stringResource(R.string.waist_change, (if (last.cm - first.cm > 0) "+" else "") + (last.cm - first.cm).f1(), shortDate(first.day)) else ""),
                 style = MaterialTheme.typography.bodyMedium,
-                color = levelColor(level),
+                color = level?.let { levelColor(it) } ?: MaterialTheme.colorScheme.onSurface,
             )
             Text(
-                stringResource(R.string.waist_info, raised.f0(), high.f0()),
+                if (rated) stringResource(R.string.waist_info, raised.f0(), high.f0()) else stringResource(R.string.waist_not_rated),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )

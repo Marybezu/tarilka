@@ -639,6 +639,8 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
             db.foods().setFavorites(emptyList())
             prefs.clearPersonal()
             java.io.File(getApplication<Application>().cacheDir, "photos").deleteRecursively()
+            kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) { ua.tarilka.data.AutoBackup.deleteCopies(getApplication(), prefs) }
+            turnOffAutoBackup()
         }
         undoAction = null
         undoEvent.value = null
@@ -653,6 +655,9 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     // ---- habits and summaries ----
+
+    /** Reviewed food groups of the built-in foods (for habits and advice). */
+    private val groups by lazy { ua.tarilka.data.FoodGroups.load(getApplication()) }
 
     private val foodsById: StateFlow<Map<Long, Food>> = db.foods().all().map { list -> list.associateBy { it.id } }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyMap())
@@ -673,7 +678,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         val cur = (end - 6)..end
         val prev = (end - 13)..(end - 7)
         fun of(r: LongRange) = Habits.of(
-            list.filter { it.day in r }, foods, 7, sleep = sleepMap.filterKeys { it in r },
+            list.filter { it.day in r }, foods, groups, 7, sleep = sleepMap.filterKeys { it in r },
             bowel = bowel.filter { it.day in r }, workouts = workouts.filter { it.day in r }, withTimes = times,
         )
         of(cur).copy(prev = of(prev)).takeIf { it.days >= ua.tarilka.data.Habits.MIN_DAYS }
@@ -761,7 +766,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
             val n = (b.toEpochDay() - a.toEpochDay() + 1).toInt()
             val wo = r.flatMap { workoutsByDay[it].orEmpty() }
             var h = Habits.of(
-                r.flatMap { diaryByDay[it].orEmpty() }, foods, n,
+                r.flatMap { diaryByDay[it].orEmpty() }, foods, groups, n,
                 sleep = r.mapNotNull { d -> sleep[d]?.let { d to it } }.toMap(), bowel = r.mapNotNull { bowelByDay[it] },
                 workouts = wo, withTimes = withTimes,
             )
@@ -792,7 +797,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         val metrics = ua.tarilka.data.Report.build(cur, prev, bars.map { (a, b) -> data(a, b) }, targets.value, prefs.stepsGoal.value)
         val advice = ua.tarilka.data.Advice.of(
             (from.toEpochDay()..end.toEpochDay()).flatMap { diaryByDay[it].orEmpty() }, foods,
-            ua.tarilka.data.FoodGroups.load(getApplication()), cur.habits.days, mayReduce = targets.value.limit == null,
+            groups, cur.habits.days, mayReduce = targets.value.limit == null,
         )
         PeriodReport(metrics, bars.map { label(it.first) }, ua.tarilka.data.Report.highlights(metrics), cur.habits.days, advice)
     }
@@ -896,8 +901,8 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         val sleepAll = sleepRange(prevFrom, end)
         val bowelAll = db.bowel().range(prevFrom.toEpochDay(), end.toEpochDay()).partition { it.day >= from.toEpochDay() }
         val workAll = db.workouts().range(prevFrom.toEpochDay(), end.toEpochDay()).partition { it.day >= from.toEpochDay() }
-        val h = Habits.of(cur, foods, period.days, sleep = sleepAll.filterKeys { it >= from.toEpochDay() }, bowel = bowelAll.first, workouts = workAll.first, withTimes = prefs.mealTimes.value)
-        val hp = Habits.of(prev, foods, period.days, sleep = sleepAll.filterKeys { it < from.toEpochDay() }, bowel = bowelAll.second, workouts = workAll.second, withTimes = prefs.mealTimes.value)
+        val h = Habits.of(cur, foods, groups, period.days, sleep = sleepAll.filterKeys { it >= from.toEpochDay() }, bowel = bowelAll.first, workouts = workAll.first, withTimes = prefs.mealTimes.value)
+        val hp = Habits.of(prev, foods, groups, period.days, sleep = sleepAll.filterKeys { it < from.toEpochDay() }, bowel = bowelAll.second, workouts = workAll.second, withTimes = prefs.mealTimes.value)
         // Water entries plus drinks logged as food, as on the Today screen.
         val fluidsByDay = (
             db.fluids().totalsOnce(prevFrom.toEpochDay(), end.toEpochDay()) +
@@ -918,7 +923,8 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
             appendLine("Summary of the person's last $periodName ($from to $end), compared with the $periodName before.")
             appendLine(
                 "Daily targets: ${tg.kcal.r()} kcal, protein ${tg.protein.r()} g, fat ${tg.fat.r()} g, carbs ${tg.carbs.r()} g, " +
-                    "fiber ${tg.fiber.r()} g, fluids ${tg.waterMl.r()} ml. Goal: ${tg.goal.name.lowercase()} weight." +
+                    "fiber ${tg.fiber.r()} g, fluids ${tg.waterMl.r()} ml." +
+                    (if (tg.limit == ua.tarilka.data.Limit.PREGNANT) " Goal: no weight loss; weight gain in pregnancy is expected." else " Goal: ${tg.goal.name.lowercase()} weight.") +
                     when (tg.limit) {
                         ua.tarilka.data.Limit.PREGNANT -> " The person is pregnant or breastfeeding: never suggest eating less or losing weight."
                         ua.tarilka.data.Limit.TEEN -> " The person is under 18: never suggest eating less or losing weight."
@@ -941,11 +947,11 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
                 Period.MONTH -> for (w in 0 until 4) {
                     val a = from.plusDays(w * 7L)
                     val b = if (w == 3) end else a.plusDays(6)
-                    val hw = Habits.of(cur.filter { it.day in a.toEpochDay()..b.toEpochDay() }, foods, (b.toEpochDay() - a.toEpochDay() + 1).toInt())
+                    val hw = Habits.of(cur.filter { it.day in a.toEpochDay()..b.toEpochDay() }, foods, groups, (b.toEpochDay() - a.toEpochDay() + 1).toInt())
                     appendLine("- $a to $b: ${hw.days} days logged, average ${hw.kcalAvg.r()} kcal, protein ${hw.proteinAvg.r()} g")
                 }
                 Period.YEAR -> cur.groupBy { LocalDate.ofEpochDay(it.day).withDayOfMonth(1) }.toSortedMap().forEach { (m, list) ->
-                    val hm = Habits.of(list, foods, m.lengthOfMonth())
+                    val hm = Habits.of(list, foods, groups, m.lengthOfMonth())
                     val kg = weights.value.filter { LocalDate.ofEpochDay(it.day).withDayOfMonth(1) == m }.map { it.kg }
                     appendLine(
                         "- ${m.year}-${"%02d".format(m.monthValue)}: ${hm.days} days logged, average ${hm.kcalAvg.r()} kcal, protein ${hm.proteinAvg.r()} g" +
@@ -1147,6 +1153,8 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         }.getOrElse { getApplication<Application>().getString(ua.tarilka.R.string.data_error, it.message ?: "") }
     }
 
+    private val MAX_BACKUP_BYTES = 64 * 1024 * 1024
+
     /** Password chosen for the export in progress ("" = no encryption, null = unknown). */
     var exportPassword: String? = null
 
@@ -1157,7 +1165,18 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         wrongPassword.value = false
         runCatching {
             val text = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
-                getApplication<Application>().contentResolver.openInputStream(uri)!!.bufferedReader().use { it.readText() }
+                getApplication<Application>().contentResolver.openInputStream(uri)!!.use { input ->
+                    // A real backup is a few MB at most; a huge file is not one.
+                    val out = java.io.ByteArrayOutputStream()
+                    val buf = ByteArray(64 * 1024)
+                    while (true) {
+                        val n = input.read(buf)
+                        if (n < 0) break
+                        out.write(buf, 0, n)
+                        require(out.size() <= MAX_BACKUP_BYTES) { "file too large" }
+                    }
+                    out.toString(Charsets.UTF_8.name())
+                }
             }
             if (ua.tarilka.data.Backup.isEncrypted(text)) {
                 encryptedImport.value = text

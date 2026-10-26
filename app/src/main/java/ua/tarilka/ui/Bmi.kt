@@ -21,13 +21,15 @@ import ua.tarilka.data.Nutrition
 
 /**
  * Body mass index with the WHO category, and what it does and does not say.
- * Under 18 the adult categories do not apply, so only the number is shown.
+ * Under 18 and in pregnancy the adult categories do not apply, so only the number is shown.
  */
 @Composable
-fun BmiLine(bmi: Double, age: Int, modifier: Modifier = Modifier) {
+fun BmiLine(bmi: Double, age: Int, pregnant: Boolean, modifier: Modifier = Modifier) {
     var info by remember { mutableStateOf(false) }
     Row(modifier, verticalAlignment = Alignment.CenterVertically) {
-        val text = if (age < 18) {
+        val text = if (pregnant) {
+            stringResource(R.string.bmi_pregnant, bmi.f1())
+        } else if (age < 18) {
             stringResource(R.string.bmi_teen, bmi.f1())
         } else {
             stringResource(R.string.bmi_line, bmi.f1(), stringArrayResource(R.array.bmi_classes)[Nutrition.bmiClass(bmi)])

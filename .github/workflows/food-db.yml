@@ -8,15 +8,19 @@ on:
       - scripts/build_foods.py
 
 permissions:
-  contents: write
+  contents: write # only to push the result to the foods-generated branch
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
       - name: Download USDA SR Legacy (public domain)
-        run: curl -fsSL -o "$RUNNER_TEMP/sr.zip" https://fdc.nal.usda.gov/fdc-datasets/FoodData_Central_sr_legacy_food_csv_2018-04.zip
+        run: |
+          curl -fsSL -o "$RUNNER_TEMP/sr.zip" https://fdc.nal.usda.gov/fdc-datasets/FoodData_Central_sr_legacy_food_csv_2018-04.zip
+          sha256sum "$RUNNER_TEMP/sr.zip" | tee -a "$GITHUB_STEP_SUMMARY"
       - name: Build foods.csv
         run: |
           python3 scripts/build_foods.py "$RUNNER_TEMP/sr.zip" --report food-report.md || true

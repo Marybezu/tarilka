@@ -40,6 +40,7 @@ fun HabitChips(
     h: Habits,
     modifier: Modifier = Modifier,
     sex: ua.tarilka.data.Sex = ua.tarilka.data.Sex.FEMALE,
+    pregnant: Boolean = false,
     onSaveNote: ((String) -> Unit)? = null,
     /** Workouts are tracked (for a week or more): show the activity badge even at 0 minutes. */
     workoutsTracked: Boolean = false,
@@ -196,7 +197,7 @@ fun HabitChips(
             } else null,
         )
     }
-    if (audit) AuditCDialog(sex, onSaveNote) { audit = false }
+    if (audit) AuditCDialog(sex, pregnant, onSaveNote) { audit = false }
 }
 
 @Composable

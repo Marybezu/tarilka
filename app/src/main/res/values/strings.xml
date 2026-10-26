@@ -20,7 +20,7 @@
     <string name="protein">Protein</string>
     <string name="fat">Fat</string>
     <string name="carbs">Carbs</string>
-    <string name="fiber">Fiber</string>
+    <string name="fiber">Fibre</string>
     <string name="calories">Calories</string>
     <string name="short_protein">P</string>
     <string name="short_fat">F</string>
@@ -45,9 +45,9 @@
     <string name="clear">Clear</string>
     <string name="hide">Hide</string>
     <string name="replace">Replace</string>
-    <string name="favorite">Favorite</string>
+    <string name="favorite">Favourite</string>
 
-    <string name="profile_hint">Fill in your profile in Settings to get personal calorie and nutrient targets. Until then, average values are used.</string>
+    <string name="profile_hint">Fill in your profile in Options to get personal calorie and nutrient targets. Until then, average values are used.</string>
     <string name="recommendations">Recommendations</string>
     <string name="week_title">Last 7 days</string>
     <string name="week_avg">Average: %1$s of %2$s kcal · protein %3$s of %4$s g</string>
@@ -58,9 +58,9 @@
     <string name="tip_under">Only %1$d kcal logged. If that is real, it is too little to feel well; check whether something is missing.</string>
     <string name="tip_on_target">Calories are right on target.</string>
     <string name="tip_protein_low">Protein is low: %1$d of %2$d g. Good sources: cottage cheese, eggs, poultry, fish, beans, lentils.</string>
-    <string name="tip_fiber_low">Fiber is low: %1$d of %2$d g. Add vegetables, buckwheat or oats, beans, berries, whole-grain bread.</string>
-    <string name="tip_fat_high">Fat is high today (%1$d g). Watch oil, mayonnaise, sausages and pastries.</string>
-    <string name="tip_balance_good">Great balance of protein and fiber today.</string>
+    <string name="tip_fiber_low">Fibre is low: %1$d of %2$d g. Add vegetables, buckwheat or oats, beans, berries, whole-grain bread.</string>
+    <string name="tip_fat_high">Fat is high today (%1$d g). Most often it comes from mayonnaise, sausages, pastries and fried food.</string>
+    <string name="tip_balance_good">Great balance of protein and fibre today.</string>
     <string name="tip_weight_fast">Weight is dropping fast (%1$.1f kg a week). More than 1%% of body weight a week is a lot; consider eating a bit more or talking to a doctor.</string>
     <string name="tip_weight_up">Your weight is trending up (%1$.1f kg a week), although the goal is to lose weight. Check portions and snacks.</string>
     <string name="tip_weight_down_good">Your weight is going down gradually (%1$.1f kg a week), at a safe pace.</string>
@@ -116,10 +116,10 @@
     <string name="goal_gain">Gain weight</string>
     <string name="custom_kcal">Own calorie target (optional)</string>
     <string name="your_targets">Daily targets</string>
-    <string name="targets_text">%1$s kcal · protein %2$s g · fat %3$s g · carbs %4$s g · fibre %5$s g. Calculated with the Mifflin–St Jeor formula; the target is never below your basal metabolism, your own one included.</string>
+    <string name="targets_text">%1$s kcal · protein %2$s g · fat %3$s g · carbs %4$s g · fibre %5$s g. Calculated with the Mifflin–St Jeor formula; the target is never below your basal metabolism, even your own target.</string>
 
     <string name="ai_title">On-device AI</string>
-    <string name="ai_explain">Recognizes food on photos and gives advice. Runs entirely on the phone. The model is about 2.6 GB and is only needed for photos and AI advice; everything else works without it.</string>
+    <string name="ai_explain">Recognises food on photos and gives advice. Runs entirely on the phone. The model is about 2.6 GB and is only needed for photos and AI advice; everything else works without it.</string>
     <string name="ai_ready">Model ready (%1$d MB)</string>
     <string name="ai_import">Choose a model file…</string>
     <string name="ai_importing">Copying the model…</string>
@@ -129,15 +129,15 @@
     <string name="ai_setup">Set up AI</string>
 
     <string name="photo_title">Plate photo</string>
-    <string name="photo_need_model">To recognize food on photos, download the on-device AI model first (once).</string>
+    <string name="photo_need_model">To recognise food on photos, download the on-device AI model first (once).</string>
     <string name="photo_note">What is it? (optional)</string>
     <string name="photo_note_hint">e.g. borscht with sour cream, a slice of rye bread</string>
     <string name="take_photo">Take photo</string>
     <string name="from_gallery">From gallery</string>
-    <string name="photo_privacy">The photo is analyzed on the phone and is not sent anywhere.</string>
-    <string name="analyzing">Analyzing… %1$d s</string>
+    <string name="photo_privacy">The photo is analysed on the phone and is not sent anywhere.</string>
+    <string name="analyzing">Analysing… %1$d s</string>
     <string name="analyzing_hint">The first run takes longer while the model loads.</string>
-    <string name="ai_error">Could not analyze: %1$s</string>
+    <string name="ai_error">Could not analyse: %1$s</string>
     <string name="try_again">Try again</string>
     <string name="no_food_found">No food found on the photo. Try another angle or add the food by hand.</string>
     <string name="review_hint">Check the weights: the AI estimates portions from the photo and can be off. Values come from the database when a food is recognized.</string>
@@ -157,7 +157,7 @@
     <string name="unit_l">L</string>
     <string name="ml">ml</string>
     <string name="plus_ml">+%1$d ml</string>
-    <string name="water_target">Fluids: about %1$s L a day (30 ml per kg).</string>
+    <string name="water_target">Fluids: about %1$s L of drinks a day (EFSA).</string>
     <string name="tip_water_low">Drink more: %1$d of %2$d ml so far.</string>
     <string name="steps_line">Steps: %1$d · ≈ %2$s kcal</string>
     <string name="tip_steps_good">%1$d steps today, nice walking.</string>
@@ -173,8 +173,8 @@
     <string name="theme_system">System</string>
     <string name="theme_light">Light</string>
     <string name="theme_dark">Dark</string>
-    <string name="dynamic_color">Colors from wallpaper</string>
-    <string name="dynamic_color_hint">Material You: accent colors follow your wallpaper.</string>
+    <string name="dynamic_color">Colours from wallpaper</string>
+    <string name="dynamic_color_hint">Material You: accent colours follow your wallpaper.</string>
     <string name="data_title">Data</string>
     <string name="data_hint">Everything is stored only on this phone. Make a backup from time to time, or before switching phones.</string>
     <string name="export_backup">Export backup</string>
@@ -230,7 +230,7 @@
     <string name="clear_diary">Clear diary</string>
     <string name="clear_all">Delete all personal data</string>
     <string name="clear_diary_text">All food, fluid, weight, sleep, cycle, bowel, workout, note and Why I eat records will be deleted. Your foods, recipes, profile and the AI model stay. This cannot be undone.</string>
-    <string name="clear_all_text">The diary (food, fluids, weight, sleep, cycle, bowel, workouts, notes, Why I eat), your foods and recipes, favorites, profile, the photo grams correction, the phone-sensor step log and the Not found list will be deleted. Steps and sleep in Health Connect are not touched. The AI model and settings (language, theme, reminders) stay. This cannot be undone.</string>
+    <string name="clear_all_text">The diary (food, fluids, weight, sleep, cycle, bowel, workouts, notes, Why I eat), your foods and recipes, favourites, profile, the photo portion correction, the phone-sensor step log and the Not found list will be deleted. The automatic backup is turned off and its copies in the folder are deleted. Steps and sleep in Health Connect are not touched. The AI model and settings (language, theme, reminders) stay. This cannot be undone.</string>
     <string name="clear_hc">Also delete the records Tarilka wrote to Health Connect</string>
     <string name="export_first">Make a backup first</string>
     <string name="copy">Copy</string>
@@ -279,7 +279,7 @@
     <string name="habit_sleep">😴 Sleep: %1$s h on average</string>
     <string name="habit_sleep_info">Average sleep. Adults are advised 7–9 hours. With less sleep, appetite and sweet cravings go up. If you regularly sleep over 10 hours and still feel tired in the day, that is worth discussing with a doctor too.</string>
     <string name="habit_reasons">💭 Not from hunger: %1$d / %2$d meals</string>
-    <string name="habit_reasons_info">How often you ate for another reason than hunger (of the times you answered Why I eat). Eating for company or pleasure now and then is normal.</string>
+    <string name="habit_reasons_info">How often you ate for a reason other than hunger (of the times you answered Why I eat). Eating for company or pleasure now and then is normal.</string>
     <string name="ai_download">Download model</string>
     <string name="alcohol_many">Noticed: more than 7 drinks a week.</string>
     <string name="alcohol_often">Noticed: alcohol on 4 or more days a week.</string>
@@ -288,7 +288,7 @@
     <string name="alcohol_help">If heavy days keep coming back or cutting down alone does not work, help from a doctor, a psychologist or a support line is a normal and effective step.</string>
     <string name="audit_button">Check yourself (AUDIT-C)</string>
     <string name="audit_title">AUDIT-C self-check</string>
-    <string name="audit_intro">Three WHO questions about alcohol over the past year. A drink is 10 g of alcohol: 250 ml of beer, 100 ml of wine or 30 ml of spirits. Answers are not saved anywhere.</string>
+    <string name="audit_intro">The first three questions of the WHO AUDIT test, about alcohol over the past year. A drink is 10 g of alcohol: 250 ml of beer, 100 ml of wine or 30 ml of spirits. Answers are not saved anywhere.</string>
     <string name="audit_q1">How often do you have a drink containing alcohol?</string>
     <string name="audit_q2">How many drinks do you have on a typical day when you drink?</string>
     <string name="audit_q3">How often do you have 6 or more drinks on one occasion?</string>
@@ -304,9 +304,9 @@
     <string name="steps_goal_hint">8,000 by default. Large studies show the health benefit grows up to about 6–8 thousand steps for people over 60 and 8–10 thousand for younger people, and then hardly increases. 10,000 comes from a 1960s pedometer advert.</string>
     <string name="filter_all">All</string>
     <string name="filter_mine">Mine</string>
-    <string name="filter_favorites">Favorites</string>
+    <string name="filter_favorites">Favourites</string>
     <string name="filter_mine_empty">Your own foods and recipes will be here. Add them with New food.</string>
-    <string name="filter_favorites_empty">Favorite foods will be here. Tap the heart on what you eat often.</string>
+    <string name="filter_favorites_empty">Favourite foods will be here. Tap the heart on what you eat often.</string>
     <string-array name="audit_a1">
         <item>Never</item>
         <item>Monthly or less</item>
@@ -336,7 +336,7 @@
     <string name="veg_noticed">Days with 400 g or more: %1$d of %2$d.</string>
     <string name="veg_tips">What helps:\n• half the plate vegetables;\n• vegetables with every main meal;\n• fruit as a snack;\n• frozen vegetables are just as good and always at hand.</string>
     <string name="sweets_noticed">Days without sweets: %1$d of %2$d.</string>
-    <string name="sweets_tips">What helps:\n• plan a portion instead of a total ban;\n• keep sweets out of sight, buy smaller packs;\n• swap sugary drinks and juice for water or tea;\n• when you crave sweets after a meal: fruit, yogurt or a 10-minute pause.</string>
+    <string name="sweets_tips">What helps:\n• plan a portion instead of a total ban;\n• keep sweets out of sight, buy smaller packs;\n• swap sugary drinks and juice for water or tea;\n• when you crave sweets after a meal: fruit, yoghurt or a 10-minute pause.</string>
     <string name="late_noticed">Days with a quarter of calories or more after 22:00: %1$d of %2$d.</string>
     <string name="late_tips">What helps:\n• regular meals during the day, no gaps over 4 hours: the most effective;\n• protein at dinner;\n• a planned evening snack instead of a spontaneous one;\n• the kitchen closes at a set time, then tea or water.</string>
     <string name="eating_help">If this goes on for weeks or it is hard to stop, talk to a doctor or a psychologist: it is common, and help (such as cognitive behavioural therapy) really works.</string>
@@ -344,12 +344,12 @@
     <string name="sleep_tips">What helps (from cognitive behavioural therapy for insomnia):\n• get up at the same time every day, weekends too;\n• go to bed when sleepy, not because it is time;\n• the bed is for sleep only, no phone;\n• coffee before noon, fewer screens and less light an hour before bed;\n• if you can\'t sleep for 20 minutes, get up and do something calm.</string>
     <string name="sleep_help">If poor sleep lasts several weeks and affects your days, see a doctor: insomnia is very treatable, including without medication.</string>
     <string name="reasons_noticed">Most often: %1$s. Hard to stop: %2$d.</string>
-    <string name="reasons_tips">What helps:\n• before eating, name what you feel: hunger, tiredness, sadness, boredom, stress?\n• a 10–15 minute pause: a walk, a call, a glass of water; the wave usually passes;\n• regular meals during the day, no strict restriction;\n• after a slip, no guilt: one evening does not cancel the week.</string>
+    <string name="reasons_tips">What helps:\n• before eating, name what you feel: hunger, tiredness, sadness, boredom, stress?\n• a 10–15 minute pause: a walk, a call, a glass of water; the wave usually passes;\n• regular meals during the day, no strict restriction;\n• if you ate more than you meant to, no guilt: one evening does not cancel the week.</string>
     <string name="fastfood_tips">What helps:\n• keep a simple quick home option at hand;\n• when eating out, a smaller portion and no sugary drink;\n• add vegetables or a salad.</string>
     <string name="reminders_title">Reminders</string>
     <string name="reminders_hint">All off; switch on only what you need. They come only when useful: if a meal is already logged, there is no reminder. The lock screen shows only Reminder, no details.</string>
     <string name="remind_meal">Time to log %1$s.</string>
-    <string name="remind_water">%1$s of %2$s l so far. Time for a glass of water.</string>
+    <string name="remind_water">%1$s of %2$s L so far. Time for a glass of water.</string>
     <string name="remind_sleep">Time to wind down for sleep: dim the lights, put the phone away.</string>
     <string name="remind_weekly">Your weekly summary is ready: Today → calendar at the top → Summaries.</string>
     <string name="remind_public">Reminder</string>
@@ -390,7 +390,7 @@
     <string name="plate_large">Large plate ~30 cm</string>
     <string name="plate_bowl">Bowl</string>
     <string name="grams_factor">Grams adjusted to your corrections: ×%1$s</string>
-    <string name="bowel_title">Bowel today</string>
+    <string name="bowel_title">Bowel movements today</string>
     <string name="bowel_none">none</string>
     <string name="bowel_form">What was it like? (optional)</string>
     <string name="bowel_short">Bowel</string>
@@ -433,13 +433,13 @@
     <string name="cycle_hint">A row on Today: cycle day and the approximate next start. Started is one tap; flow and pain are optional. Explains weight and appetite changes. If another app writes your cycle to Health Connect, Tarilka can read it (with your permission).</string>
     <string name="cycle_day">Cycle day %1$d</string>
     <string name="cycle_next_short">next ~%1$s</string>
-    <string name="cycle_late">Expected ~%1$s. Has it started? You can mark a past date too</string>
+    <string name="cycle_late">Expected to start ~%1$s. Has your period started? You can mark a past date too</string>
     <string name="cycle_started_today">Started today</string>
     <string name="cycle_started">Started</string>
     <string name="cycle_ended">Ended</string>
     <string name="cycle_avg">Average cycle length: %1$d days (recorded cycles: %2$d)</string>
     <string name="cycle_next">Next: around %1$s</string>
-    <string name="cycle_ovulation">Estimated ovulation: %2$s, possible window from %1$s</string>
+    <string name="cycle_ovulation">Estimated ovulation: %2$s; most fertile days: %1$s – %2$s</string>
     <string name="cycle_need_two">A better estimate and the ovulation estimate appear after two marked starts. Until then the date uses the usual length you gave.</string>
     <string name="cycle_irregular">Cycle lengths differ noticeably, so ovulation is not shown: a calendar estimate is unreliable here.</string>
     <string name="cycle_disclaimer">Dates are approximate. This is not contraception and not a way to plan a pregnancy precisely.</string>
@@ -499,7 +499,7 @@
     <string name="bmi_teen">BMI %1$s. Under 18 it is judged by age charts, so no category is shown.</string>
     <string name="bmi_info">BMI = weight (kg) ÷ height (m)². For example, 70 kg and 1.65 m: 70 ÷ (1.65 × 1.65) ≈ 25.7.\n\nWHO categories for adults: under 18.5 underweight; 18.5–24.9 normal; 25–29.9 overweight; 30 or more obesity (class I 30–34.9, II 35–39.9, III 40+).\n\nWhat BMI does not show: how much is muscle and how much is fat, and where the fat is. Athletes with a lot of muscle can be \"overweight\" without extra fat; older people can be \"normal\" while losing muscle. For people of Asian origin the WHO suggests lower risk thresholds. Waist size (over 80 cm for women, over 94 cm for men) adds useful information.\n\nBMI is a starting point for a conversation, not a judgement of you. If it is under 18.5 or your weight changes for no clear reason, talk to a doctor.</string>
     <string name="pregnant">Pregnant or breastfeeding</string>
-    <string name="limit_pregnant">In pregnancy and while breastfeeding the app does not offer weight loss: the goal is to keep your weight, with no calorie deficit. Your doctor can tell you how much to add and how your weight should change.</string>
+    <string name="limit_pregnant">During pregnancy and breastfeeding the app does not offer weight loss or a calorie deficit. About 300 kcal are added to the target (EFSA: from +70 early in pregnancy to +500 late in pregnancy and while breastfeeding). In pregnancy weight gradually goes up, and that is normal. Your doctor can tell you how much to eat and how your weight should change.</string>
     <string name="limit_teen">Under 18 the app does not offer weight loss: the body is still growing, and cutting calories without a doctor can do harm. If your weight worries you, talk to a paediatrician or dietitian.</string>
     <string name="limit_underweight">BMI is under 18.5, so weight loss is not offered. If your weight is dropping on its own, or thoughts about food and weight get in the way of life, it is worth talking to a doctor.</string>
     <string name="custom_kcal_hint">Not below the safety floor: if you enter less, the app raises it to the floor.</string>
@@ -566,8 +566,8 @@
     <string name="mv_weight">%1$s kg a week</string>
     <string name="mi_kcal">Average over days with entries. Green is within 10% of the target, amber within 25%. One day decides little; the average matters.</string>
     <string name="mi_protein">Protein helps keep muscle and stay full, especially when losing weight. Good sources: cottage cheese, eggs, poultry, fish, beans.</string>
-    <string name="mi_fiber">Fibre helps digestion and fullness: vegetables, fruit, whole grains, beans. The target is 14 g per 1000 kcal, at least 25 g.</string>
-    <string name="mi_fluid">Average over days with entries: water, drinks and soups. The target is about 30 ml per kg of body weight.</string>
+    <string name="mi_fiber">Fibre helps digestion and fullness: vegetables, fruit, whole grains, beans. The target is at least 25 g a day (EFSA, WHO); with more food, 14 g per 1000 kcal.</string>
+    <string name="mi_fluid">Average over days with entries: water, drinks and soups. The EFSA guide is about 1.6 L of drinks a day for women and 2 L for men; more in heat, with activity, in pregnancy and while breastfeeding.</string>
     <string name="mi_weight">Weight change along the trend line, kg a week. Weight swings with water and the cycle, so the trend over several weeks matters, not single days. More than 1% of body weight a week is too fast.</string>
     <string name="protect_title">App protection</string>
     <string name="protect_switch">Encrypt the diary and open with fingerprint or PIN</string>
@@ -661,7 +661,7 @@
     <string name="pdf_chart_kcal">Calories by day (dashed: target)</string>
     <string name="pdf_chart_kcal_avg">Calories, daily average per stretch (dashed: target)</string>
     <string name="pdf_chart_macros">Where the calories came from</string>
-    <string name="pdf_macros_note">WHO and EFSA guide: protein 10–35 %, fat 20–35 %, carbohydrates 45–65 % of calories.</string>
+    <string name="pdf_macros_note">EFSA guide: fat 20–35 %, carbohydrates 45–60 % of calories; protein at least 0.83 g per kg of body weight.</string>
     <string name="pdf_of_kcal">%1$s of %2$s kcal</string>
     <string name="pdf_day_rest">Protein %1$s of %2$s g · fibre %3$s of %4$s g</string>
     <string name="intro_1_title">Welcome to Tarilka</string>
@@ -682,7 +682,7 @@
     <string name="waist_cm">cm</string>
     <string name="waist_last">Last: %1$s cm (%2$s)</string>
     <string name="waist_change">%1$s cm since %2$s</string>
-    <string name="waist_info">Measure with a tape at the level of the navel, breathing out, every 2–4 weeks. By WHO, the risk for the heart and metabolism is higher from %1$s cm and substantially higher from %2$s cm. The waist shows what BMI cannot: where fat is stored.</string>
+    <string name="waist_info">Measure with a tape halfway between the lowest rib and the top of the hip bone (often at the navel), breathing out, every 2–4 weeks. By WHO, the risk for the heart and metabolism is higher over %1$s cm and substantially higher over %2$s cm. The waist shows what BMI cannot: where fat is stored.</string>
     <string name="waist_hint">The waist adds to BMI: it shows where fat is stored. Measuring every 2–4 weeks is enough.</string>
     <string name="delete_last">Delete the last entry</string>
     <string name="tip_where">Where from? ▸</string>
@@ -693,27 +693,31 @@
     <string name="advice_good">What is already good</string>
     <string name="advice_processed">Sausages, frankfurters, ham: %1$s days a week (%2$s). Try chicken, fish, eggs or beans on 2 of those days: processed meat raises the risk of bowel cancer.</string>
     <string name="advice_red">Red meat: about %1$s g a week (%2$s). Up to 350–500 g cooked is advised; some days can be fish, poultry or beans.</string>
-    <string name="advice_sugar">Sweet foods give %1$s%% of calories (%2$s). Under 10%%, ideally 5%%, is advised. A step for the week: half the sugar in tea, fruit instead of one dessert, water instead of a sweet drink.</string>
-    <string name="advice_sfa">Foods rich in saturated fat give %1$s%% of calories (%2$s). Options: oil instead of butter, yoghurt instead of mayonnaise, bake instead of fry.</string>
+    <string name="advice_sugar">Sweets and sugary drinks give %1$s%% of calories (%2$s). The WHO advises added sugar under 10%%, ideally 5%%; sugar is only part of these calories, so this is a rough guide. A step for the week: half the sugar in tea, fruit instead of one dessert, water instead of a sweet drink.</string>
+    <string name="advice_sfa">Foods rich in saturated fat give %1$s%% of calories (%2$s). The WHO advises saturated fat under 10%% of calories. Options: oil instead of butter, yoghurt instead of mayonnaise, bake instead of fry.</string>
     <string name="advice_fastfood">Fast food: %1$s days a week (%2$s). A home-made version of the same usually has less salt and fat.</string>
     <string name="advice_refined">Only %1$s%% of bread and grains is whole grain (mostly %2$s). On some days try buckwheat, oats or whole-grain bread.</string>
     <string name="advice_veg">Vegetables and fruit: %1$s g a day of 400. Add one more portion to what you usually have.</string>
     <string name="advice_veg_yours">From what you already eat: %1$s.</string>
-    <string name="advice_legumes">Hardly any beans or lentils. Beans, lentils, chickpeas or peas 2–3 times a week give protein and fibre.</string>
-    <string name="advice_fish">Hardly any fish. 1–2 times a week is advised, once oily: herring, mackerel, salmon.</string>
+    <string name="advice_legumes">Hardly any beans or lentils. Beans, lentils, chickpeas or peas at least 2–3 times a week give protein and fibre.</string>
+    <string name="advice_fish">Hardly any fish. 1–2 times a week or more is advised, once oily: herring, mackerel, salmon.</string>
     <string name="advice_nuts">A handful of nuts or seeds (25–30 g) several times a week gives healthy fats, if there is no allergy.</string>
     <string name="advice_good_veg">Vegetables and fruit: %1$s g a day, over 400 g.</string>
-    <string name="advice_good_legumes">Beans or lentils %1$s times a week.</string>
-    <string name="advice_good_fish">Fish %1$s times a week, oily included.</string>
+    <string name="advice_good_legumes">Beans or lentils: %1$s times a week.</string>
+    <string name="advice_good_fish">Fish: %1$s times a week, oily included.</string>
     <string name="advice_good_whole">%1$s%% of bread and grains is whole grain (%2$s).</string>
     <string name="src_processed">WHO/IARC, WCRF</string>
     <string name="src_red">WCRF</string>
     <string name="src_sugar">WHO</string>
     <string name="src_sfa">WHO</string>
-    <string name="src_who">WHO</string>
+    <string name="src_who">WCRF, WHO</string>
     <string name="src_fibre">WHO, EFSA</string>
     <string name="src_veg">WHO</string>
     <string name="src_legumes">EAT-Lancet, NHS</string>
     <string name="src_fish">EFSA, NHS</string>
     <string name="src_nuts">EAT-Lancet</string>
+    <string name="waist_not_rated">In pregnancy and under 18 we do not rate waist size: the adult thresholds do not apply, and the body is changing, which is normal.</string>
+    <string name="bmi_pregnant">BMI %1$s. In pregnancy we do not rate BMI: the body is changing, and that is normal.</string>
+    <string name="audit_pregnant">In pregnancy and while breastfeeding, the safest choice is no alcohol at all. If stopping is hard, tell your doctor: it is common, and help is available.</string>
+    <string name="week_under">This week you ate clearly less on average than your body uses even at rest. Long-term undereating takes energy, muscle and sleep, and often leads to overeating. If this comes from worries about weight or food, talk to a doctor or a psychologist: help works.</string>
 </resources>

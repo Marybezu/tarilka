@@ -157,7 +157,7 @@ fun NutrientBar(
 fun MacroLine(kcal: Double, p: Double, f: Double, c: Double) {
     val m = LocalMacroColors.current
     Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-        Text("${kcal.f0()} ${stringResource(R.string.unit_kcal)}", style = MaterialTheme.typography.bodySmall.merge(Numbers))
+        if (LocalShowKcal.current) Text("${kcal.f0()} ${stringResource(R.string.unit_kcal)}", style = MaterialTheme.typography.bodySmall.merge(Numbers))
         Text("${stringResource(R.string.short_protein)} ${p.f0()}", color = m.protein, style = MaterialTheme.typography.bodySmall.merge(Numbers))
         Text("${stringResource(R.string.short_fat)} ${f.f0()}", color = m.fat, style = MaterialTheme.typography.bodySmall.merge(Numbers))
         Text("${stringResource(R.string.short_carbs)} ${c.f0()}", color = m.carbs, style = MaterialTheme.typography.bodySmall.merge(Numbers))

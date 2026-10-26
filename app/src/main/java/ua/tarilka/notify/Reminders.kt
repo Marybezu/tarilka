@@ -41,8 +41,7 @@ object Reminders {
     private val STEPS_TIME = LocalTime.of(23, 40)
     private val WATER_TIMES = listOf(LocalTime.of(12, 0), LocalTime.of(16, 0), LocalTime.of(19, 0))
     private val WEEKLY_TIME = LocalTime.of(19, 0)
-    // v2: the channel itself hides the content on a secure lock screen, whatever the phone's own setting.
-    private const val CHANNEL = "reminders_v2"
+    private const val CHANNEL = "reminders"
     private const val CYCLE_CHANNEL = "reminders_cycle"
     private const val EXTRA_KIND = "kind"
 
@@ -145,10 +144,8 @@ object Reminders {
         val cycle = kind == CYCLE_BEFORE || kind == CYCLE_LATE
         // Cycle reminders have their own channel that never shows on the lock screen; none go to a watch.
         val channel = if (cycle) CYCLE_CHANNEL else CHANNEL
-        nm.deleteNotificationChannel("reminders")
         nm.createNotificationChannel(
-            NotificationChannel(channel, context.getString(if (cycle) R.string.reminders_cycle_title else R.string.reminders_title), NotificationManager.IMPORTANCE_DEFAULT)
-                .apply { lockscreenVisibility = if (cycle) android.app.Notification.VISIBILITY_SECRET else android.app.Notification.VISIBILITY_PRIVATE },
+            NotificationChannel(channel, context.getString(if (cycle) R.string.reminders_cycle_title else R.string.reminders_title), NotificationManager.IMPORTANCE_DEFAULT),
         )
         if (!NotificationManagerCompat.from(context).areNotificationsEnabled()) return
         val open = PendingIntent.getActivity(

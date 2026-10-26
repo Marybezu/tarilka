@@ -89,7 +89,8 @@ object PdfReport {
         // ---- overview: big numbers and charts ----
         val logged = data.days.filter { it.entries.isNotEmpty() }
         val t = data.targets
-        val anyData = logged.isNotEmpty() || data.days.any { it.fluidMl > 0 || it.weight != null }
+        val anyData = (ReportPart.FOOD in parts && logged.isNotEmpty()) ||
+            (ReportPart.FLUID in parts && data.days.any { it.fluidMl > 0 }) || (ReportPart.WEIGHT in parts && data.days.any { it.weight != null })
         if (anyData && (ReportPart.FOOD in parts || ReportPart.FLUID in parts || ReportPart.WEIGHT in parts)) {
             pdf.heading(c.getString(R.string.pdf_overview))
             fun tint(v: Double, target: Double, good: Double, ok: Double) =
@@ -229,7 +230,10 @@ object PdfReport {
                 }
                 val cols = buildList {
                     add(c.getString(R.string.pdf_col_date) to 1.4f)
-                    if (ReportPart.FOOD in parts) { add(c.getString(R.string.unit_kcal) to 0.9f); add(c.getString(R.string.pdf_col_protein) to 0.9f) }
+                    if (ReportPart.FOOD in parts) {
+                        if (data.targets.showKcal) add(c.getString(R.string.unit_kcal) to 0.9f)
+                        add(c.getString(R.string.pdf_col_protein) to 0.9f)
+                    }
                     if (ReportPart.FLUID in parts) add(c.getString(R.string.m_fluid) to 0.9f)
                     if (ReportPart.WEIGHT in parts) add(c.getString(R.string.m_weight) to 0.9f)
                     if (ReportPart.SLEEP in parts) add(c.getString(R.string.m_sleep) to 0.8f)
@@ -240,7 +244,7 @@ object PdfReport {
                     val cells = buildList {
                         add(d.date.format(DateTimeFormatter.ofPattern("d.MM.yyyy")))
                         if (ReportPart.FOOD in parts) {
-                            add(d.entries.sumOf { it.kcal }.takeIf { it > 0 }?.f0() ?: "—")
+                            if (data.targets.showKcal) add(d.entries.sumOf { it.kcal }.takeIf { it > 0 }?.f0() ?: "—")
                             add(d.entries.sumOf { it.protein }.takeIf { it > 0 }?.f0() ?: "—")
                         }
                         if (ReportPart.FLUID in parts) add(if (d.fluidMl > 0) (d.fluidMl / 1000).f1() else "—")
@@ -269,15 +273,15 @@ object PdfReport {
                 val g = c.getString(R.string.unit_g)
                 days.forEach { d ->
                     val dayKcal = d.entries.sumOf { it.kcal }
-                    pdf.dayTitle(d.date.format(dayFmt).replaceFirstChar { it.uppercase() }, if (ReportPart.FOOD in parts && dayKcal > 0) "${dayKcal.f0()} $kcalUnit" else null)
+                    pdf.dayTitle(d.date.format(dayFmt).replaceFirstChar { it.uppercase() }, if (ReportPart.FOOD in parts && dayKcal > 0 && data.targets.showKcal) "${dayKcal.f0()} $kcalUnit" else null)
                     if (ReportPart.FOOD in parts && d.entries.isNotEmpty()) {
                         d.entries.groupBy { it.meal }.toSortedMap().forEach { (meal, list) ->
                             val at = if (withTimes && meal != 3) " · " + java.time.Instant.ofEpochMilli(list.first().createdAt).atZone(zone).toLocalTime().format(time) else ""
-                            pdf.twoSides(meals.getOrElse(meal) { "" } + at, "${list.sumOf { it.kcal }.f0()} $kcalUnit", pdf.bold)
+                            pdf.twoSides(meals.getOrElse(meal) { "" } + at, if (data.targets.showKcal) "${list.sumOf { it.kcal }.f0()} $kcalUnit" else "", pdf.bold)
                             list.forEach { e ->
                                 val tm = if (withTimes && meal == 3) java.time.Instant.ofEpochMilli(e.createdAt).atZone(zone).toLocalTime().format(time) + "  " else ""
                                 pdf.row(
-                                    listOf(tm + (if (e.fromAi) "✦ " else "") + e.name(), "${e.grams.f0()} $g", "${e.kcal.f0()} $kcalUnit"),
+                                    listOf(tm + (if (e.fromAi) "✦ " else "") + e.name(), "${e.grams.f0()} $g", if (data.targets.showKcal) "${e.kcal.f0()} $kcalUnit" else ""),
                                     listOf(4.2f, 1f, 1f), pdf.body, indent = 10f,
                                 )
                             }

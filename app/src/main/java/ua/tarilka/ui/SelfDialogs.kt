@@ -111,7 +111,7 @@ fun WorkoutDialog(
                         FilterChip(selected = intensity == i, onClick = { intensity = i }, label = { Text(label, maxLines = 1) })
                     }
                 }
-                Text(stringResource(R.string.workout_kcal_note), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                if (LocalShowKcal.current) Text(stringResource(R.string.workout_kcal_note), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         },
         confirmButton = {

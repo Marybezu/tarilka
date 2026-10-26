@@ -201,7 +201,12 @@ private fun AppRoot() {
                 push(Overlay.PickForPhoto(i))
             },
             onAddItem = { push(Overlay.PickForPhoto(null)) },
-            onCamera = { meal -> pendingMeal = meal; camera.launch(ua.tarilka.ai.PhotoUtil.captureUri(context)) },
+            onCamera = { meal ->
+                pendingMeal = meal
+                // A phone without a camera app: say so instead of closing.
+                runCatching { camera.launch(ua.tarilka.ai.PhotoUtil.captureUri(context)) }
+                    .onFailure { android.widget.Toast.makeText(context, R.string.no_camera, android.widget.Toast.LENGTH_LONG).show() }
+            },
             onGallery = { meal ->
                 pendingMeal = meal
                 gallery.launch(

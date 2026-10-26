@@ -91,7 +91,7 @@ fun AuditCDialog(sex: Sex, pregnant: Boolean, onSaveNote: ((String) -> Unit)? = 
                             Text(stringResource(if (saved) R.string.audit_saved else R.string.audit_save))
                         }
                     }
-                    if (score >= risk) Text(stringResource(R.string.alcohol_tips), style = MaterialTheme.typography.bodyMedium)
+                    if (score >= risk && !pregnant) Text(stringResource(R.string.alcohol_tips), style = MaterialTheme.typography.bodyMedium)
                 }
             }
         },

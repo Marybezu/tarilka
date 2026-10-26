@@ -166,7 +166,8 @@ object Report {
             val level = when {
                 w > 0 && t < -w * 0.01 -> Level.WATCH
                 // In pregnancy, under 18 and with a low BMI going up is expected or welcome.
-                targets.limit != null -> if (t >= -0.1) Level.GOOD else Level.OK
+                // (Under 18 growth is normal, but quick gain is not praised.)
+                targets.limit != null -> if (t >= -0.1 && (targets.limit != Limit.TEEN || t <= 0.5)) Level.GOOD else Level.OK
                 // Losing weight is not praised close to underweight (as on Today).
                 targets.goal == Goal.LOSE && t < -0.1 && targets.bmi >= 20 -> Level.GOOD
                 targets.goal == Goal.GAIN && t > 0.1 -> Level.GOOD

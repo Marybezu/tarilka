@@ -183,7 +183,7 @@ private fun IngredientRow(item: RecipeItem, onGrams: (Double) -> Unit, onRemove:
     Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
         Column(Modifier.weight(1f)) {
             Text(item.food.name(), style = MaterialTheme.typography.bodyLarge, maxLines = 2, overflow = TextOverflow.Ellipsis)
-            Text(
+            if (LocalShowKcal.current) Text(
                 "${(item.food.kcal * item.grams / 100).f0()} ${stringResource(R.string.unit_kcal)}",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,

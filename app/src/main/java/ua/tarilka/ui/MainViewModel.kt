@@ -233,8 +233,11 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         local + hc.filter { h -> local.none { kotlin.math.abs(it.start - h.start) <= 3 } }
     }
 
-    val cycle: StateFlow<ua.tarilka.data.CycleInfo?> = combine(prefs.cycleEnabled, allPeriods, db.cycle().days(), today, prefs.cycleTypical) { on, periods, days, t, typical ->
-        if (!on) null else ua.tarilka.data.CycleInfo.of(periods, days, t.toEpochDay(), typical.takeIf { it > 0 }, teen = prefs.profile.value.let { it.isSet && it.age < 18 })
+    val cycle: StateFlow<ua.tarilka.data.CycleInfo?> = combine(
+        prefs.cycleEnabled, allPeriods, db.cycle().days(), today,
+        combine(prefs.cycleTypical, prefs.profile) { typical, p -> typical to (p.isSet && p.age < 18) },
+    ) { on, periods, days, t, (typical, teen) ->
+        if (!on) null else ua.tarilka.data.CycleInfo.of(periods, days, t.toEpochDay(), typical.takeIf { it > 0 }, teen = teen)
     }.onEach { info ->
         // Reminders read the expected date from preferences (they run without the app open).
         val next = info?.nextStart ?: -1
@@ -514,7 +517,6 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         db.diary().forDay(d.minusDays(1).toEpochDay()).map { list -> list.groupBy { it.meal } }
     }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyMap())
 
-    /** Adds the same foods as in this meal the day before (amounts as they were; times and answers are new). */
     private var repeating = false
     private var lastRepeat = -1 to 0L
 

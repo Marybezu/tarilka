@@ -1060,7 +1060,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
                     "then the techniques. Compare with the previous $periodName where it helps. Days with nothing logged were probably just not recorded. " +
                     "Never shame. Do not set weight targets or suggest diets. If sleep is short, mention that it raises appetite. " +
                     "Suggest seeing a doctor or a specialist only if weight falls faster than about 1 % of body weight a week, " +
-                    "the average is under the basal metabolism (${tg.bmr.r()} kcal), a quarter or more of calories are eaten late on most days, " +
+                    (if (tg.showKcal) "the average is under the basal metabolism (${tg.bmr.r()} kcal), " else "") + "a quarter or more of calories are eaten late on most days, " +
                     "or eating felt hard to stop twice a week or more; then say kindly that this is common and help works. " +
                     "For alcohol there is no safe amount: say whether it went up or down compared with before; if there were days with 6 or more drinks, " +
                     "give the alcohol techniques first and only then add that a doctor or a support line can help.",

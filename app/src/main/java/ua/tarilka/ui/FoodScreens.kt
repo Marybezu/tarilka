@@ -82,7 +82,7 @@ fun FoodRow(food: Food, onClick: () -> Unit, onFavorite: (() -> Unit)? = null) {
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
-        Text(
+        if (LocalShowKcal.current) Text(
             "${food.kcal.f0()}",
             style = MaterialTheme.typography.titleMedium.merge(Numbers),
         )
@@ -275,7 +275,7 @@ fun FoodsScreen(vm: MainViewModel, padding: PaddingValues, onEdit: (Food?) -> Un
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     Text(stringResource(R.string.per_100g), style = MaterialTheme.typography.labelLarge)
-                    NutrRow(stringResource(R.string.calories), "${f.kcal.f0()} ${stringResource(R.string.unit_kcal)}")
+                    if (LocalShowKcal.current) NutrRow(stringResource(R.string.calories), "${f.kcal.f0()} ${stringResource(R.string.unit_kcal)}")
                     NutrRow(stringResource(R.string.protein), "${f.protein.f1()} ${stringResource(R.string.unit_g)}")
                     NutrRow(stringResource(R.string.fat), "${f.fat.f1()} ${stringResource(R.string.unit_g)}")
                     NutrRow(stringResource(R.string.carbs), "${f.carbs.f1()} ${stringResource(R.string.unit_g)}")

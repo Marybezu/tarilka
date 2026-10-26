@@ -20,6 +20,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -105,6 +106,7 @@ fun WeightScreen(vm: MainViewModel, padding: PaddingValues) {
                 }
             }
         }
+        item { WaistSection(vm) }
         item {
             Section(title = stringResource(R.string.energy_title)) {
                 Text(
@@ -132,5 +134,49 @@ fun WeightScreen(vm: MainViewModel, padding: PaddingValues) {
                 }
             }
         }
+    }
+}
+
+/**
+ * Waist circumference, now and then (optional). WHO: over 80 cm for women and 94 cm for men is a higher risk,
+ * over 88 / 102 cm a substantially higher one; it shows what BMI cannot (where fat is).
+ */
+@Composable
+private fun WaistSection(vm: MainViewModel) {
+    val list by vm.waist.collectAsState()
+    val profile by vm.profile.collectAsState()
+    var input by remember { mutableStateOf("") }
+    Section(title = stringResource(R.string.waist_title)) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Field(stringResource(R.string.waist_cm), input, { input = it }, Modifier.weight(1f))
+            Spacer(Modifier.width(12.dp))
+            Button(
+                enabled = input.toNumber()?.let { it in 40.0..250.0 } == true,
+                onClick = { input.toNumber()?.let { vm.saveWaist(it) }; input = "" },
+            ) { Text(stringResource(R.string.save)) }
+        }
+        list.lastOrNull()?.let { last ->
+            Spacer(Modifier.height(6.dp))
+            val female = profile.sex == ua.tarilka.data.Sex.FEMALE
+            val (raised, high) = if (female) 80.0 to 88.0 else 94.0 to 102.0
+            val level = when {
+                last.cm <= raised -> ua.tarilka.data.Habits.Level.GOOD
+                last.cm <= high -> ua.tarilka.data.Habits.Level.OK
+                else -> ua.tarilka.data.Habits.Level.WATCH
+            }
+            val first = list.first()
+            Text(
+                "● " + stringResource(R.string.waist_last, last.cm.f1(), shortDate(last.day)) +
+                    (if (list.size > 1) " · " + stringResource(R.string.waist_change, (if (last.cm - first.cm > 0) "+" else "") + (last.cm - first.cm).f1(), shortDate(first.day)) else ""),
+                style = MaterialTheme.typography.bodyMedium,
+                color = levelColor(level),
+            )
+            Text(
+                stringResource(R.string.waist_info, raised.f0(), high.f0()),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            TextButton(onClick = { vm.deleteWaist(last) }) { Text(stringResource(R.string.delete_last)) }
+        } ?: Text(stringResource(R.string.waist_hint), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }

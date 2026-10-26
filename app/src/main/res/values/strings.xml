@@ -664,4 +664,25 @@
     <string name="pdf_macros_note">WHO and EFSA guide: protein 10–35 %, fat 20–35 %, carbohydrates 45–65 % of calories.</string>
     <string name="pdf_of_kcal">%1$s of %2$s kcal</string>
     <string name="pdf_day_rest">Protein %1$s of %2$s g · fibre %3$s of %4$s g</string>
+    <string name="intro_1_title">Welcome to Tarilka</string>
+    <string name="intro_1">Log food by search, as a typed list (\u201cbuckwheat 200 g, cutlet\u201d) or with a photo of your plate. Tarilka counts calories, protein, fibre and fluids and shows habits as coloured badges, without judgement.</string>
+    <string name="intro_2_title">Everything stays on your phone</string>
+    <string name="intro_2">The app has no internet permission, no accounts and no ads. Nothing is sent anywhere. If you like, the diary can be encrypted and opened with your fingerprint, and copies saved automatically into a folder you choose.</string>
+    <string name="intro_3_title">The rest is optional</string>
+    <string name="intro_3">Sleep, cycle, workouts, bowel, Why I eat, reminders and on-device AI can be turned on in Options whenever you want. Start with the profile: height, weight and goal, and Tarilka works out your targets.</string>
+    <string name="intro_start">Start</string>
+    <string name="next">Next</string>
+    <string name="crash_title">Tarilka closed with an error last time</string>
+    <string name="crash_text">You can send a technical description of the error to help fix it. It contains no diary entries, only the error\'s name and places in the code. A GitHub page opens where you can review everything before sending.</string>
+    <string name="crash_send">Send</string>
+    <string name="crash_no">No, thanks</string>
+    <string name="crash_issue_title">App error</string>
+    <string name="crash_issue_body">What I was doing before (optional):</string>
+    <string name="waist_title">Waist (optional)</string>
+    <string name="waist_cm">cm</string>
+    <string name="waist_last">Last: %1$s cm (%2$s)</string>
+    <string name="waist_change">%1$s cm since %2$s</string>
+    <string name="waist_info">Measure with a tape at the level of the navel, breathing out, every 2–4 weeks. By WHO, the risk for the heart and metabolism is higher from %1$s cm and substantially higher from %2$s cm. The waist shows what BMI cannot: where fat is stored.</string>
+    <string name="waist_hint">The waist adds to BMI: it shows where fat is stored. Measuring every 2–4 weeks is enough.</string>
+    <string name="delete_last">Delete the last entry</string>
 </resources>

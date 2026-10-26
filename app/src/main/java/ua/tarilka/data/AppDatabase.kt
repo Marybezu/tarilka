@@ -6,7 +6,7 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 
 @Database(
-    entities = [Food::class, DiaryEntry::class, WeightEntry::class, FluidEntry::class, DayNote::class, SleepEntry::class, BowelEntry::class, WorkoutEntry::class, PeriodEntry::class, PeriodDay::class],
+    entities = [Food::class, DiaryEntry::class, WeightEntry::class, FluidEntry::class, DayNote::class, SleepEntry::class, BowelEntry::class, WorkoutEntry::class, PeriodEntry::class, PeriodDay::class, WaistEntry::class],
     version = AppDatabase.VERSION,
     exportSchema = true,
 )
@@ -20,15 +20,16 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun bowel(): BowelDao
     abstract fun workouts(): WorkoutDao
     abstract fun cycle(): CycleDao
+    abstract fun waist(): WaistDao
 
     companion object {
         const val NAME = "tarilka.db"
-        const val VERSION = 6
+        const val VERSION = 7
 
         /** Plain when [rawKey] is null; otherwise encrypted with SQLCipher (app protection). */
         fun create(context: Context, rawKey: ByteArray? = null): AppDatabase =
             Room.databaseBuilder(context, AppDatabase::class.java, NAME)
-                .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6)
+                .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7)
                 .apply {
                     if (rawKey != null) {
                         System.loadLibrary("sqlcipher")
@@ -36,6 +37,13 @@ abstract class AppDatabase : RoomDatabase() {
                     }
                 }
                 .build()
+
+        /** Waist circumference. Existing data is kept. */
+        private val MIGRATION_6_7 = object : androidx.room.migration.Migration(6, 7) {
+            override fun migrate(db: androidx.sqlite.db.SupportSQLiteDatabase) {
+                db.execSQL("CREATE TABLE IF NOT EXISTS `waist` (`day` INTEGER NOT NULL, `cm` REAL NOT NULL, PRIMARY KEY(`day`))")
+            }
+        }
 
         /** Time of weighing. Existing data is kept. */
         private val MIGRATION_5_6 = object : androidx.room.migration.Migration(5, 6) {

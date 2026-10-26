@@ -14,8 +14,8 @@ import java.time.ZoneId
  */
 object Backup {
     const val FORMAT = "tarilka-backup"
-    /** 2: sleep, bowel, workouts, cycle and the cycle/steps settings. */
-    const val VERSION = 2
+    /** 2: sleep, bowel, workouts, cycle and the cycle/steps settings; 3: waist. */
+    const val VERSION = 3
 
     private const val ENCRYPTED = "tarilka-backup-encrypted"
     private const val ITERATIONS = 310_000
@@ -140,6 +140,9 @@ object Backup {
             .put("settings", JSONObject()
                 .put("cycleTypical", prefs.cycleTypical.value)
                 .put("stepLog", JSONObject(prefs.loggedSteps().mapKeys { it.key.toString() })))
+            .put("waist", JSONArray().apply {
+                db.waist().allOnce().forEach { put(JSONObject().put("day", LocalDate.ofEpochDay(it.day).toString()).put("cm", it.cm)) }
+            })
             .put("weights", JSONArray().apply {
                 db.weights().allOnce().forEach {
                     put(JSONObject().put("day", LocalDate.ofEpochDay(it.day).toString()).put("kg", it.kg).put("minutes", it.minutes ?: JSONObject.NULL))
@@ -178,6 +181,7 @@ object Backup {
             db.workouts().deleteAll()
             db.cycle().deleteAll()
             db.cycle().deleteAllDays()
+            db.waist().deleteAll()
 
             val idMap = mutableMapOf<Long, Long>()
             o.optJSONArray("customFoods")?.let { arr ->
@@ -294,6 +298,13 @@ object Backup {
                     db.cycle().upsertDay(
                         PeriodDay(LocalDate.parse(e.getString("day")).toEpochDay(), e.optInt("flow", -1).takeIf { it in 0..2 }, e.optInt("pain", -1).takeIf { it in 0..2 }),
                     )
+                }
+            }
+            o.optJSONArray("waist")?.let { arr ->
+                for (i in 0 until arr.length()) {
+                    val e = arr.getJSONObject(i)
+                    val cm = e.optDouble("cm", -1.0)
+                    if (cm in 40.0..250.0) db.waist().upsert(WaistEntry(LocalDate.parse(e.getString("day")).toEpochDay(), cm))
                 }
             }
             o.optJSONArray("weights")?.let { arr ->

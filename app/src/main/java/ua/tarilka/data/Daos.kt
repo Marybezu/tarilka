@@ -282,6 +282,24 @@ interface WorkoutDao {
 }
 
 @Dao
+interface WaistDao {
+    @Query("SELECT * FROM waist ORDER BY day")
+    fun all(): Flow<List<WaistEntry>>
+
+    @Query("SELECT * FROM waist ORDER BY day")
+    suspend fun allOnce(): List<WaistEntry>
+
+    @Upsert
+    suspend fun upsert(entry: WaistEntry)
+
+    @Delete
+    suspend fun delete(entry: WaistEntry)
+
+    @Query("DELETE FROM waist")
+    suspend fun deleteAll()
+}
+
+@Dao
 interface CycleDao {
     @Query("SELECT * FROM periods ORDER BY start")
     fun periods(): Flow<List<PeriodEntry>>

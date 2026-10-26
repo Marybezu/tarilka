@@ -87,6 +87,13 @@ data class WeightEntry(
     val minutes: Int? = null,
 )
 
+/** Waist circumference (optional), cm: adds to BMI what it cannot show. */
+@Entity(tableName = "waist")
+data class WaistEntry(
+    @PrimaryKey val day: Long,
+    val cm: Double,
+)
+
 /** Water and other drinks without calories. */
 @Entity(tableName = "fluids", indices = [Index("day")])
 data class FluidEntry(

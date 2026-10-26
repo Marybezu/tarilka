@@ -631,6 +631,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         db.workouts().deleteAll()
         db.cycle().deleteAll()
         db.cycle().deleteAllDays()
+        db.waist().deleteAll()
         prefs.clearCycle()
         prefs.clearCache()
         if (everything) {
@@ -1050,6 +1051,13 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         db.weights().upsert(w)
         sync { health.deleteWeight(w); health.writeWeight(w) }
     }
+
+    val waist: StateFlow<List<ua.tarilka.data.WaistEntry>> = db.waist().all()
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+
+    fun saveWaist(cm: Double) = viewModelScope.launch { db.waist().upsert(ua.tarilka.data.WaistEntry(LocalDate.now().toEpochDay(), cm)) }
+
+    fun deleteWaist(w: ua.tarilka.data.WaistEntry) = viewModelScope.launch { db.waist().delete(w) }
 
     fun deleteWeight(w: WeightEntry) = viewModelScope.launch {
         db.weights().delete(w)

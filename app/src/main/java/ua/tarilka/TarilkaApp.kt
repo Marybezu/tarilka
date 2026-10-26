@@ -45,6 +45,7 @@ class TarilkaApp : Application() {
 
     override fun onCreate() {
         super.onCreate()
+        CrashLog.install(this)
         prefs = Prefs(this)
         reconcileProtection()
         // With app protection the database stays closed until fingerprint or the phone PIN.

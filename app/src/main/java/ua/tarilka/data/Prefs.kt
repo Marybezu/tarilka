@@ -31,6 +31,11 @@ class Prefs(context: Context) {
     val noScreenshots: StateFlow<Boolean> = _noScreenshots.asStateFlow()
     fun setNoScreenshots(on: Boolean) { sp.edit().putBoolean("noScreenshots", on).apply(); _noScreenshots.value = on }
 
+    /** The three-screen introduction was shown (set for existing users too, see below). */
+    var introShown: Boolean
+        get() = sp.getBoolean("introShown", sp.contains("profileSet"))
+        set(v) = sp.edit().putBoolean("introShown", v).apply()
+
     // ---- automatic backup ----
     /** The chosen folder (a persisted document-tree permission). */
     var autoBackupFolder: String?

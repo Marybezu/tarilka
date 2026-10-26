@@ -632,4 +632,6 @@
     <string name="pdf_note">Note: %1$s</string>
     <string name="pdf_page">p.</string>
     <string name="pdf_footer">Made with Tarilka. Nutrition values are estimates from USDA data, labels and recipes; ✦ marks a portion estimated by AI from a photo. This is not a medical opinion.</string>
+    <string name="no_screenshots">Block screenshots</string>
+    <string name="no_screenshots_hint">Tarilka cannot be captured by screenshots or screen recording, and is hidden in recent apps and screen sharing. Works separately from app protection.</string>
 </resources>

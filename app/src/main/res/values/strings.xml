@@ -571,7 +571,7 @@
     <string name="mi_weight">Weight change along the trend line, kg a week. Weight swings with water and the cycle, so the trend over several weeks matters, not single days. More than 1% of body weight a week is too fast.</string>
     <string name="protect_title">App protection</string>
     <string name="protect_switch">Encrypt the diary and open with fingerprint or PIN</string>
-    <string name="protect_hint">The diary is encrypted with a key kept in the phone\'s secure hardware. Tarilka opens with your fingerprint or the phone PIN and locks when the screen turns off or after a minute in the background. Reminders still work, without access to your entries.</string>
+    <string name="protect_hint">The diary (food, fluids, weight, sleep, cycle, notes) is encrypted with a key kept in the phone\'s secure hardware. Tarilka opens with your fingerprint or the phone PIN and locks when the screen turns off or after a minute in the background. The profile and settings are not encrypted. Reminders work without access to your entries.</string>
     <string name="protect_on_title">Turn on protection?</string>
     <string name="protect_on_text">First make an encrypted backup: Options → Data → Export backup.\n\nImportant: if you ever remove the phone\'s screen lock completely (PIN and fingerprint), Android destroys the key and the diary can no longer be opened, only restored from a backup. Adding a new fingerprint does not reset the key.\n\nEntries in Health Connect are not covered by this protection.</string>
     <string name="protect_on_confirm">Turn on</string>

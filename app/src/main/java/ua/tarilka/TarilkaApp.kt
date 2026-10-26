@@ -132,7 +132,6 @@ class TarilkaApp : Application() {
         if (rawKey != null) runCatching { ua.tarilka.ai.PhotoUtil.clear(this) }
         scope.launch {
             runCatching { withDb { FoodSeeder.seedIfNeeded(this@TarilkaApp, it, prefs) } }
-            // The weekly automatic copy, when it is due (works with protection too: the diary is open now).
         }
     }
 

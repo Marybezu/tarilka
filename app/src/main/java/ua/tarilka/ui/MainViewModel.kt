@@ -646,24 +646,77 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         val (cur, prev) = list.partition { it.day > split }
         Habits.of(cur, foods, 7, sleep = sleepMap, bowel = bowel.filter { it.day > split }, workouts = workouts.filter { it.day > split }, withTimes = times)
             .copy(prev = Habits.of(prev, foods, 7, bowel = bowel.filter { it.day <= split }, workouts = workouts.filter { it.day <= split }, withTimes = times))
-            .takeIf { it.days >= 2 }
+            .takeIf { it.days >= ua.tarilka.data.Habits.MIN_DAYS }
     }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     enum class Period(val days: Int) { WEEK(7), MONTH(30), YEAR(365) }
 
-    suspend fun habitsFor(period: Period): Habits {
+    /** Lines of the week / month / year summary, the chart's bar labels and the highlights. */
+    data class PeriodReport(
+        val metrics: List<ua.tarilka.data.Metric>,
+        val barLabels: List<String>,
+        val highlights: ua.tarilka.data.Report.Highlights,
+        val days: Int,
+    )
+
+    suspend fun report(period: Period): PeriodReport {
         val end = LocalDate.now()
-        val from = end.minusDays(period.days - 1L)
+        // Bars: days of the week, 7-day stretches of the month, calendar months of the year.
+        val bars: List<Pair<LocalDate, LocalDate>> = when (period) {
+            Period.WEEK -> (6 downTo 0).map { end.minusDays(it.toLong()).let { d -> d to d } }
+            Period.MONTH -> (4 downTo 0).map { i -> end.minusDays(i * 7L + 6).let { a -> maxOf(a, end.minusDays(29)) } to end.minusDays(i * 7L) }
+            Period.YEAR -> (11 downTo 0).map { i -> end.withDayOfMonth(1).minusMonths(i.toLong()).let { m -> m to minOf(m.plusMonths(1).minusDays(1), end) } }
+        }
+        val from = if (period == Period.YEAR) bars.first().first else end.minusDays(period.days - 1L)
+        val days = (end.toEpochDay() - from.toEpochDay() + 1).toInt()
+        val prevFrom = from.minusDays(days.toLong())
         val foods = foodsById.value.ifEmpty { db.foods().allOnce().associateBy { it.id } }
-        val (cur, prev) = db.diary().range(from.minusDays(period.days.toLong()).toEpochDay(), end.toEpochDay())
-            .partition { it.day >= from.toEpochDay() }
-        val start = from.minusDays(period.days.toLong())
-        val sleep = sleepRange(start, end)
-        val bowel = db.bowel().range(start.toEpochDay(), end.toEpochDay()).partition { it.day >= from.toEpochDay() }
-        val workouts = db.workouts().range(start.toEpochDay(), end.toEpochDay()).partition { it.day >= from.toEpochDay() }
-        return Habits.of(cur, foods, period.days, sleep = sleep.filterKeys { it >= from.toEpochDay() }, bowel = bowel.first, workouts = workouts.first, withTimes = prefs.mealTimes.value)
-            .copy(prev = Habits.of(prev, foods, period.days, sleep = sleep.filterKeys { it < from.toEpochDay() }, bowel = bowel.second, workouts = workouts.second, withTimes = prefs.mealTimes.value))
+        val diary = db.diary().range(prevFrom.toEpochDay(), end.toEpochDay())
+        val sleep = sleepRange(prevFrom, end)
+        val bowel = db.bowel().range(prevFrom.toEpochDay(), end.toEpochDay())
+        val workouts = db.workouts().range(prevFrom.toEpochDay(), end.toEpochDay())
+        val fluids = (
+            db.fluids().totalsOnce(prevFrom.toEpochDay(), end.toEpochDay()) +
+                db.fluids().drinksFromDiaryRange(prevFrom.toEpochDay(), end.toEpochDay(), ua.tarilka.data.FluidRules.ALCOHOL, ua.tarilka.data.FluidRules.MILK_DRINKS, ua.tarilka.data.FluidRules.SOUPS).first()
+            ).groupBy { it.day }.mapValues { (_, l) -> l.sumOf { it.ml } }.filterValues { it > 0 }
+        val steps = if (prefs.stepsEnabled) stepsByDay(prevFrom, end).filterValues { it > 0 } else emptyMap()
+        val weightsAll = db.weights().allOnce()
+        val workoutsOn = prefs.workoutsEnabled.value || workouts.isNotEmpty()
+        val withTimes = prefs.mealTimes.value
+
+        fun data(a: LocalDate, b: LocalDate): ua.tarilka.data.PeriodData {
+            val r = a.toEpochDay()..b.toEpochDay()
+            val n = (b.toEpochDay() - a.toEpochDay() + 1).toInt()
+            val h = Habits.of(
+                diary.filter { it.day in r }, foods, n,
+                sleep = sleep.filterKeys { it in r }, bowel = bowel.filter { it.day in r },
+                workouts = workouts.filter { it.day in r }, withTimes = withTimes,
+            )
+            val fl = fluids.filterKeys { it in r }.values
+            val st = steps.filterKeys { it in r }.values
+            val w = weightsAll.filter { it.day in r }
+            return ua.tarilka.data.PeriodData(
+                habits = h,
+                fluidMl = fl.takeIf { it.isNotEmpty() }?.average(), fluidDays = fl.size,
+                steps = st.takeIf { it.isNotEmpty() }?.average(), stepsDays = st.size,
+                weight = w.takeIf { it.isNotEmpty() }?.map { it.kg }?.average(),
+                weightTrend = Nutrition.weeklyTrend(w),
+                activityPerDay = if (workoutsOn) workouts.filter { it.day in r }.sumOf(ua.tarilka.data.Workouts::whoMinutes) / n else null,
+            )
+        }
+        val cur = data(from, end)
+        val prev = data(prevFrom, from.minusDays(1))
+        val metrics = ua.tarilka.data.Report.build(cur, prev, bars.map { (a, b) -> data(a, b) }, targets.value, prefs.stepsGoal.value)
+        val uk = ua.tarilka.data.isUkrainian()
+        val labels = bars.map { (a, _) ->
+            when (period) {
+                Period.WEEK -> a.dayOfWeek.getDisplayName(java.time.format.TextStyle.NARROW_STANDALONE, java.util.Locale.getDefault())
+                Period.MONTH -> "${a.dayOfMonth}.%02d".format(a.monthValue)
+                Period.YEAR -> a.month.getDisplayName(java.time.format.TextStyle.NARROW_STANDALONE, if (uk) java.util.Locale.forLanguageTag("uk") else java.util.Locale.ENGLISH)
+            }
+        }
+        return PeriodReport(metrics, labels, ua.tarilka.data.Report.highlights(metrics), cur.habits.days)
     }
 
     /** Plain-text summary of a period ending today, compared with the period before, for the AI. */

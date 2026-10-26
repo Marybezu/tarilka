@@ -279,4 +279,28 @@ class LogicTest {
         assertEquals(1, Nutrition.bmiClass(22.0))
         assertEquals(3, Nutrition.bmiClass(31.0))
     }
+
+    @Test
+    fun reportIsConsistent() {
+        fun h(days: Int, veg: Double, sweets: Double) = ua.tarilka.data.Habits(
+            days = days, periodDays = 7, kcalAvg = 1500.0, proteinAvg = 90.0, fiberAvg = 20.0, sweetsPct = sweets,
+            sweetFreeDays = 0, vegFruitG = veg, latePct = 5.0, alcoholPerWeek = 0.0, fastFoodDays = 0,
+        )
+        val t = Nutrition.targets(Profile(Sex.FEMALE, 30, 165, 65.0, 1, Goal.MAINTAIN), null)
+        val cur = ua.tarilka.data.PeriodData(h(7, 450.0, 12.0), fluidMl = null, steps = null)
+        val prev = ua.tarilka.data.PeriodData(h(7, 250.0, 6.0), fluidMl = null, steps = null)
+        val m = ua.tarilka.data.Report.build(cur, prev, listOf(cur), t, 8000).associateBy { it.key }
+        val veg = m.getValue(ua.tarilka.data.Metric.Key.VEG)
+        assertEquals(1, veg.change)
+        assertEquals(ua.tarilka.data.Habits.Level.GOOD, veg.level)
+        // More sweets than before is worse, and over 10 % is orange.
+        val sweets = m.getValue(ua.tarilka.data.Metric.Key.SWEETS)
+        assertEquals(-1, sweets.change)
+        assertEquals(ua.tarilka.data.Habits.Level.WATCH, sweets.level)
+        val hl = ua.tarilka.data.Report.highlights(m.values.toList())
+        assertEquals(ua.tarilka.data.Metric.Key.VEG, hl.improved?.key)
+        assertEquals(ua.tarilka.data.Metric.Key.SWEETS, hl.attention?.key)
+        // Two days say too little: no lines at all.
+        assertTrue(ua.tarilka.data.Report.build(ua.tarilka.data.PeriodData(h(2, 450.0, 1.0), null, null), null, emptyList(), t, 8000).isEmpty())
+    }
 }

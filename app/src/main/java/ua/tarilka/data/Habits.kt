@@ -63,7 +63,8 @@ data class Habits(
 
     val sweetsLevel get() = level(sweetsPct < 5, sweetsPct <= 10)
     val vegLevel get() = level(vegFruitG >= 400, vegFruitG >= 200)
-    val lateLevel get() = level(latePct < 10, latePct < 25)
+    /** A late dinner is normal; a quarter of the day's food late is the night eating syndrome criterion. */
+    val lateLevel get() = level(latePct < 15, latePct < 25)
     /**
      * There is no safe amount (WHO 2023), so any alcohol is amber. Orange: more than 7 drinks a week,
      * alcohol on 4 or more days a week, or any day with 6 or more drinks.
@@ -84,7 +85,11 @@ data class Habits(
     /** 7–9 h is the adult range (AASM); regularly much longer sleep is worth a look too, but never orange. */
     val sleepLevel get() = sleepAvg?.let { if (it > 9.5) Level.OK else level(it >= 7, it >= 6) } ?: Level.OK
     /** Hard-to-stop episodes twice a week or more are worth attention; eating for other reasons now and then is normal. */
-    val reasonsLevel get() = if (perWeek(hardToStop) >= 2) Level.WATCH else level(notHungerTotal == 0 && hardToStop == 0, true)
+    val reasonsLevel get() = when {
+        perWeek(hardToStop) >= 2 -> Level.WATCH
+        notHungerTotal * 2 > reasonMeals -> Level.OK
+        else -> Level.GOOD
+    }
 
     /** Under 3 movements a week is constipation by the usual definition; loose stools on several days are worth noticing too. */
     val bowelLevel get() = when {
@@ -98,7 +103,7 @@ data class Habits(
 
     /** Hours of sleep, % of calories, drinks a week…: compare with the period before. +1 more, −1 less, 0 about the same or unknown. */
     fun trend(value: (Habits) -> Double?, minDiff: Double): Int {
-        val p = prev?.takeIf { it.days >= 2 } ?: return 0
+        val p = prev?.takeIf { it.days >= MIN_DAYS } ?: return 0
         val a = value(this) ?: return 0
         val b = value(p) ?: return 0
         return if (a - b >= minDiff) 1 else if (b - a >= minDiff) -1 else 0
@@ -107,6 +112,9 @@ data class Habits(
     private fun level(good: Boolean, ok: Boolean) = if (good) Level.GOOD else if (ok) Level.OK else Level.WATCH
 
     companion object {
+        /** Fewer logged days than this say too little: no badges, no trends. */
+        const val MIN_DAYS = 3
+
         /** Juices count as free sugars for the WHO; tomato juice and coconut water do not. */
         val SUGARY_DRINKS = setOf("dr03", "dr04", "dr05", "dr10", "dr12", "dr17", "dr18", "dr20", "dr21", "dr26", "dr27", "dr29")
         val STARCHY = setOf("v01", "v02", "v03", "v04", "v05", "v32", "v33")

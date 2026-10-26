@@ -36,23 +36,6 @@ class Prefs(context: Context) {
         get() = sp.getBoolean("introShown", sp.contains("profileSet"))
         set(v) = sp.edit().putBoolean("introShown", v).apply()
 
-    // ---- automatic backup ----
-    /** The chosen folder (a persisted document-tree permission). */
-    var autoBackupFolder: String?
-        get() = sp.getString("autoBackupFolder", null)
-        set(v) = sp.edit().putString("autoBackupFolder", v).apply()
-    /** The backup password, sealed with a key of this phone (see SecretStore). */
-    var autoBackupSecret: String?
-        get() = sp.getString("autoBackupSecret", null)
-        set(v) = sp.edit().putString("autoBackupSecret", v).apply()
-    var autoBackupLast: Long
-        get() = sp.getLong("autoBackupLast", -1000)
-        set(v) = sp.edit().putLong("autoBackupLast", v).apply()
-    /** The last attempt failed (folder gone, card removed…): shown in Options. */
-    var autoBackupProblem: Boolean
-        get() = sp.getBoolean("autoBackupProblem", false)
-        set(v) = sp.edit().putBoolean("autoBackupProblem", v).apply()
-
     /** App protection: the diary is encrypted and opens only after fingerprint or the phone PIN. */
     var appLock: Boolean
         get() = sp.getBoolean("appLock", false)

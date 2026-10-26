@@ -643,8 +643,6 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
             db.foods().setFavorites(emptyList())
             prefs.clearPersonal()
             java.io.File(getApplication<Application>().cacheDir, "photos").deleteRecursively()
-            kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) { ua.tarilka.data.AutoBackup.deleteCopies(getApplication(), prefs) }
-            turnOffAutoBackup()
         }
         undoAction = null
         undoEvent.value = null
@@ -1117,48 +1115,6 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         }.getOrElse { getApplication<Application>().getString(ua.tarilka.R.string.data_error, it.message ?: "") }
     }
 
-    // ---- automatic backup ----
-
-    /** The chosen password while the folder picker is open. */
-    var autoBackupPending: String? = null
-
-    /** Turns on the weekly copy into [folder] with [password], and makes the first copy at once. */
-    fun setUpAutoBackup(folder: android.net.Uri, password: String) = viewModelScope.launch {
-        val app = getApplication<Application>()
-        runCatching {
-            app.contentResolver.takePersistableUriPermission(
-                folder, android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION or android.content.Intent.FLAG_GRANT_WRITE_URI_PERMISSION,
-            )
-            prefs.autoBackupFolder = folder.toString()
-            prefs.autoBackupSecret = ua.tarilka.security.SecretStore.seal(password)
-        }
-        autoBackupNow()
-    }
-
-    fun autoBackupNow() = viewModelScope.launch {
-        val app = getApplication<Application>()
-        val ok = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) { ua.tarilka.data.AutoBackup.run(app, db, prefs) }
-        dataMessage.value = app.getString(if (ok) ua.tarilka.R.string.auto_backup_done else ua.tarilka.R.string.auto_backup_failed)
-        autoBackupVersion.value++
-    }
-
-    fun turnOffAutoBackup() {
-        val app = getApplication<Application>()
-        prefs.autoBackupFolder?.let { f ->
-            runCatching {
-                app.contentResolver.releasePersistableUriPermission(
-                    android.net.Uri.parse(f), android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION or android.content.Intent.FLAG_GRANT_WRITE_URI_PERMISSION,
-                )
-            }
-        }
-        prefs.autoBackupFolder = null
-        prefs.autoBackupSecret = null
-        prefs.autoBackupProblem = false
-        autoBackupVersion.value++
-    }
-
-    /** Bumped when the automatic backup settings or status change, so Options shows them again. */
-    val autoBackupVersion = MutableStateFlow(0)
 
     fun exportCsv(uri: android.net.Uri) = viewModelScope.launch {
         dataMessage.value = runCatching {

@@ -133,22 +133,8 @@ class TarilkaApp : Application() {
         scope.launch {
             runCatching { withDb { FoodSeeder.seedIfNeeded(this@TarilkaApp, it, prefs) } }
             // The weekly automatic copy, when it is due (works with protection too: the diary is open now).
-            backupIfDue()
         }
     }
-
-    /** The weekly automatic copy, when it is due and the diary is open (at start, after unlocking, on return). */
-    fun backupIfDue() {
-        // One copy at a time (start and return can both ask).
-        if (ua.tarilka.data.AutoBackup.isDue(prefs) && _db.value != null && backingUp.compareAndSet(false, true)) scope.launch {
-            try {
-                runCatching { withDb { ua.tarilka.data.AutoBackup.run(this@TarilkaApp, it, prefs) } }
-            } finally {
-                backingUp.set(false)
-            }
-        }
-    }
-    private val backingUp = java.util.concurrent.atomic.AtomicBoolean(false)
 
     /** Opening and locking never interleave. */
     private val gate = Any()

@@ -706,4 +706,7 @@
     <string name="week_under">This week you ate clearly less on average than your body uses even at rest. Long-term undereating takes energy, muscle and sleep, and often leads to overeating. If this comes from worries about weight or food, talk to a doctor or a psychologist: help works.</string>
     <string name="targets_text_teen">Protein %1$s g · fibre %2$s g a day. Under 18 we do not show a calorie target: needs differ a lot while the body is growing. Go by hunger and fullness, regular meals and a variety of foods.</string>
     <string name="reminders_cycle_title">Cycle reminders</string>
+    <string name="week_avg_protein">Average: protein %1$s of %2$s g</string>
+    <string name="ai_no_space">Not enough free space on the phone for the model.</string>
+    <string name="ai_wrong_file">This is not the right model file, or it is damaged. Download %1$s with the Download model button and choose it again.</string>
 </resources>

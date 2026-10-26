@@ -364,9 +364,10 @@ fun TodayScreen(
                     val avg = withData.sumOf { it.kcal } / withData.size
                     val avgP = withData.sumOf { it.protein } / withData.size
                     // An average of one or two days says nothing new: the bars are enough until then.
-                    if (withData.size >= 3 && targets.showKcal) {
+                    if (withData.size >= 3) {
                         Text(
-                            stringResource(R.string.week_avg, avg.f0(), targets.kcal.f0(), avgP.f0(), targets.protein.f0()),
+                            if (targets.showKcal) stringResource(R.string.week_avg, avg.f0(), targets.kcal.f0(), avgP.f0(), targets.protein.f0())
+                            else stringResource(R.string.week_avg_protein, avgP.f0(), targets.protein.f0()),
                             style = MaterialTheme.typography.bodyMedium,
                         )
                         Spacer(Modifier.height(8.dp))

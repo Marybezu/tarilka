@@ -174,6 +174,15 @@ class TarilkaApp : Application() {
         }.also { closing = it }
     }
 
+    /**
+     * While Tarilka itself opened a file picker, "Save as" or the camera, the minute away does not lock the diary
+     * (otherwise the chosen file or photo would be lost). At most [HOLD_MS]; turning the screen off still locks.
+     */
+    @Volatile private var holdUntil = 0L
+    fun holdLock() { holdUntil = System.currentTimeMillis() + HOLD_MS }
+    fun releaseLock() { holdUntil = 0L }
+    private fun held() = System.currentTimeMillis() < holdUntil
+
     /** Locks the protected diary (screen off, a minute in the background, or by hand). */
     fun lock() {
         if (!prefs.appLock && !converting) return
@@ -202,7 +211,7 @@ class TarilkaApp : Application() {
             override fun onActivityStarted(activity: android.app.Activity) {
                 if (started++ == 0) {
                     timer?.cancel()
-                    if (awaySince > 0 && System.currentTimeMillis() - awaySince > AWAY_MS) lock()
+                    if (awaySince > 0 && System.currentTimeMillis() - awaySince > AWAY_MS && !held()) lock()
                     awaySince = 0
                 }
             }
@@ -210,7 +219,12 @@ class TarilkaApp : Application() {
                 if (--started == 0 && !activity.isChangingConfigurations) {
                     awaySince = System.currentTimeMillis()
                     // Also close the diary while the app stays in the background, not only on return.
-                    timer = scope.launch { kotlinx.coroutines.delay(AWAY_MS); lock() }
+                    timer = scope.launch {
+                        kotlinx.coroutines.delay(AWAY_MS)
+                        // A file picker or the camera is open on top of Tarilka: wait for it (at most HOLD_MS).
+                        while (held()) kotlinx.coroutines.delay(5_000)
+                        lock()
+                    }
                 }
             }
             override fun onActivityCreated(activity: android.app.Activity, savedInstanceState: android.os.Bundle?) = Unit
@@ -224,3 +238,6 @@ class TarilkaApp : Application() {
 
 /** How long the app may stay in the background before the protected diary closes. */
 private const val AWAY_MS = 60_000L
+
+/** The longest a picker or the camera keeps the diary open in the background. */
+private const val HOLD_MS = 10 * 60_000L

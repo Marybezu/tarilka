@@ -61,6 +61,19 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    // Every picker, "Save as" and the camera go through here: the diary stays open while they are on top.
+    @Deprecated("Activity Result API uses this internally")
+    override fun startActivityForResult(intent: android.content.Intent, requestCode: Int, options: Bundle?) {
+        app.holdLock()
+        super.startActivityForResult(intent, requestCode, options)
+    }
+
+    @Deprecated("Activity Result API uses this internally")
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: android.content.Intent?) {
+        app.releaseLock()
+        super.onActivityResult(requestCode, resultCode, data)
+    }
+
     override fun onStart() {
         super.onStart()
         // Locked while away: the screens' view models hold the closed database. Drop them before they resume

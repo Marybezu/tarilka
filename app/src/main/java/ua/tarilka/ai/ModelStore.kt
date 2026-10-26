@@ -16,7 +16,7 @@ class ModelStore(private val context: Context) {
 
     sealed interface State {
         data object Missing : State
-        data class Ready(val file: File, val sizeMb: Long) : State
+        data class Ready(val sizeMb: Long) : State
         data class Failed(val reason: String) : State
     }
 
@@ -33,10 +33,10 @@ class ModelStore(private val context: Context) {
 
     fun state(): State {
         val f = modelFile() ?: return State.Missing
-        return State.Ready(f, f.length() / MB)
+        return State.Ready(f.length() / MB)
     }
 
-    data class ImportResult(val file: File, val originalDeleted: Boolean?)
+    data class ImportResult(val originalDeleted: Boolean?)
 
     /**
      * Copies a model the user picked with the system file picker.
@@ -49,7 +49,9 @@ class ModelStore(private val context: Context) {
             val total = cr.openAssetFileDescriptor(uri, "r")?.use { it.length } ?: -1L
             val tmp = File(dir, "import.tmp")
             tmp.delete() // a leftover from a failed copy must not block the space check
-            if (total > 0) require(dir.usableSpace > total + 200 * MB) { "not enough free space" }
+            if (total > 0) require(dir.usableSpace > total + 200 * MB) { context.getString(ua.tarilka.R.string.ai_no_space) }
+            // Only the exact published file is accepted: it is checked by its SHA-256 while copying.
+            val sha = java.security.MessageDigest.getInstance("SHA-256")
             try {
             cr.openInputStream(uri)!!.use { input ->
                 tmp.outputStream().use { out ->
@@ -59,6 +61,7 @@ class ModelStore(private val context: Context) {
                         val n = input.read(buf)
                         if (n < 0) break
                         out.write(buf, 0, n)
+                        sha.update(buf, 0, n)
                         copied += n
                         if (total > 0) onProgress(copied.toFloat() / total)
                     }
@@ -68,9 +71,10 @@ class ModelStore(private val context: Context) {
                 tmp.delete()
                 throw t
             }
-            if (tmp.length() <= MIN_SIZE) {
+            val hex = sha.digest().joinToString("") { "%02x".format(it) }
+            if (tmp.length() <= MIN_SIZE || hex != E2B_SHA256) {
                 tmp.delete()
-                error("file too small, is it a .litertlm model?")
+                error(context.getString(ua.tarilka.R.string.ai_wrong_file, E2B_FILE))
             }
             dir.listFiles { f -> f.name.endsWith(".litertlm") }?.forEach { it.delete() }
             legacyDir?.listFiles()?.forEach { it.delete() }
@@ -84,7 +88,7 @@ class ModelStore(private val context: Context) {
             } else {
                 null
             }
-            ImportResult(target, deleted)
+            ImportResult(deleted)
         }
 
     fun delete() {
@@ -95,7 +99,11 @@ class ModelStore(private val context: Context) {
     companion object {
         const val E2B_PAGE = "https://huggingface.co/litert-community/gemma-4-E2B-it-litert-lm"
         const val E2B_FILE = "gemma-4-E2B-it.litertlm"
-        const val E2B_DOWNLOAD = "$E2B_PAGE/resolve/main/$E2B_FILE?download=true"
+        /** A fixed revision of the model page, so the download is always the file with [E2B_SHA256]. */
+        private const val E2B_REVISION = "1caa527c1e88b55f046fcd8d2b4265606680663d"
+        const val E2B_DOWNLOAD = "$E2B_PAGE/resolve/$E2B_REVISION/$E2B_FILE?download=true"
+        /** SHA-256 of that file as published (Hugging Face LFS), 2 588 147 712 bytes. */
+        private const val E2B_SHA256 = "181938105e0eefd105961417e8da75903eacda102c4fce9ce90f50b97139a63c"
         private const val MODEL_DIR = "models"
         private const val MB = 1024L * 1024L
         private const val MIN_SIZE = 100L * MB

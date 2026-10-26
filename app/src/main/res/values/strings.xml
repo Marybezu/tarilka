@@ -569,4 +569,27 @@
     <string name="mi_fiber">Fibre helps digestion and fullness: vegetables, fruit, whole grains, beans. The target is 14 g per 1000 kcal, at least 25 g.</string>
     <string name="mi_fluid">Average over days with entries: water, drinks and soups. The target is about 30 ml per kg of body weight.</string>
     <string name="mi_weight">Weight change along the trend line, kg a week. Weight swings with water and the cycle, so the trend over several weeks matters, not single days. More than 1% of body weight a week is too fast.</string>
+    <string name="protect_title">App protection</string>
+    <string name="protect_switch">Encrypt the diary and open with fingerprint or PIN</string>
+    <string name="protect_hint">The diary is encrypted with a key kept in the phone\'s secure hardware. Tarilka opens with your fingerprint or the phone PIN and locks when the screen turns off or after a minute in the background. Reminders still work, without access to your entries.</string>
+    <string name="protect_on_title">Turn on protection?</string>
+    <string name="protect_on_text">First make an encrypted backup: Options → Data → Export backup.\n\nImportant: if you ever remove the phone\'s screen lock completely (PIN and fingerprint), Android destroys the key and the diary can no longer be opened, only restored from a backup. Adding a new fingerprint does not reset the key.\n\nEntries in Health Connect are not covered by this protection.</string>
+    <string name="protect_on_confirm">Turn on</string>
+    <string name="protect_off_title">Turn off protection?</string>
+    <string name="protect_off_text">The diary will be decrypted and Tarilka will open without fingerprint or PIN.</string>
+    <string name="protect_off_confirm">Turn off</string>
+    <string name="protect_confirm_title">Confirm it is you</string>
+    <string name="protect_no_lock">First set a screen lock on the phone (PIN, password or fingerprint).</string>
+    <string name="protect_on_done">Protection is on: the diary is encrypted.</string>
+    <string name="protect_off_done">Protection is off.</string>
+    <string name="protect_failed">That did not work: your data is unchanged.</string>
+    <string name="lock_unlock_title">Open Tarilka</string>
+    <string name="lock_text">Tarilka is protected. Open it with your fingerprint or the phone PIN.</string>
+    <string name="lock_open">Open</string>
+    <string name="lock_wait">Please wait, this takes a few seconds…</string>
+    <string name="lock_failed">Could not open. Please try again.</string>
+    <string name="lock_key_gone">The diary\'s key is gone: this happens when the phone\'s screen lock is removed. The entries can no longer be opened. You can start with an empty diary and restore a backup: Options → Data.</string>
+    <string name="lock_start_fresh">Start with an empty diary</string>
+    <string name="lock_start_fresh_text">The encrypted entries will be deleted for good. You can then restore a backup. Continue?</string>
+    <string name="lock_start_fresh_confirm">Delete and start</string>
 </resources>

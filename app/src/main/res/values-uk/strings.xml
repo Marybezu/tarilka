@@ -569,4 +569,27 @@
     <string name="mi_fiber">Клітковина — для травлення й ситості: овочі, фрукти, цільнозернове, бобові. Ціль — 14 г на кожну 1000 ккал, не менше 25 г.</string>
     <string name="mi_fluid">Середнє за дні з записами: вода, напої й супи. Ціль — близько 30 мл на кг ваги.</string>
     <string name="mi_weight">Зміна ваги за лінією тренду, кг на тиждень. Вага коливається від води й циклу, тому важливий тренд за кілька тижнів, а не окремі дні. Понад 1% ваги тіла на тиждень — забагато.</string>
+    <string name="protect_title">Захист застосунку</string>
+    <string name="protect_switch">Шифрувати щоденник і відкривати відбитком або PIN-кодом</string>
+    <string name="protect_hint">Щоденник зашифровано ключем у захищеному сховищі телефона. Тарілка відкривається відбитком або PIN-кодом телефона й блокується, коли вимикається екран або застосунок понад хвилину у фоні. Нагадування й далі працюють, але без доступу до записів.</string>
+    <string name="protect_on_title">Увімкнути захист?</string>
+    <string name="protect_on_text">Спершу зробіть зашифровану резервну копію: Опції → Дані → Експорт копії.\n\nВажливо: якщо колись повністю прибрати блокування екрана телефона (PIN і відбиток), Android знищить ключ, і відкрити щоденник уже не вдасться — лише відновити з копії. Додавання нового відбитка ключ не скидає.\n\nЗаписи в Health Connect цей захист не охоплює.</string>
+    <string name="protect_on_confirm">Увімкнути</string>
+    <string name="protect_off_title">Вимкнути захист?</string>
+    <string name="protect_off_text">Щоденник буде розшифровано, і Тарілка відкриватиметься без відбитка чи PIN-коду.</string>
+    <string name="protect_off_confirm">Вимкнути</string>
+    <string name="protect_confirm_title">Підтвердіть, що це ви</string>
+    <string name="protect_no_lock">Спершу встановіть блокування екрана телефона (PIN, пароль або відбиток).</string>
+    <string name="protect_on_done">Захист увімкнено: щоденник зашифровано.</string>
+    <string name="protect_off_done">Захист вимкнено.</string>
+    <string name="protect_failed">Не вдалося: дані залишилися як були.</string>
+    <string name="lock_unlock_title">Відкрити Тарілку</string>
+    <string name="lock_text">Тарілка захищена. Відкрийте відбитком або PIN-кодом телефона.</string>
+    <string name="lock_open">Відкрити</string>
+    <string name="lock_wait">Зачекайте, це займе кілька секунд…</string>
+    <string name="lock_failed">Не вдалося відкрити. Спробуйте ще раз.</string>
+    <string name="lock_key_gone">Ключ до щоденника зник: так буває, якщо прибрати блокування екрана телефона. Відкрити записи вже неможливо. Можна почати з порожнього щоденника й відновити резервну копію: Опції → Дані.</string>
+    <string name="lock_start_fresh">Почати з порожнього щоденника</string>
+    <string name="lock_start_fresh_text">Зашифровані записи буде видалено назавжди. Після цього можна відновити резервну копію. Продовжити?</string>
+    <string name="lock_start_fresh_confirm">Видалити й почати</string>
 </resources>

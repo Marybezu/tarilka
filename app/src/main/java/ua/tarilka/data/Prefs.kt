@@ -26,6 +26,24 @@ data class Profile(
 class Prefs(context: Context) {
     private val sp = context.getSharedPreferences("tarilka", Context.MODE_PRIVATE)
 
+    /** App protection: the diary is encrypted and opens only after fingerprint or the phone PIN. */
+    var appLock: Boolean
+        get() = sp.getBoolean("appLock", false)
+        set(v) = sp.edit().putBoolean("appLock", v).commit().let { }
+
+    /**
+     * What reminders need while the diary is locked: which meals were logged today, today's fluids and the
+     * fluid target. Only these, never what was eaten. Updated while the app is open.
+     */
+    fun cacheToday(day: Long, meals: Set<Int>, fluidMl: Double, waterTargetMl: Double) {
+        sp.edit().putLong("cacheDay", day).putString("cacheMeals", meals.joinToString(","))
+            .putFloat("cacheFluid", fluidMl.toFloat()).putFloat("cacheWaterTarget", waterTargetMl.toFloat()).apply()
+    }
+    fun cachedMealLogged(day: Long, meal: Int): Boolean =
+        sp.getLong("cacheDay", -1) == day && sp.getString("cacheMeals", "")!!.split(',').contains(meal.toString())
+    fun cachedFluid(day: Long): Double = if (sp.getLong("cacheDay", -1) == day) sp.getFloat("cacheFluid", 0f).toDouble() else 0.0
+    fun cachedWaterTarget(): Double? = sp.getFloat("cacheWaterTarget", -1f).takeIf { it > 0 }?.toDouble()
+
     var seedVersion: Int
         get() = sp.getInt("seedVersion", 0)
         set(v) = sp.edit().putInt("seedVersion", v).apply()

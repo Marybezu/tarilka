@@ -7,7 +7,7 @@ import androidx.room.RoomDatabase
 
 @Database(
     entities = [Food::class, DiaryEntry::class, WeightEntry::class, FluidEntry::class, DayNote::class, SleepEntry::class, BowelEntry::class, WorkoutEntry::class, PeriodEntry::class, PeriodDay::class],
-    version = 6,
+    version = AppDatabase.VERSION,
     exportSchema = true,
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -22,9 +22,19 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun cycle(): CycleDao
 
     companion object {
-        fun create(context: Context): AppDatabase =
-            Room.databaseBuilder(context, AppDatabase::class.java, "tarilka.db")
+        const val NAME = "tarilka.db"
+        const val VERSION = 6
+
+        /** Plain when [rawKey] is null; otherwise encrypted with SQLCipher (app protection). */
+        fun create(context: Context, rawKey: ByteArray? = null): AppDatabase =
+            Room.databaseBuilder(context, AppDatabase::class.java, NAME)
                 .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6)
+                .apply {
+                    if (rawKey != null) {
+                        System.loadLibrary("sqlcipher")
+                        openHelperFactory(net.zetetic.database.sqlcipher.SupportOpenHelperFactory(rawKey))
+                    }
+                }
                 .build()
 
         /** Time of weighing. Existing data is kept. */

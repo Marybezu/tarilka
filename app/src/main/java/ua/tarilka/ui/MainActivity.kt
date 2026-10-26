@@ -34,14 +34,68 @@ import ua.tarilka.data.Food
 import ua.tarilka.ui.theme.TarilkaTheme
 
 class MainActivity : AppCompatActivity() {
+    private val app get() = application as ua.tarilka.TarilkaApp
+    private var stoppedAt = 0L
+    /** The fingerprint / PIN prompt opens by itself once per lock, not again after Cancel. */
+    private var prompted = false
+
+    /** App protection: the diary locks when the screen turns off. */
+    private val screenOff = object : android.content.BroadcastReceiver() {
+        override fun onReceive(context: android.content.Context, intent: android.content.Intent) {
+            if (intent.action == android.content.Intent.ACTION_SCREEN_OFF) lockNow()
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
-        val prefs = (application as ua.tarilka.TarilkaApp).prefs
+        val prefs = app.prefs
+        Protection.init(app)
+        Protection.applyRecents(this)
+        androidx.core.content.ContextCompat.registerReceiver(
+            this, screenOff, android.content.IntentFilter(android.content.Intent.ACTION_SCREEN_OFF),
+            androidx.core.content.ContextCompat.RECEIVER_NOT_EXPORTED,
+        )
         setContent {
             val dynamic by prefs.dynamicColor.collectAsState()
-            TarilkaTheme(dynamicColor = dynamic) { AppRoot() }
+            val db by app.dbState.collectAsState()
+            TarilkaTheme(dynamicColor = dynamic) {
+                if (db == null) LockScreen(onUnlock = { Protection.unlock(this) }, onStartFresh = { Protection.startFresh(this) })
+                else AppRoot()
+            }
         }
+    }
+
+    override fun onStart() {
+        super.onStart()
+        // Away for more than a minute (not just a photo or a file picker): lock.
+        if (stoppedAt > 0 && System.currentTimeMillis() - stoppedAt > 60_000) lockNow()
+        stoppedAt = 0
+    }
+
+    override fun onResume() {
+        super.onResume()
+        if (app.prefs.appLock && app.dbState.value == null && !prompted && !Protection.invalid.value && !Protection.busy.value) {
+            prompted = true
+            Protection.unlock(this)
+        }
+    }
+
+    override fun onStop() {
+        super.onStop()
+        if (!isChangingConfigurations) stoppedAt = System.currentTimeMillis()
+    }
+
+    override fun onDestroy() {
+        runCatching { unregisterReceiver(screenOff) }
+        super.onDestroy()
+    }
+
+    private fun lockNow() {
+        if (!app.prefs.appLock || app.dbState.value == null || Protection.busy.value) return
+        app.closeDb()
+        viewModelStore.clear()
+        prompted = false
     }
 }
 

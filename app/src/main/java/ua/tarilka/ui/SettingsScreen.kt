@@ -87,6 +87,7 @@ fun SettingsScreen(vm: MainViewModel, ai: AiViewModel, padding: PaddingValues) {
         item { ModelSection(ai) }
         item { MissingSection(vm) }
         item { DataSection(vm) }
+        item { ProtectionSection() }
         item { AppearanceSection(vm) }
         item { LanguageSection() }
         item {
@@ -657,4 +658,38 @@ fun limitText(l: ua.tarilka.data.Limit): Int = when (l) {
     ua.tarilka.data.Limit.PREGNANT -> R.string.limit_pregnant
     ua.tarilka.data.Limit.TEEN -> R.string.limit_teen
     ua.tarilka.data.Limit.UNDERWEIGHT -> R.string.limit_underweight
+}
+
+/** Optional app protection: encrypted diary, opened with fingerprint or the phone PIN. */
+@Composable
+private fun ProtectionSection() {
+    val activity = androidx.compose.ui.platform.LocalContext.current as androidx.fragment.app.FragmentActivity
+    val on by Protection.enabled.collectAsState()
+    val msg by Protection.message.collectAsState()
+    var confirm by remember { mutableStateOf(false) }
+    Section(title = stringResource(R.string.protect_title)) {
+        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth().clickable { confirm = true }) {
+                Text(stringResource(R.string.protect_switch), style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
+                androidx.compose.material3.Switch(checked = on, onCheckedChange = { confirm = true })
+            }
+            Text(stringResource(R.string.protect_hint), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            msg?.let { Text(stringResource(it), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.tertiary) }
+        }
+    }
+    if (confirm) {
+        androidx.compose.material3.AlertDialog(
+            onDismissRequest = { confirm = false },
+            title = { Text(stringResource(if (on) R.string.protect_off_title else R.string.protect_on_title)) },
+            text = { Text(stringResource(if (on) R.string.protect_off_text else R.string.protect_on_text)) },
+            confirmButton = {
+                TextButton(onClick = {
+                    confirm = false
+                    Protection.message.value = null
+                    if (on) Protection.disable(activity) else Protection.enable(activity)
+                }) { Text(stringResource(if (on) R.string.protect_off_confirm else R.string.protect_on_confirm)) }
+            },
+            dismissButton = { TextButton(onClick = { confirm = false }) { Text(stringResource(R.string.cancel)) } },
+        )
+    }
 }

@@ -80,6 +80,11 @@ dependencies {
     implementation("androidx.room:room-ktx:$room")
     ksp("androidx.room:room-compiler:$room")
 
+    // Optional app protection: encrypted diary (SQLCipher), opened with fingerprint or the phone PIN
+    implementation("net.zetetic:sqlcipher-android:4.19.1@aar")
+    implementation("androidx.sqlite:sqlite:2.5.2")
+    implementation("androidx.biometric:biometric:1.1.0")
+
     // Optional sync with Health Connect (steps in; meals, drinks, weight out)
     implementation("androidx.health.connect:connect-client:1.1.0-beta02")
 

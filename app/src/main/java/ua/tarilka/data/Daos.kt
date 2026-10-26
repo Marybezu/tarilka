@@ -328,7 +328,8 @@ fun FluidDao.drinksByDay(from: Long, to: Long): Flow<List<DayFluid>> =
 fun FluidDao.drinksOn(day: Long): Flow<Double> = drinksByDay(day, day).map { list -> list.sumOf { it.ml } }
 
 object FluidRules {
-    val ALCOHOL = listOf("dr06", "dr07", "dr08", "dr09", "dr23", "dr24", "dr25", "dr31", "dr33", "dr34")
+    /** The drinks with alcohol (the same list as for the alcohol measure). */
+    val ALCOHOL = Habits.ALCOHOL_G.keys.toList()
     val MILK_DRINKS = listOf(
         "d01", "d02", "d03", "d04", "d05", "d06", "d21", "d41", "d51", "d52", "d53", "d54", "d58", "d61",
         "d63", "l15", "n20",

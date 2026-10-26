@@ -325,15 +325,15 @@ d02;dairy;Молоко 2,5%;Milk 2.5%;54;2.9;2.5;4.7;0;0;250;склянка;glas
 d03;dairy;Молоко 3,2%;Milk 3.2%;61;3.15;3.25;4.8;0;0;250;склянка;glass;USDA;Milk, whole, 3.25% milkfat, with added vitamin D
 d04;dairy;Кефір 1%;Kefir 1%;43;3.79;1.02;4.77;0;0;250;склянка;glass;USDA;Kefir, lowfat, plain, LIFEWAY
 d05;dairy;Кефір 2,5%;Kefir 2.5%;53;2.9;2.5;4;0;0;250;склянка;glass;LABEL;
-d06;dairy;Ряжанка 4%;Ryazhenka 4%;67;2.8;4;4.2;0;0;250;склянка;glass;LABEL;
+d06;dairy;Ряжанка 4%;Riazhanka 4%;67;2.8;4;4.2;0;0;250;склянка;glass;LABEL;
 d07;dairy;Йогурт натуральний;Plain yogurt, whole milk;61;3.47;3.25;4.66;0;0;150;порція;serving;USDA;Yogurt, plain, whole milk
 d08;dairy;Йогурт грецький 2%;Greek yogurt 2%;73;9.95;1.92;3.94;0;0;150;порція;serving;USDA;Yogurt, Greek, plain, lowfat
 d09;dairy;Йогурт фруктовий;Fruit yogurt;85;3;2;14;0;0;150;порція;serving;LABEL;
 d10;dairy;Сметана 15%;Sour cream 15%;158;2.6;15;3;0;0;20;ложка;tbsp;LABEL;
 d11;dairy;Сметана 20%;Sour cream 20%;204;2.5;20;3.4;0;0;20;ложка;tbsp;LABEL;
-d12;dairy;Сир кисломолочний 5%;Cottage cheese (tvorog) 5%;121;17;5;1.8;0;0;150;порція;serving;LABEL;
-d13;dairy;Сир кисломолочний 9%;Cottage cheese (tvorog) 9%;159;16.7;9;2;0;0;150;порція;serving;LABEL;
-d14;dairy;Сир кисломолочний знежирений;Cottage cheese (tvorog), fat-free;84;18;0.6;1.8;0;0;150;порція;serving;LABEL;
+d12;dairy;Сир кисломолочний 5%;Cottage cheese (quark) 5%;121;17;5;1.8;0;0;150;порція;serving;LABEL;
+d13;dairy;Сир кисломолочний 9%;Cottage cheese (quark) 9%;159;16.7;9;2;0;0;150;порція;serving;LABEL;
+d14;dairy;Сир кисломолочний знежирений;Cottage cheese (quark), fat-free;84;18;0.6;1.8;0;0;150;порція;serving;LABEL;
 d15;dairy;Сир твердий (гауда);Hard cheese (gouda);356;24.94;27.44;2.22;0;0;20;скибка;slice;USDA;Cheese, gouda
 d16;dairy;Моцарела;Mozzarella;299;22.17;22.14;2.4;0;0;30;порція;serving;USDA;Cheese, mozzarella, whole milk
 d17;dairy;Бринза / фета;Feta / brynza;265;14.21;21.49;3.88;0;0;30;порція;serving;USDA;Cheese, feta
@@ -366,8 +366,8 @@ d43;dairy;Масло вершкове солоне;Butter, salted;717;0.85;81.11
 d44;dairy;Сметана густа (~20%);Sour cream, thick (~20%);198;2.44;19.35;4.63;0;0;20;ложка;tbsp;USDA;Cream, sour, cultured
 d45;dairy;Сир швейцарський;Swiss cheese;393;26.96;30.99;1.44;0;0;20;скибка;slice;USDA;Cheese, swiss
 d46;dairy;Сир із блакитною цвіллю;Blue cheese;353;21.4;28.74;2.34;0;0;20;порція;serving;USDA;Cheese, blue
-d47;dairy;Сир кисломолочний 2%;Cottage cheese (tvorog) 2%;103;18;2;3.3;0;0;150;порція;serving;LABEL;
-d48;dairy;Сир кисломолочний 18%;Cottage cheese (tvorog) 18%;232;14;18;2.8;0;0;150;порція;serving;LABEL;
+d47;dairy;Сир кисломолочний 2%;Cottage cheese (quark) 2%;103;18;2;3.3;0;0;150;порція;serving;LABEL;
+d48;dairy;Сир кисломолочний 18%;Cottage cheese (quark) 18%;232;14;18;2.8;0;0;150;порція;serving;LABEL;
 d49;dairy;Сметана 10%;Sour cream 10%;115;3;10;2.9;0;0;20;ложка;tbsp;LABEL;
 d50;dairy;Сметана 25%;Sour cream 25%;248;2.6;25;2.5;0;0;20;ложка;tbsp;LABEL;
 d51;dairy;Кефір 3,2%;Kefir 3.2%;59;2.9;3.2;4;0;0;250;склянка;glass;LABEL;
@@ -380,7 +380,7 @@ d57;dairy;Сир плавлений (вершковий);Processed cheese spread
 d58;dairy;Айран;Ayran;24;1.1;1.5;1.4;0;0;250;склянка;glass;LABEL;
 d59;dairy;Масло вершкове 72,5%;Butter 72.5%;661;0.8;72.5;1.3;0;0;10;шматочок;pat;LABEL;
 d60;dairy;Морозиво пломбір 12%;Plombir ice cream 12%;227;3.2;12;26;0;0;80;ріжок;cone;LABEL;
-d61;dairy;Ряжанка 2,5%;Ryazhenka 2.5%;54;2.9;2.5;4.2;0;0;250;склянка;glass;LABEL;
+d61;dairy;Ряжанка 2,5%;Riazhanka 2.5%;54;2.9;2.5;4.2;0;0;250;склянка;glass;LABEL;
 d62;dairy;Халумі (сир для гриля);Halloumi cheese, grilled;321;21;25;2.2;0;0;80;порція;serving;LABEL;
 d63;dairy;Сироватка молочна;Whey (from cottage cheese), fluid;24;0.76;0.09;5.12;0;0;250;склянка;glass;USDA;Whey, acid, fluid
 d64;dairy;Протеїн сироватковий (порошок);Whey protein powder;352;78.13;1.56;6.25;3.1;0;30;мірна ложка;scoop;USDA;Beverages, Protein powder whey based
@@ -486,7 +486,7 @@ c35;sweets;Шоколадний батончик з нугою;Chocolate nougat 
 c36;sweets;Патока;Molasses;290;0;0.1;74.73;0;0;20;ложка;tbsp;USDA;Molasses
 c37;sweets;Вафлі з начинкою;Wafers with filling;528;4.5;30;60;1;0;30;шт;piece;LABEL;
 c38;sweets;Пастила;Pastila;322;0.5;0;80;0.5;0;30;шт;piece;LABEL;
-c39;sweets;Козинаки соняшникові;Sunflower kozinaki;574;15;42;34;5;0;40;шт;piece;LABEL;
+c39;sweets;Козинаки соняшникові;Sunflower kozynaky;574;15;42;34;5;0;40;шт;piece;LABEL;
 c40;sweets;Шоколадна паста з горіхами;Chocolate hazelnut spread;533;6.3;30.9;57.5;3;0;15;ложка;tbsp;LABEL;
 c41;sweets;Цукерки шоколадні з начинкою;Filled chocolates;518;5;30;57;2;0;12;шт;piece;LABEL;
 c42;sweets;Печиво «Марія» (галетне);Maria biscuits;405;10;9;71;2.5;0;7;шт;piece;LABEL;
@@ -504,7 +504,7 @@ u55;sweets;Шарлотка;Sharlotka (apple sponge cake);207;4.51;2.88;41.62;1.
 u90;sweets;Сочник із сиром;Sochnyk (shortcrust pastry with cottage cheese);346;11.19;13.91;43.33;0.97;0;80;шт;piece;RECIPE;
 u91;sweets;Тістечко «Наполеон»;Napoleon pastry;322;4.87;19.66;31.05;0.64;0;100;шт;piece;RECIPE;
 u92;sweets;Торт «Наполеон»;Napoleon cake;322;4.87;19.66;31.05;0.64;0;120;шматок;slice;RECIPE;
-u93;sweets;Тістечко «Картопля»;Kartoshka (chocolate crumb cake);405;6.23;23.21;45.97;2.11;0;50;шт;piece;RECIPE;
+u93;sweets;Тістечко «Картопля»;Kartoplia (chocolate crumb cake);405;6.23;23.21;45.97;2.11;0;50;шт;piece;RECIPE;
 u94;sweets;Трубочка з кремом;Cream horn (puff pastry tube);402;5.63;16.94;56.97;0.89;0;40;шт;piece;RECIPE;
 u95;sweets;Кошик із кремом;Shortcrust tartlet with buttercream;479;5.62;28.01;50.93;1.02;0;50;шт;piece;RECIPE;
 u96;sweets;Макарон (мигдальне тістечко);French macaron;455;7.21;22.27;60.28;3.05;0;15;шт;piece;RECIPE;
@@ -548,7 +548,7 @@ dr32;drinks;Пиво безалкогольне;Non-alcoholic beer;22;0.3;0;5;0;
 dr33;drinks;Сидр;Cider;50;0;0;6.2;0;3.5;500;пляшка;bottle;LABEL;
 dr34;drinks;Вино ігристе напівсолодке;Sparkling wine, semi-sweet;81;0.1;0;4.5;0;9;150;келих;glass;LABEL;
 dr35;drinks;Кава «3 в 1» (суха суміш);3-in-1 instant coffee mix, dry;420;2;13;72;3;0;15;стік;sachet;LABEL;
-u63;drinks;Кисіль журавлинний;Cranberry kissel;44;0.06;0.02;11.04;0.43;0;250;склянка;glass;RECIPE;
+u63;drinks;Кисіль журавлинний;Cranberry kysil;44;0.06;0.02;11.04;0.43;0;250;склянка;glass;RECIPE;
 u64;drinks;Морс журавлинний;Cranberry mors;31;0.06;0.02;8.08;0.47;0;250;склянка;glass;RECIPE;
 u65;drinks;Кава з молоком (латте);Caffe latte;44;2.26;1.96;4;0;0;260;чашка;cup;RECIPE;
 u66;drinks;Капучино;Cappuccino;39;1.97;1.73;3.69;0;0;180;чашка;cup;RECIPE;
@@ -580,8 +580,8 @@ u01;dishes;Борщ з мʼясом;Borscht with meat;51;2.37;2.94;3.97;0.81;0;3
 u02;dishes;Борщ пісний;Borscht, vegetarian;28;0.57;1.16;4.1;0.85;0;350;тарілка;plate;RECIPE;
 u03;dishes;Суп курячий з локшиною;Chicken noodle soup;35;3.14;0.59;4.03;0.35;0;350;тарілка;plate;RECIPE;
 u04;dishes;Суп гороховий;Pea soup;74;3.55;3.34;7.67;2.21;0;350;тарілка;plate;RECIPE;
-u05;dishes;Солянка;Solyanka;83;4.46;6.52;1.61;0.29;0;350;тарілка;plate;RECIPE;
-u06;dishes;Розсольник;Rassolnik (pickle soup);37;2.29;1.35;4.08;0.74;0;350;тарілка;plate;RECIPE;
+u05;dishes;Солянка;Solianka;83;4.46;6.52;1.61;0.29;0;350;тарілка;plate;RECIPE;
+u06;dishes;Розсольник;Rozsolnyk (pickle soup);37;2.29;1.35;4.08;0.74;0;350;тарілка;plate;RECIPE;
 u07;dishes;Окрошка на квасі;Okroshka with kvass;64;2.38;3.18;5.92;0.35;0.54;350;тарілка;plate;RECIPE;
 u08;dishes;Вареники з картоплею;Varenyky (dumplings) with potato;179;3.85;5.43;28.38;1.56;0;250;порція;serving;RECIPE;
 u09;dishes;Вареники з сиром;Varenyky (dumplings) with cottage cheese;205;10.64;6.36;25.39;0.74;0;250;порція;serving;RECIPE;

@@ -5,7 +5,6 @@
     <string name="tab_today">Today</string>
     <string name="tab_weight">Weight</string>
     <string name="tab_foods">Foods</string>
-    <string name="tab_settings">Settings</string>
 
     <string name="meal_breakfast">Breakfast</string>
     <string name="meal_lunch">Lunch</string>
@@ -54,7 +53,7 @@
 
     <string name="tip_empty">Nothing logged yet. Add a meal by hand or take a photo of your plate.</string>
     <string name="tip_remaining">About %1$d kcal left for today.</string>
-    <string name="tip_over">Over today\'s target by %1$d kcal. One day doesn\'t matter much, look at the weekly average.</string>
+    <string name="tip_over">Over today\'s target by %1$d kcal. One day doesn\'t matter much; look at the weekly average.</string>
     <string name="tip_under">Only %1$d kcal logged. If that is real, it is too little to feel well; check whether something is missing.</string>
     <string name="tip_on_target">Calories are right on target.</string>
     <string name="tip_protein_low">Protein is low: %1$d of %2$d g. Good sources: cottage cheese, eggs, poultry, fish, beans, lentils.</string>
@@ -140,7 +139,7 @@
     <string name="ai_error">Could not analyse: %1$s</string>
     <string name="try_again">Try again</string>
     <string name="no_food_found">No food found on the photo. Try another angle or add the food by hand.</string>
-    <string name="review_hint">Check the weights: the AI estimates portions from the photo and can be off. Values come from the database when a food is recognized.</string>
+    <string name="review_hint">Check the weights: the AI estimates portions from the photo and can be off. Values come from the database when a food is recognised.</string>
     <string name="ai_estimate">Not in the database — tap Replace</string>
     <string name="from_db">From database · %1$s</string>
     <string name="low_confidence">unsure</string>
@@ -241,9 +240,9 @@
     <string name="summaries_few">Not enough entries yet: at least 3 days are needed.</string>
     <string name="ai_summary">AI summary</string>
     <string name="habit_veg">🥦 Vegetables and fruit: %1$s of 400 g</string>
-    <string name="habit_veg_info">Average vegetables and fruit a day (potatoes not counted). The WHO recommends at least 400 g.</string>
+    <string name="habit_veg_info">Average vegetables and fruit a day (potatoes and dried fruit not counted). The WHO recommends at least 400 g.</string>
     <string name="habit_sweets">🍬 Sweets: %1$s%% of calories</string>
-    <string name="habit_sweets_info">Calories from sweets, pastries and sugary drinks (juice included), with the fat and flour in them. The WHO advises that added sugar gives under 10% of calories, ideally under 5%; the sugar itself is less than these calories, so this is a rough guide.</string>
+    <string name="habit_sweets_info">Calories from sweets, pastries and sugary drinks (juice included), with the fat and flour in them. The WHO advises that free sugars (added sugar, honey, syrups, juice) give under 10% of calories, ideally under 5%; the sugar itself is less than these calories, so this is a rough guide.</string>
     <string name="habit_late">🌙 After 22:00: %1$s%% of calories</string>
     <string name="habit_late_none">🌙 Nothing after 22:00</string>
     <string name="habit_late_info">Share of calories eaten after 22:00, by the time of the meal; you can set or correct it by tapping an entry.</string>
@@ -270,12 +269,12 @@
     <string name="reason_hunger">Hunger</string>
     <string name="reason_stress">Stress</string>
     <string name="reason_boredom">Boredom</string>
-    <string name="reason_company">Company</string>
+    <string name="reason_company">For company</string>
     <string name="reason_habit">Habit</string>
     <string name="hunger_scale">Hunger before eating: 1 none, 5 very strong</string>
     <string name="hard_to_stop">It was hard to stop</string>
     <string name="habit_sleep">😴 Sleep: %1$s h on average</string>
-    <string name="habit_sleep_info">Average sleep. Adults are advised 7–9 hours. With less sleep, appetite and sweet cravings go up. If you regularly sleep over 10 hours and still feel tired in the day, that is worth discussing with a doctor too.</string>
+    <string name="habit_sleep_info">Average sleep. Adults are advised 7–9 hours, under 18 8–10. With less sleep, appetite and sweet cravings go up. If you regularly sleep over 10 hours and still feel tired in the day, that is worth discussing with a doctor too.</string>
     <string name="habit_reasons">💭 Not from hunger: %1$d / %2$d meals</string>
     <string name="habit_reasons_info">How often you ate for a reason other than hunger (of the times you answered Why I eat). Eating for company or pleasure now and then is normal.</string>
     <string name="ai_download">Download model</string>
@@ -397,7 +396,7 @@
     <string name="workouts_hint">A row on Today: what, how many minutes and how hard. The badge compares with the WHO recommendations.</string>
     <string name="workout_kcal_note">Calories are a rough estimate for information; they are not added to the day\'s food target, as fitness estimates usually run high.</string>
     <string name="habit_activity">🏃 Activity: %1$s of 150 min/wk</string>
-    <string name="habit_activity_info">Workout minutes a week: moderate count as they are, vigorous double, light not counted. The WHO recommends 150–300 minutes of moderate activity a week and strength exercise on at least 2 days.</string>
+    <string name="habit_activity_info">Workout minutes a week: moderate count as they are, vigorous double, light not counted. The WHO recommends adults 150–300 minutes of moderate activity a week and strength exercise on at least 2 days; under 18, at least 60 minutes of movement every day.</string>
     <string name="activity_noticed">Strength training: %1$s days/week.</string>
     <string name="activity_tips">What helps:\n• start with 10 minutes: they count too;\n• brisk walking is the easiest moderate activity;\n• strength twice a week: squats, wall push-ups, bands;\n• plan set days and times, like an appointment.</string>
     <string name="habit_bowel">🌿 Bowel: %1$s</string>
@@ -564,7 +563,7 @@
     <string name="mv_weight">%1$s kg a week</string>
     <string name="mi_kcal">Average over days with entries. Green is within 10% of the target, amber within 25%. One day decides little; the average matters.</string>
     <string name="mi_protein">Protein helps keep muscle and stay full, especially when losing weight. Good sources: cottage cheese, eggs, poultry, fish, beans.</string>
-    <string name="mi_fiber">Fibre helps digestion and fullness: vegetables, fruit, whole grains, beans. The target is at least 25 g a day (EFSA, WHO); with more food, 14 g per 1000 kcal.</string>
+    <string name="mi_fiber">Fibre helps digestion and fullness: vegetables, fruit, whole grains, beans. The target is at least 25 g a day (EFSA, WHO); with more food the app uses 14 g per 1000 kcal (US guidelines).</string>
     <string name="mi_fluid">Average over days with entries: water, drinks and soups. The EFSA guide is about 1.6 L of drinks a day for women and 2 L for men; more in heat, with activity, in pregnancy and while breastfeeding.</string>
     <string name="mi_weight">Weight change along the trend line, kg a week. Weight swings with water and the cycle, so the trend over several weeks matters, not single days. More than 1% of body weight a week is too fast.</string>
     <string name="protect_title">App protection</string>
@@ -622,7 +621,7 @@
     <string name="pdf_hunger">hunger %1$d/5</string>
     <string name="pdf_hard_to_stop">hard to stop</string>
     <string name="pdf_times_n">times: %1$d</string>
-    <string name="pdf_period_day">Period</string>
+    <string name="pdf_period_day">Menstruation</string>
     <string name="pdf_flow">flow: %1$s</string>
     <string name="pdf_pain">pain: %1$s</string>
     <string name="pdf_days_n">%1$d days</string>
@@ -691,14 +690,14 @@
     <string name="advice_good">What is already good</string>
     <string name="advice_processed">Sausages, frankfurters, ham: %1$s days a week (%2$s). Try chicken, fish, eggs or beans on 2 of those days: processed meat raises the risk of bowel cancer.</string>
     <string name="advice_red">Red meat: about %1$s g a week (%2$s). Up to 350–500 g cooked is advised; some days can be fish, poultry or beans.</string>
-    <string name="advice_sugar">Sweets and sugary drinks give %1$s%% of calories (%2$s). The WHO advises added sugar under 10%%, ideally 5%%; sugar is only part of these calories, so this is a rough guide. A step for the week: half the sugar in tea, fruit instead of one dessert, water instead of a sweet drink.</string>
-    <string name="advice_sfa">Foods rich in saturated fat give %1$s%% of calories (%2$s). The WHO advises saturated fat under 10%% of calories. Options: oil instead of butter, yoghurt instead of mayonnaise, bake instead of fry.</string>
+    <string name="advice_sugar">Sweets and sugary drinks give %1$s%% of calories (%2$s). The WHO advises that free sugars (added sugar, honey, syrups, juice) give under 10%%, ideally 5%%; sugar is only part of these calories, so this is a rough guide. A step for the week: half the sugar in tea, fruit instead of one dessert, water instead of a sweet drink.</string>
+    <string name="advice_sfa">Foods rich in saturated fat give %1$s%% of calories (%2$s). The WHO advises saturated fat under 10%% of calories. Options: oil instead of butter or lard, yoghurt or 10–15%% sour cream instead of cream and full-fat sour cream, bake instead of fry.</string>
     <string name="advice_fastfood">Fast food: %1$s days a week (%2$s). A home-made version of the same usually has less salt and fat.</string>
     <string name="advice_refined">Only %1$s%% of bread and grains is whole grain (mostly %2$s). On some days try buckwheat, oats or whole-grain bread.</string>
     <string name="advice_veg">Vegetables and fruit: %1$s g a day of 400. Add one more portion to what you usually have.</string>
     <string name="advice_veg_yours">From what you already eat: %1$s.</string>
     <string name="advice_legumes">Hardly any beans or lentils. Beans, lentils, chickpeas or peas at least 2–3 times a week give protein and fibre.</string>
-    <string name="advice_fish">Hardly any fish. 1–2 times a week or more is advised, once oily: herring, mackerel, salmon.</string>
+    <string name="advice_fish">Hardly any fish. Twice a week is advised, once oily: herring, mackerel, salmon.</string>
     <string name="advice_nuts">A handful of nuts or seeds (25–30 g) several times a week gives healthy fats, if there is no allergy.</string>
     <string name="advice_good_veg">Vegetables and fruit: %1$s g a day, over 400 g.</string>
     <string name="advice_good_legumes">Beans or lentils: %1$s times a week.</string>
@@ -714,8 +713,8 @@
     <string name="src_legumes">EAT-Lancet, NHS</string>
     <string name="src_fish">EFSA, NHS</string>
     <string name="src_nuts">EAT-Lancet</string>
-    <string name="waist_not_rated">In pregnancy and under 18 we do not rate waist size: the adult thresholds do not apply, and the body is changing, which is normal.</string>
-    <string name="bmi_pregnant">BMI %1$s. In pregnancy we do not rate BMI: the body is changing, and that is normal.</string>
+    <string name="waist_not_rated">In pregnancy, while breastfeeding and under 18 we do not rate waist size: the adult thresholds do not apply, and the body is changing, which is normal.</string>
+    <string name="bmi_pregnant">BMI %1$s. In pregnancy and while breastfeeding we do not rate BMI: the body is changing, and that is normal.</string>
     <string name="audit_pregnant">In pregnancy and while breastfeeding, the safest choice is no alcohol at all. If stopping is hard, tell your doctor: it is common, and help is available.</string>
     <string name="week_under">This week you ate clearly less on average than your body uses even at rest. Long-term undereating takes energy, muscle and sleep, and often leads to overeating. If this comes from worries about weight or food, talk to a doctor or a psychologist: help works.</string>
     <string name="targets_text_teen">Protein %1$s g · fibre %2$s g a day. Under 18 we do not show a calorie target: needs differ a lot while the body is growing. Go by hunger and fullness, regular meals and a variety of foods.</string>

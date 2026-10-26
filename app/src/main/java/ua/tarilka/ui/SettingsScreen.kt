@@ -60,7 +60,7 @@ fun SettingsScreen(vm: MainViewModel, ai: AiViewModel, padding: PaddingValues) {
         ),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        item { Text(stringResource(R.string.tab_settings), style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(vertical = 8.dp)) }
+        item { Text(stringResource(R.string.tab_options), style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(vertical = 8.dp)) }
         item { ProfileSection(profile, onSave = vm::saveProfile) }
         item {
             Section(title = stringResource(R.string.your_targets)) {

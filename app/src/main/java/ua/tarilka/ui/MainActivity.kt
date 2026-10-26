@@ -65,7 +65,7 @@ class MainActivity : AppCompatActivity() {
         super.onStart()
         // Locked while away: the screens' view models hold the closed database. Drop them before they resume
         // and query it; the lock screen is drawn next.
-        if (app.dbState.value == null) viewModelStore.clear()
+        if (app.dbState.value == null) viewModelStore.clear() else app.backupIfDue()
     }
 
     override fun onResume() {

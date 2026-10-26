@@ -206,7 +206,7 @@ Do not list anything you cannot see. Do not miss meat, fish, cutlets, bread, che
 Estimate the edible weight of each in grams. For scale: {PLATE}, a slice of bread or toast
 weighs about 35 g, one egg about 50 g, half an avocado about 70 g, a tablespoon of sauce about 15 g.
 Use short common names, for example "boiled egg" or "rye bread".
-Answer with ONLY JSON: {"items":[{"name":"boiled egg","grams":100,"confidence":"high"}]}
+Answer with ONLY JSON: {"items":[{"name":"boiled egg","grams":50,"confidence":"high"}]}
 confidence is "high", "medium" or "low". If there is no food, answer {"items":[]}."""
 
         private const val SYSTEM_ADVICE_UK =

@@ -102,7 +102,7 @@ object Advice {
         else if (legumes >= 2) good += Item(Rule.LEGUMES, legumes, topOf(FoodGroup.LEGUMES), good = true)
         val fish = (daysWith(FoodGroup.FISH) + daysWith(FoodGroup.OILY_FISH)) * perWeek
         if (fish < 1) more += 1.2 to Item(Rule.FISH, fish, emptyList())
-        else if (fish >= 1 && daysWith(FoodGroup.OILY_FISH) > 0) good += Item(Rule.FISH, fish, topOf(FoodGroup.OILY_FISH, FoodGroup.FISH), good = true)
+        else if (daysWith(FoodGroup.OILY_FISH) > 0) good += Item(Rule.FISH, fish, topOf(FoodGroup.OILY_FISH, FoodGroup.FISH), good = true)
         val nuts = daysWith(FoodGroup.NUTS) * perWeek
         if (nuts < 1) more += 0.5 to Item(Rule.NUTS, nuts, emptyList())
 

@@ -66,16 +66,16 @@ data class Habits(
     /** A late dinner is normal; a quarter of the day's food late is the night eating syndrome criterion. */
     val lateLevel get() = level(latePct < 15, latePct < 25)
     /**
-     * There is no safe amount (WHO 2023), so any alcohol is amber. Orange: more than 7 drinks a week,
-     * alcohol on 4 or more days a week, or any day with 6 or more drinks.
-     */
-    /**
      * Days a weekly rate is based on: the logged days (at least a week, at most the period).
      * A year with 30 logged days must not dilute 14 drinks a week into 1.
      */
     val span: Int get() = maxOf(days, 7).coerceAtMost(periodDays)
     fun perWeek(count: Int) = count * 7.0 / span
 
+    /**
+     * There is no safe amount (WHO 2023), so any alcohol is amber. Orange: more than 7 drinks a week,
+     * alcohol on 4 or more days a week, or any day with 6 or more drinks.
+     */
     val alcoholLevel get() = when {
         alcoholPerWeek == 0.0 -> Level.GOOD
         alcoholPerWeek > 7 || perWeek(alcoholDays) >= 4 || heavyDrinkDays > 0 -> Level.WATCH

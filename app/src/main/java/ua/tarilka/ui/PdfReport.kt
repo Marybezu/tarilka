@@ -139,7 +139,9 @@ object PdfReport {
             }
             if (ReportPart.WEIGHT in parts) {
                 val pts = data.days.mapNotNull { d -> d.weight?.let { d.date.toEpochDay().toDouble() to it.kg } }
-                pdf.lineChart(c.getString(R.string.m_weight) + ", " + c.getString(R.string.kg), pts, data.from.format(dateFmt) to data.to.format(dateFmt))
+                // The axis spans the first to the last weighing, so it is labelled with those dates.
+                val wd = data.days.filter { it.weight != null }
+                if (wd.size >= 2) pdf.lineChart(c.getString(R.string.m_weight) + ", " + c.getString(R.string.kg), pts, wd.first().date.format(dateFmt) to wd.last().date.format(dateFmt))
             }
             pdf.space(6f)
         }
@@ -296,7 +298,7 @@ object PdfReport {
                         val pr = d.entries.sumOf { it.protein }
                         val fi = d.entries.sumOf { it.fiber }
                         pdf.space(2f)
-                        if (data.targets.showKcal) pdf.progress(dayKcal, data.targets.kcal, c.getString(R.string.pdf_of_kcal, dayKcal.f0(), data.targets.kcal.f0()))
+                        if (data.targets.showKcal) pdf.progress(dayKcal, data.targets.kcal, c.getString(R.string.pdf_of_kcal, dayKcal.f0(), data.targets.kcal.f0()), amberOver = data.targets.limit == null)
                         pdf.text(c.getString(R.string.pdf_day_rest, pr.f0(), data.targets.protein.f0(), fi.f0(), data.targets.fiber.f0()), pdf.small)
                     }
                     val lines = buildList {
@@ -427,12 +429,12 @@ private class Pdf(c: Context) {
     }
 
     /** A thin bar: how much of the target, never red (over the target is amber). */
-    fun progress(value: Double, target: Double, label: String) {
+    fun progress(value: Double, target: Double, label: String, amberOver: Boolean = true) {
         ensure(30f)
         val frac = if (target > 0) (value / target).coerceIn(0.0, 1.3) else 0.0
         val trackW = width * 0.5f
         canvas.drawRoundRect(RectF(m, y + 4f, m + trackW, y + 12f), 4f, 4f, soft)
-        val col = if (frac > 1.1) 0xFFFFB300.toInt() else 0xFF43A047.toInt()
+        val col = if (frac > 1.1 && amberOver) 0xFFFFB300.toInt() else 0xFF43A047.toInt()
         canvas.drawRoundRect(RectF(m, y + 4f, m + trackW * (frac / 1.3).toFloat(), y + 12f), 4f, 4f, Paint(Paint.ANTI_ALIAS_FLAG).apply { color = col })
         val tx = m + trackW / 1.3f
         canvas.drawLine(tx, y + 1f, tx, y + 15f, Paint().apply { color = grey; strokeWidth = 1f })

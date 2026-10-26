@@ -4,7 +4,7 @@ import ua.tarilka.R
 import kotlin.math.abs
 import kotlin.math.roundToInt
 
-/** A recommendation: a string resource plus integer format args. */
+/** A recommendation: a string resource plus format args. */
 data class Tip(
     val res: Int,
     val args: List<Any> = emptyList(),

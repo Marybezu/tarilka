@@ -515,17 +515,19 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
 
     /** Adds the same foods as in this meal the day before (amounts as they were; times and answers are new). */
     private var repeating = false
+    private var lastRepeat = 0L
 
     /** Adds yesterday's meal again, at yesterday's clock time (not "now": late filling-in is not late eating). */
     fun repeatYesterday(meal: Int) {
-        if (repeating) return // a quick double tap adds it once
+        // A quick double tap adds it once (also right after the first one was saved).
+        if (repeating || System.currentTimeMillis() - lastRepeat < 3000) return
         val d = day.value.toEpochDay()
         val src = yesterday.value[meal].orEmpty()
         val list = src.map { it.copy(id = 0, day = d, reason = null, hunger = null, hardToStop = false) }
         if (list.isEmpty()) return
         val time = java.time.Instant.ofEpochMilli(src.first().createdAt).atZone(java.time.ZoneId.systemDefault()).toLocalTime()
         repeating = true
-        addEntries(list, time).invokeOnCompletion { repeating = false }
+        addEntries(list, time).invokeOnCompletion { repeating = false; lastRepeat = System.currentTimeMillis() }
     }
 
     fun addFood(food: Food, grams: Double, meal: Int, time: LocalTime? = null) =
@@ -1052,7 +1054,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
                     "then the techniques. Compare with the previous $periodName where it helps. Days with nothing logged were probably just not recorded. " +
                     "Never shame. Do not set weight targets or suggest diets. If sleep is short, mention that it raises appetite. " +
                     "Suggest seeing a doctor or a specialist only if weight falls faster than about 1 % of body weight a week, " +
-                    "the average is under 1200 kcal, a quarter or more of calories are eaten late on most days, " +
+                    "the average is under the basal metabolism (${tg.bmr.r()} kcal), a quarter or more of calories are eaten late on most days, " +
                     "or eating felt hard to stop twice a week or more; then say kindly that this is common and help works. " +
                     "For alcohol there is no safe amount: say whether it went up or down compared with before; if there were days with 6 or more drinks, " +
                     "give the alcohol techniques first and only then add that a doctor or a support line can help.",
@@ -1207,13 +1209,15 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
 
     fun unlockImport(password: String) = viewModelScope.launch {
         val text = encryptedImport.value ?: return@launch
-        runCatching {
+        val plain = runCatching {
             kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) { ua.tarilka.data.Backup.decrypt(text, password) }
-        }.onSuccess { plain ->
-            encryptedImport.value = null
-            wrongPassword.value = false
-            pendingImport.value = plain to kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) { ua.tarilka.data.Backup.peek(plain) }
-        }.onFailure { wrongPassword.value = true }
+        }.getOrElse { wrongPassword.value = true; return@launch }
+        encryptedImport.value = null
+        wrongPassword.value = false
+        // Decrypted, but maybe not a Tarilka backup at all.
+        runCatching { kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) { ua.tarilka.data.Backup.peek(plain) } }
+            .onSuccess { pendingImport.value = plain to it }
+            .onFailure { dataMessage.value = getApplication<Application>().getString(ua.tarilka.R.string.data_error, it.message ?: "") }
     }
 
     fun confirmImport() = viewModelScope.launch {

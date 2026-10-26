@@ -79,7 +79,7 @@ dependencies {
     implementation("androidx.sqlite:sqlite:2.5.2")
     implementation("androidx.biometric:biometric:1.1.0")
 
-    // Optional sync with Health Connect (steps in; meals, drinks, weight out)
+    // Optional sync with Health Connect (steps, sleep and cycle in; meals, drinks, weight out)
     implementation("androidx.health.connect:connect-client:1.1.0-beta02")
 
     // On-device Gemma 4 runtime (Google AI Edge, Apache 2.0)

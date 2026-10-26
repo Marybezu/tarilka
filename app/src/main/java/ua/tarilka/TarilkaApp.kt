@@ -133,7 +133,14 @@ class TarilkaApp : Application() {
         scope.launch {
             runCatching { withDb { FoodSeeder.seedIfNeeded(this@TarilkaApp, it, prefs) } }
             // The weekly automatic copy, when it is due (works with protection too: the diary is open now).
-            if (ua.tarilka.data.AutoBackup.isDue(prefs)) runCatching { withDb { ua.tarilka.data.AutoBackup.run(this@TarilkaApp, it, prefs) } }
+            backupIfDue()
+        }
+    }
+
+    /** The weekly automatic copy, when it is due and the diary is open (at start, after unlocking, on return). */
+    fun backupIfDue() {
+        if (ua.tarilka.data.AutoBackup.isDue(prefs) && _db.value != null) scope.launch {
+            runCatching { withDb { ua.tarilka.data.AutoBackup.run(this@TarilkaApp, it, prefs) } }
         }
     }
 

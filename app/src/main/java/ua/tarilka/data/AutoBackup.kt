@@ -23,6 +23,9 @@ object AutoBackup {
     /** Makes a copy now; returns false (and remembers why) when the folder or password is gone. */
     suspend fun run(context: Context, db: AppDatabase, prefs: Prefs): Boolean {
         val tree = prefs.autoBackupFolder?.let(Uri::parse) ?: return false
+        // The password's key works only on an unlocked phone (e.g. a reminder may start the app while locked):
+        // then simply try again later, it is not a problem.
+        if (context.getSystemService(android.app.KeyguardManager::class.java)?.isDeviceLocked == true) return false
         val password = prefs.autoBackupSecret?.let(ua.tarilka.security.SecretStore::open)
         if (password == null) {
             prefs.autoBackupProblem = true
@@ -38,7 +41,7 @@ object AutoBackup {
             // and a second copy on the same day replaces the first instead of pushing out an older week.
             val part = DocumentsContract.createDocument(r, parent, "application/octet-stream", "$PREFIX$today$PART") ?: error("no file")
             runCatching {
-                r.openOutputStream(part, "wt")?.use { it.write(text.toByteArray(Charsets.UTF_8)) } ?: error("no output")
+                r.openOutputStream(part, "w")?.use { it.write(text.toByteArray(Charsets.UTF_8)) } ?: error("no output")
             }.onFailure { runCatching { DocumentsContract.deleteDocument(r, part) }; throw it }
             children(context, tree).filter { it.second == name }.forEach { (id, _) ->
                 DocumentsContract.deleteDocument(r, DocumentsContract.buildDocumentUriUsingTree(tree, id))
@@ -46,7 +49,7 @@ object AutoBackup {
             if (runCatching { DocumentsContract.renameDocument(r, part, name) }.getOrNull() == null) {
                 // The folder's app cannot rename: write the copy under its own name, then drop the temporary file.
                 val file = DocumentsContract.createDocument(r, parent, "application/json", name) ?: error("no file")
-                r.openOutputStream(file, "wt")?.use { it.write(text.toByteArray(Charsets.UTF_8)) } ?: error("no output")
+                r.openOutputStream(file, "w")?.use { it.write(text.toByteArray(Charsets.UTF_8)) } ?: error("no output")
                 runCatching { DocumentsContract.deleteDocument(r, part) }
             }
             prune(context, tree, KEEP)

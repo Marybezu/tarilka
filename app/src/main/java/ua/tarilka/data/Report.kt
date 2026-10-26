@@ -84,10 +84,13 @@ object Report {
         if (h.days >= MIN) {
             val k = targets.kcal
             // Under 18 no calorie measure (see Targets.showKcal).
+            // When eating less is not advised (pregnancy, low BMI), more than the target is never "worth attention".
+            val noLess = targets.limit != null
             if (targets.showKcal) add(
                 Metric.Key.KCAL, h.kcalAvg, k,
-                abs(h.kcalAvg - k).let { if (it <= k * 0.1) Level.GOOD else if (it <= k * 0.25) Level.OK else Level.WATCH },
-                ph?.kcalAvg, k * 0.05, true, { it.habits.foodOrNull { kcalAvg } }, k, closenessTo = k,
+                if (noLess && h.kcalAvg > k) Level.GOOD
+                else abs(h.kcalAvg - k).let { if (it <= k * 0.1) Level.GOOD else if (it <= k * 0.25) Level.OK else Level.WATCH },
+                ph?.kcalAvg, k * 0.05, true, { it.habits.foodOrNull { kcalAvg } }, k, closenessTo = if (noLess) null else k,
             )
             add(
                 Metric.Key.PROTEIN, h.proteinAvg, targets.protein, ratioLevel(h.proteinAvg, targets.protein, 0.9, 0.7),
@@ -162,7 +165,10 @@ object Report {
             val w = cur.weight ?: 0.0
             val level = when {
                 w > 0 && t < -w * 0.01 -> Level.WATCH
-                targets.goal == Goal.LOSE && t < -0.1 -> Level.GOOD
+                // In pregnancy weight is expected to go up.
+                targets.limit == Limit.PREGNANT -> if (t >= -0.1) Level.GOOD else Level.OK
+                // Losing weight is not praised close to underweight (as on Today).
+                targets.goal == Goal.LOSE && t < -0.1 && targets.bmi >= 20 -> Level.GOOD
                 targets.goal == Goal.GAIN && t > 0.1 -> Level.GOOD
                 targets.goal == Goal.MAINTAIN && abs(t) < 0.2 -> Level.GOOD
                 else -> Level.OK
@@ -188,7 +194,7 @@ object Report {
         val attention = metrics.filter { it.level == Level.WATCH }.maxByOrNull(::gap)
         // "Steadily" needs the period before to compare with.
         val steady = metrics.filter { it.level == Level.GOOD && it.prev != null && it.change >= 0 && it != improved }
-            .sortedByDescending { it.prev != null }.firstOrNull()
+            .firstOrNull()
         return Highlights(improved, attention, steady)
     }
 }

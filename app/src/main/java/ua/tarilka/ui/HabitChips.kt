@@ -203,11 +203,7 @@ fun HabitChips(
 @Composable
 private fun Badge(text: String, level: Level, onClick: () -> Unit) {
     val dark = MaterialTheme.colorScheme.surface.luminance() < 0.5f
-    val color = when (level) {
-        Level.GOOD -> Color(0xFF43A047)
-        Level.OK -> Color(0xFFFFB300)
-        Level.WATCH -> Color(0xFFF4511E)
-    }
+    val color = levelColor(level)
     Text(
         text,
         style = MaterialTheme.typography.labelLarge,

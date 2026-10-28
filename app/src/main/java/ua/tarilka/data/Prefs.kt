@@ -27,7 +27,11 @@ data class Profile(
 private val PERSONAL_KEYS = listOf("sex", "age", "height", "weight", "activity", "goal", "customKcal", "profileSet", "pregnant", "cycleTypical", "missing", "under18")
 
 class Prefs(context: Context) {
-    private val sp = context.getSharedPreferences("tarilka", Context.MODE_PRIVATE)
+    private val sp = context.getSharedPreferences("tarilka", Context.MODE_PRIVATE).also { sp ->
+        // From 0.1.81: the expected cycle date stays only for cycle reminders; Health Connect writes are remembered.
+        if (sp.getInt("cycleRemindDays", -1) <= 0 && !sp.getBoolean("cycleLateRemind", false)) sp.edit().remove("cycleNext").apply()
+        if (sp.getBoolean("healthSync", false) && !sp.contains("hcWrote")) sp.edit().putBoolean("hcWrote", true).apply()
+    }
 
     /**
      * Personal values ([PERSONAL_KEYS]: profile incl. pregnancy, usual cycle length, the not-found list) live in
@@ -80,24 +84,32 @@ class Prefs(context: Context) {
         reloadPersonal()
     }
 
-    /** Protection turned off: personal values go back to the plain settings. Call while still open. */
-    fun unsealAll() {
-        val d = sealed.snapshot() ?: return
+    /**
+     * Turning protection off, step 1 (before the database is decrypted): personal values are copied to the plain
+     * settings with the diary key, so an interruption can never lose them. Left-over copies are moved back
+     * into [sealed] on the next unlock if protection stays on.
+     */
+    fun copyPersonalToPlain(rawKey: ByteArray) {
+        val d = sealed.readWith(rawKey) ?: sealed.snapshot() ?: return
         sp.edit().apply {
             d.keys().forEach { k ->
                 when (val v = d.get(k)) {
                     is String -> putString(k, v)
                     is Boolean -> putBoolean(k, v)
-                    is Int -> putInt(k, v)
                     is Number -> if (k == "weight") putFloat(k, v.toFloat()) else putInt(k, v.toInt())
                 }
             }
         }.commit()
+    }
+
+    /** Turning protection off, step 2 (the database is plain now): the encrypted copy goes. */
+    fun dropSealed() {
         sealed.wipe()
         reloadPersonal()
     }
 
-    private fun reloadPersonal() {
+    /** Reads the personal values again (after the protection state was settled at start). */
+    fun reloadPersonal() {
         _profile.value = loadProfile()
         _missing.value = loadMissing()
         _cycleTypical.value = (personal("cycleTypical") as? Number)?.toInt() ?: -1
@@ -334,7 +346,8 @@ class Prefs(context: Context) {
 
     /** Forget the profile and the not-found list; app settings stay. */
     fun clearPersonal() {
-        sp.edit().apply { (PERSONAL_KEYS + STEP_KEYS).forEach { remove(it) } }.remove("gramsRatios").apply()
+        // introShown goes too, so the "are you 18?" question comes again before anything is filled in.
+        sp.edit().apply { (PERSONAL_KEYS + STEP_KEYS).forEach { remove(it) } }.remove("gramsRatios").putBoolean("introShown", false).apply()
         sealed.write { d -> PERSONAL_KEYS.forEach { d.remove(it) } }
         clearCache()
         _profile.value = Profile()

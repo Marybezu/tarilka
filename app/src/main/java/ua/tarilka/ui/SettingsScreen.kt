@@ -650,7 +650,7 @@ private fun DataSection(vm: MainViewModel) {
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(stringResource(R.string.import_confirm, s.diary, s.fluids, s.weights, s.foods))
-                    TextButton(onClick = { askPassword = true }) { Text(stringResource(R.string.import_save_first)) }
+                    TextButton(onClick = { Protection.confirm(activity) { askPassword = true } }) { Text(stringResource(R.string.import_save_first)) }
                 }
             },
             confirmButton = {

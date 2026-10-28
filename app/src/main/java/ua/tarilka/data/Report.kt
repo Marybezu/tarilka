@@ -116,8 +116,8 @@ object Report {
         }
         if (h.sleepNights >= MIN) {
             add(
-                Metric.Key.SLEEP, h.sleepAvg, 7.0, h.sleepLevel, prev?.habits?.takeIf { it.sleepNights >= MIN }?.sleepAvg,
-                0.3, true, { it.habits.sleepAvg }, 7.0, closenessTo = 8.0,
+                Metric.Key.SLEEP, h.sleepAvg, if (h.teen) 8.0 else 7.0, h.sleepLevel, prev?.habits?.takeIf { it.sleepNights >= MIN }?.sleepAvg,
+                0.3, true, { it.habits.sleepAvg }, if (h.teen) 8.0 else 7.0, closenessTo = if (h.teen) 9.0 else 8.0,
             )
         }
         if (cur.steps != null && cur.stepsDays >= MIN) {

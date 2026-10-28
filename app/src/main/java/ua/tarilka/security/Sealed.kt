@@ -22,11 +22,21 @@ class Sealed(context: Context) {
     /** Opens with the diary key; a blob that does not open (key reset) starts empty. */
     @Synchronized
     fun open(rawKey: ByteArray) {
-        val mac = Mac.getInstance("HmacSHA256").apply { init(SecretKeySpec(rawKey, "HmacSHA256")) }
-        val k = SecretKeySpec(mac.doFinal("tarilka-sealed-prefs-v1".toByteArray()), "AES")
+        val k = derive(rawKey)
         key = k
-        data = sp.getString(BLOB, null)?.let { runCatching { decrypt(k, it) }.getOrNull() } ?: JSONObject()
+        data = read(k) ?: JSONObject()
     }
+
+    /** The stored values read with [rawKey], whatever is open now (used while protection is being turned off). */
+    fun readWith(rawKey: ByteArray): JSONObject? = read(derive(rawKey))
+
+    private fun derive(rawKey: ByteArray): SecretKeySpec {
+        val mac = Mac.getInstance("HmacSHA256").apply { init(SecretKeySpec(rawKey, "HmacSHA256")) }
+        return SecretKeySpec(mac.doFinal("tarilka-sealed-prefs-v1".toByteArray()), "AES")
+    }
+
+    private fun read(k: SecretKeySpec): JSONObject? =
+        sp.getString(BLOB, null)?.let { runCatching { decrypt(k, it) }.getOrNull() }
 
     @Synchronized
     fun close() {
@@ -35,6 +45,7 @@ class Sealed(context: Context) {
     }
 
     /** A copy of the values, or null while locked. */
+    @Synchronized
     fun snapshot(): JSONObject? = data?.let { JSONObject(it.toString()) }
 
     @Synchronized

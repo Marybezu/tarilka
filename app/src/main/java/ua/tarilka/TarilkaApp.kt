@@ -48,6 +48,7 @@ class TarilkaApp : Application() {
         CrashLog.install(this)
         prefs = Prefs(this)
         reconcileProtection()
+        prefs.reloadPersonal()
         // With app protection the database stays closed until fingerprint or the phone PIN.
         if (!prefs.appLock) openDb(null)
         applyThemeMode(prefs.themeMode)

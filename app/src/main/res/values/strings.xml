@@ -181,7 +181,7 @@
     <string name="export_done">Saved.</string>
     <string name="data_error">Error: %1$s</string>
     <string name="import_title">Restore from backup?</string>
-    <string name="import_confirm">In the file: %1$d food entries, %2$d drinks, %3$d weigh-ins, %4$d own foods. Everything current will be replaced: diary, sleep, cycle, bowel, workouts, waist, notes, own foods, favourites and profile.</string>
+    <string name="import_confirm">In the file: %1$d food entries, %2$d drinks, %3$d weigh-ins, %4$d own foods. Everything current will be replaced: diary, sleep, cycle, bowel, workouts, waist, notes, own foods and favourites, and the profile if the backup has one.</string>
     <string name="import_replace">Replace</string>
     <string name="import_done">Restored: %1$d food entries, %2$d weigh-ins.</string>
     <string name="ai_steps">1. Tap Download model: your browser downloads %1$s (about 2.6 GB, Wi-Fi recommended). It is Google\'s Gemma 4 E2B; it runs on most phones with 6 GB of memory or more.\n2. Come back and tap Choose model file. The app has no internet access, so this is the only way in.</string>

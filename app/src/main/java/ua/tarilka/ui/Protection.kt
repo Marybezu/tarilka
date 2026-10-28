@@ -213,14 +213,14 @@ object Protection {
                     val secret = vault.finishUnlock(ok)
                     key = sqlCipherRawKey(secret)
                     secret.fill(0)
+                    // The profile and other personal values go back to the plain settings first: nothing can be lost.
+                    app.prefs.copyPersonalToPlain(key!!)
                     app.closeDb().join()
                     DbCrypt.decrypt(app, key!!)
                     // From here the file is plain: protection is off whatever happens next.
                     swapped = true
-                    if (!app.prefs.sealed.isOpen) app.prefs.sealed.open(key!!)
                     app.prefs.appLock = false
-                    // The profile and other personal values go back to the plain settings too.
-                    app.prefs.unsealAll()
+                    app.prefs.dropSealed()
                     enabled.value = false
                     vault.reset()
                     app.prefs.clearCache()
@@ -229,7 +229,7 @@ object Protection {
                 }.onFailure {
                     if (swapped) {
                         app.prefs.appLock = false
-                        runCatching { app.prefs.unsealAll() }
+                        runCatching { app.prefs.dropSealed() }
                         enabled.value = false
                         runCatching { vault.reset() }
                         if (app.dbState.value == null) runCatching { app.openDb(null) }
@@ -254,6 +254,9 @@ object Protection {
             KeyVault(app).reset()
             app.prefs.appLock = false
             app.prefs.clearCache()
+            // The old personal values went with the key: forget them and ask the age question again.
+            app.prefs.dropSealed()
+            app.prefs.introShown = false
             enabled.value = false
             invalid.value = false
             app.openDb(null)

@@ -35,9 +35,10 @@ class HealthSync(private val context: Context) {
             HealthConnectClient.getSdkStatus(context) == HealthConnectClient.SDK_AVAILABLE
         }.getOrDefault(false)
 
-    private val client: HealthConnectClient? by lazy {
-        if (available) runCatching { HealthConnectClient.getOrCreate(context) }.getOrNull() else null
-    }
+    // Created once it exists: Health Connect may be installed while the app is running (Android 12–13).
+    @Volatile private var cached: HealthConnectClient? = null
+    private val client: HealthConnectClient?
+        get() = cached ?: if (available) runCatching { HealthConnectClient.getOrCreate(context) }.getOrNull()?.also { cached = it } else null
 
     suspend fun granted(): Set<String> =
         runCatching { client?.permissionController?.getGrantedPermissions() }.getOrNull() ?: emptySet()

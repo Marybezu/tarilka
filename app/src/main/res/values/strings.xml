@@ -564,7 +564,7 @@
     <string name="mi_kcal">Average over days with entries. Green is within 10% of the target, amber within 25%. One day decides little; the average matters.</string>
     <string name="mi_protein">Protein helps keep muscle and stay full, especially when losing weight. Good sources: cottage cheese, eggs, poultry, fish, beans.</string>
     <string name="mi_fiber">Fibre helps digestion and fullness: vegetables, fruit, whole grains, beans. The target is at least 25 g a day (EFSA, WHO); with more food the app uses 14 g per 1000 kcal (US guidelines).</string>
-    <string name="mi_fluid">Average over days with entries: water and drinks you added, drinks logged as food (juice, kefir, milk) and soups (80 % of their weight); alcohol is not counted. The guide is at least the EFSA level (1.6 L for women and 2 L for men from drinks and soups); a bigger body that uses more energy needs a little more. More in heat, with activity, in pregnancy and while breastfeeding. The best daily sign is thirst and pale urine.</string>
+    <string name="mi_fluid">Average over days with entries: water and drinks you added, drinks from the database logged as food (juice, kefir, milk) and soups (80 % of their weight); alcohol is not counted. Your own foods are not counted; add such a drink as fluid. The guide is at least the EFSA level (1.6 L for women and 2 L for men from drinks; soups count here too); a bigger body that uses more energy needs a little more. More in heat, with activity, in pregnancy and while breastfeeding. The best daily sign is thirst and pale urine.</string>
     <string name="mi_weight">Weight change along the trend line, kg a week. Weight swings with water and the cycle, so the trend over several weeks matters, not single days. More than 1% of body weight a week is too fast.</string>
     <string name="protect_title">App protection</string>
     <string name="protect_switch">Encrypt the diary and open with fingerprint or PIN</string>
@@ -724,9 +724,10 @@
     <string name="intro_adult">I am 18 or older</string>
     <string name="intro_under18">I am under 18</string>
     <string name="cycle_flag_length_teen">cycle length outside 21–45 days (the usual range under 18).</string>
-    <string name="hc_none_granted">Health Connect does not allow Tarilka to write. Permissions can be changed in Health Connect → Apps → Tarilka.</string>
+    <string name="hc_none_granted">Writing to Health Connect is not allowed. Permissions can be changed in Health Connect → Apps → Tarilka.</string>
     <string name="hc_some_granted">Only some permissions were given: only what you allowed (food, drinks or weight) will be written.</string>
     <string name="hc_install">Install Health Connect</string>
     <string name="hc_privacy_title">Tarilka and Health Connect</string>
     <string name="hc_privacy">Tarilka has no internet access and sends data nowhere. From Health Connect it only reads steps, sleep and the menstrual cycle (if you allowed it) to show them in the diary, and writes food, drinks and weight when Save to Health Connect is on. Records in Health Connect are visible to apps you allow there. Any permission can be taken back in Health Connect → Apps → Tarilka.</string>
+    <string name="hc_not_installed">Health Connect is not installed or needs an update. Without it, steps come from the phone\'s sensor.</string>
 </resources>

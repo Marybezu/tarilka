@@ -106,7 +106,7 @@ class MainActivity : AppCompatActivity() {
         super.onResume()
         Protection.applyRecents(this)
         val gen = app.lockGen.get()
-        if (app.prefs.appLock && app.dbState.value == null && promptedGen != gen && !Protection.invalid.value && !Protection.busy.value) {
+        if (!healthRationale && app.prefs.appLock && app.dbState.value == null && promptedGen != gen && !Protection.invalid.value && !Protection.busy.value) {
             promptedGen = gen
             Protection.unlock(this)
         }

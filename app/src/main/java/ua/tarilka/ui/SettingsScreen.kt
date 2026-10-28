@@ -283,12 +283,24 @@ private fun LanguageSection() {
 private fun ActivitySection(vm: MainViewModel) {
     val stepsOn by vm.stepsEnabled.collectAsState()
     val syncOn by vm.healthSync.collectAsState()
-    val hcAvailable = vm.healthAvailable
     val context = androidx.compose.ui.platform.LocalContext.current
-    var hcNote by remember { mutableStateOf<Int?>(null) }
-    var syncAsked by remember { mutableStateOf(false) }
-    // Sync on, but the permissions were taken back in Health Connect: say so instead of failing quietly.
-    LaunchedEffect(syncOn) { if (syncOn && !vm.healthWriteAllowed()) hcNote = R.string.hc_none_granted }
+    var hcAvailable by remember { mutableStateOf(vm.healthAvailable) }
+    var hcInstallable by remember { mutableStateOf(vm.healthInstallable) }
+    var hcNote by rememberSaveable { mutableStateOf<Int?>(null) }
+    var syncAsked by rememberSaveable { mutableStateOf(false) }
+    // Checked again on every return: Health Connect may have been installed, or its permissions taken back.
+    var resumes by remember { mutableStateOf(0) }
+    val lifecycle = androidx.lifecycle.compose.LocalLifecycleOwner.current
+    androidx.compose.runtime.DisposableEffect(lifecycle) {
+        val obs = androidx.lifecycle.LifecycleEventObserver { _, e -> if (e == androidx.lifecycle.Lifecycle.Event.ON_RESUME) resumes++ }
+        lifecycle.lifecycle.addObserver(obs)
+        onDispose { lifecycle.lifecycle.removeObserver(obs) }
+    }
+    LaunchedEffect(syncOn, resumes) {
+        hcAvailable = vm.healthAvailable
+        hcInstallable = vm.healthInstallable
+        if (syncOn && hcAvailable && !vm.healthWriteAllowed()) hcNote = R.string.hc_none_granted
+    }
     val sensorLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) {
         vm.refreshSteps()
     }
@@ -331,12 +343,12 @@ private fun ActivitySection(vm: MainViewModel) {
                 }
                 hcNote?.let { Text(stringResource(it), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.tertiary) }
             } else {
-                Text(stringResource(R.string.hc_unavailable), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                if (vm.healthInstallable) {
+                Text(stringResource(if (hcInstallable) R.string.hc_not_installed else R.string.hc_unavailable), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                if (hcInstallable) {
                     TextButton(onClick = {
                         runCatching {
                             context.startActivity(
-                                android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse("market://details?id=com.google.android.apps.healthdata"))
+                                android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse("market://details?id=com.google.android.apps.healthdata&url=healthconnect%3A%2F%2Fonboarding"))
                                     .addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK),
                             )
                         }

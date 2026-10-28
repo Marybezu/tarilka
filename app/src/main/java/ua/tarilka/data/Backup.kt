@@ -315,7 +315,7 @@ object Backup {
         }
         o.optJSONObject("profile")?.let { p ->
             if (p.optBoolean("isSet")) {
-                prefs.saveProfile(
+                prefs.saveProfile(strict = true, p =
                     Profile(
                         sex = runCatching { Sex.valueOf(p.getString("sex")) }.getOrDefault(Sex.FEMALE),
                         // Values out of range (a damaged file) fall back to the defaults.

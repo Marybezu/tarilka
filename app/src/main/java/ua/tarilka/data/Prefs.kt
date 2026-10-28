@@ -336,13 +336,11 @@ class Prefs(context: Context) {
         if (m.keys.any { it.startsWith(q) && it != q }) return
         m[q] = (m[q] ?: 0) + 1
         val trimmed = m.entries.sortedByDescending { it.value }.take(50).associate { it.key to it.value }
-        _missing.value = trimmed
-        putPersonal(mapOf("missing" to org.json.JSONObject(trimmed).toString()))
+        if (putPersonal(mapOf("missing" to org.json.JSONObject(trimmed).toString()))) _missing.value = trimmed
     }
 
     fun clearMissing() {
-        _missing.value = emptyMap()
-        putPersonal(mapOf("missing" to null))
+        if (putPersonal(mapOf("missing" to null))) _missing.value = emptyMap()
     }
 
     private fun loadMissing(): Map<String, Int> = runCatching {
@@ -370,8 +368,7 @@ class Prefs(context: Context) {
     /** Cycle settings that go with the cycle records (also cleared with the diary). */
     fun clearCycle() {
         sp.edit().remove("cycleNext").apply()
-        putPersonal(mapOf("cycleTypical" to null))
-        _cycleTypical.value = -1
+        if (putPersonal(mapOf("cycleTypical" to null))) _cycleTypical.value = -1
     }
     private val STEP_KEYS = listOf("stepLog", "stepDay", "stepBase", "stepLast", "cycleNext")
 
@@ -379,19 +376,21 @@ class Prefs(context: Context) {
     val profile: StateFlow<Profile> = _profile.asStateFlow()
 
     /** Answer at the start, before the profile is filled in: under 18 means no calories from the first screen. */
-    fun setUnder18(under: Boolean) {
-        putPersonal(mapOf("under18" to under))
+    fun setUnder18(under: Boolean): Boolean {
+        if (!putPersonal(mapOf("under18" to under))) return false
         _profile.value = loadProfile()
+        return true
     }
 
-    fun saveProfile(p: Profile) {
+    /** [strict]: fail loudly when nothing could be written (restore); from the screens it simply does nothing. */
+    fun saveProfile(p: Profile, strict: Boolean = false) {
         putPersonal(
             mapOf(
                 "sex" to p.sex.name, "age" to p.age, "height" to p.heightCm, "weight" to p.weightKg,
                 "activity" to p.activity, "goal" to p.goal.name, "customKcal" to (p.customKcal ?: -1),
                 "profileSet" to true, "pregnant" to p.pregnant,
             ),
-        ).let { ok -> check(ok) { "the diary is locked" } }
+        ).let { ok -> if (!ok) { if (strict) error("the diary is locked") else return } }
         _profile.value = p.copy(isSet = true)
     }
 

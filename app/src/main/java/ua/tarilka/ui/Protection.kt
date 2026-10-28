@@ -213,9 +213,9 @@ object Protection {
                     val secret = vault.finishUnlock(ok)
                     key = sqlCipherRawKey(secret)
                     secret.fill(0)
+                    app.closeDb().join()
                     // The profile and other personal values go back to the plain settings first: nothing can be lost.
                     app.prefs.copyPersonalToPlain(key!!)
-                    app.closeDb().join()
                     DbCrypt.decrypt(app, key!!)
                     // From here the file is plain: protection is off whatever happens next.
                     swapped = true
@@ -235,6 +235,7 @@ object Protection {
                         if (app.dbState.value == null) runCatching { app.openDb(null) }
                     } else {
                         // Still encrypted and still protected: it opens again with fingerprint or PIN.
+                        app.prefs.dropPlainPersonal()
                         message.value = R.string.protect_failed
                     }
                 }

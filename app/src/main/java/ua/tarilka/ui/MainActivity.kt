@@ -124,8 +124,8 @@ private fun AppRoot() {
     val nav: NavViewModel = viewModel()
     val context = androidx.compose.ui.platform.LocalContext.current
     val app = context.applicationContext as ua.tarilka.TarilkaApp
-    var intro by remember { mutableStateOf(!app.prefs.introShown) }
-    if (intro) IntroDialog { under18 -> app.prefs.setUnder18(under18); app.prefs.introShown = true; intro = false } else CrashDialog()
+    val introShown by app.prefs.introShownFlow.collectAsState()
+    if (!introShown) IntroDialog { under18 -> app.prefs.setUnder18(under18); app.prefs.introShown = true } else CrashDialog()
     var tab by rememberSaveable { mutableIntStateOf(0) }
     val stack = nav.stack
     fun push(o: Overlay) { stack.add(o) }

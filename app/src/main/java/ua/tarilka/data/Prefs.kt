@@ -42,8 +42,10 @@ class Prefs(context: Context) {
     private fun personal(key: String): Any? =
         if (appLock) sealed.snapshot()?.opt(key)?.takeIf { it != org.json.JSONObject.NULL } else sp.all[key]
 
-    private fun putPersonal(values: Map<String, Any?>) {
+    /** False when protection is on and the diary is locked: nothing was written. */
+    private fun putPersonal(values: Map<String, Any?>): Boolean {
         if (appLock) {
+            if (!sealed.isOpen) return false
             sealed.write { d -> values.forEach { (k, v) -> if (v == null) d.remove(k) else d.put(k, v) } }
         } else {
             sp.edit().apply {
@@ -58,6 +60,7 @@ class Prefs(context: Context) {
                 }
             }.apply()
         }
+        return true
     }
 
     /**
@@ -70,7 +73,7 @@ class Prefs(context: Context) {
             val plain = sp.all.filterKeys { it in PERSONAL_KEYS }
             if (plain.isNotEmpty()) {
                 // Existing users keep "intro shown", which was inferred from the profile.
-                if (!sp.contains("introShown")) sp.edit().putBoolean("introShown", true).apply()
+                if (!sp.contains("introShown")) introShown = true
                 sealed.write { d -> plain.forEach { (k, v) -> d.put(k, if (v is Float) v.toDouble() else v) } }
                 sp.edit().apply { plain.keys.forEach { remove(it) } }.commit()
             }
@@ -121,9 +124,12 @@ class Prefs(context: Context) {
     fun setNoScreenshots(on: Boolean) { sp.edit().putBoolean("noScreenshots", on).apply(); _noScreenshots.value = on }
 
     /** The three-screen introduction was shown (set for existing users too, see below). */
+    private val _introShown = MutableStateFlow(sp.getBoolean("introShown", sp.contains("profileSet")))
+    /** Watched by the screen, so the age question comes back at once after "Delete all". */
+    val introShownFlow: StateFlow<Boolean> = _introShown.asStateFlow()
     var introShown: Boolean
-        get() = sp.getBoolean("introShown", sp.contains("profileSet"))
-        set(v) = sp.edit().putBoolean("introShown", v).apply()
+        get() = _introShown.value
+        set(v) { sp.edit().putBoolean("introShown", v).apply(); _introShown.value = v }
 
     /** App protection: the diary is encrypted and opens only after fingerprint or the phone PIN. */
     var appLock: Boolean
@@ -213,7 +219,7 @@ class Prefs(context: Context) {
     private val _cycleTypical = MutableStateFlow((personal("cycleTypical") as? Number)?.toInt() ?: -1)
     /** The usual cycle length the person gave at setup (days), or -1; used until 2 starts are recorded. */
     val cycleTypical: StateFlow<Int> = _cycleTypical.asStateFlow()
-    fun setCycleTypical(v: Int) { putPersonal(mapOf("cycleTypical" to v)); _cycleTypical.value = v }
+    fun setCycleTypical(v: Int) { if (putPersonal(mapOf("cycleTypical" to v))) _cycleTypical.value = v }
 
     /** Remind this many days before the expected start (1–3), or -1 = off. */
     var cycleRemindDays: Int
@@ -344,10 +350,16 @@ class Prefs(context: Context) {
         o.keys().asSequence().associateWith { o.getInt(it) }
     }.getOrDefault(emptyMap())
 
+    /** Turning protection off failed before the switch: the plain copies go again, the encrypted ones stay. */
+    fun dropPlainPersonal() {
+        sp.edit().apply { PERSONAL_KEYS.forEach { remove(it) } }.commit()
+    }
+
     /** Forget the profile and the not-found list; app settings stay. */
     fun clearPersonal() {
         // introShown goes too, so the "are you 18?" question comes again before anything is filled in.
-        sp.edit().apply { (PERSONAL_KEYS + STEP_KEYS).forEach { remove(it) } }.remove("gramsRatios").putBoolean("introShown", false).apply()
+        sp.edit().apply { (PERSONAL_KEYS + STEP_KEYS).forEach { remove(it) } }.remove("gramsRatios").apply()
+        introShown = false
         sealed.write { d -> PERSONAL_KEYS.forEach { d.remove(it) } }
         clearCache()
         _profile.value = Profile()
@@ -379,7 +391,7 @@ class Prefs(context: Context) {
                 "activity" to p.activity, "goal" to p.goal.name, "customKcal" to (p.customKcal ?: -1),
                 "profileSet" to true, "pregnant" to p.pregnant,
             ),
-        )
+        ).let { ok -> check(ok) { "the diary is locked" } }
         _profile.value = p.copy(isSet = true)
     }
 

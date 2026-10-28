@@ -86,6 +86,8 @@ class TarilkaApp : Application() {
                 plain == true && prefs.appLock -> {
                     prefs.appLock = false
                     prefs.clearCache()
+                    // The personal values were copied to the plain settings before the switch.
+                    prefs.sealed.wipe()
                     ua.tarilka.security.KeyVault(this).reset()
                 }
                 plain == false -> {

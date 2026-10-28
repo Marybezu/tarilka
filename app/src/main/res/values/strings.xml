@@ -156,7 +156,7 @@
     <string name="unit_l">L</string>
     <string name="ml">ml</string>
     <string name="plus_ml">+%1$d ml</string>
-    <string name="water_target">Fluids: about %1$s L of drinks a day (EFSA).</string>
+    <string name="water_target">Fluids: about %1$s L a day, drinks and soups.</string>
     <string name="tip_water_low">Drink more: %1$d of %2$d ml so far.</string>
     <string name="tip_steps_good">%1$d steps today, nice walking.</string>
     <string name="tip_steps_low">Only %1$d steps today. A 20-minute walk is about 2,000 more.</string>
@@ -564,7 +564,7 @@
     <string name="mi_kcal">Average over days with entries. Green is within 10% of the target, amber within 25%. One day decides little; the average matters.</string>
     <string name="mi_protein">Protein helps keep muscle and stay full, especially when losing weight. Good sources: cottage cheese, eggs, poultry, fish, beans.</string>
     <string name="mi_fiber">Fibre helps digestion and fullness: vegetables, fruit, whole grains, beans. The target is at least 25 g a day (EFSA, WHO); with more food the app uses 14 g per 1000 kcal (US guidelines).</string>
-    <string name="mi_fluid">Average over days with entries: water, drinks and soups. The EFSA guide is about 1.6 L of drinks a day for women and 2 L for men; more in heat, with activity, in pregnancy and while breastfeeding.</string>
+    <string name="mi_fluid">Average over days with entries: water and drinks you added, drinks logged as food (juice, kefir, milk) and soups (80 % of their weight); alcohol is not counted. The guide is at least the EFSA level (1.6 L for women and 2 L for men from drinks and soups); a bigger body that uses more energy needs a little more. More in heat, with activity, in pregnancy and while breastfeeding. The best daily sign is thirst and pale urine.</string>
     <string name="mi_weight">Weight change along the trend line, kg a week. Weight swings with water and the cycle, so the trend over several weeks matters, not single days. More than 1% of body weight a week is too fast.</string>
     <string name="protect_title">App protection</string>
     <string name="protect_switch">Encrypt the diary and open with fingerprint or PIN</string>

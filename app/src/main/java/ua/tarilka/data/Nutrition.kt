@@ -76,9 +76,11 @@ object Nutrition {
         val fat = kcal * 0.30 / 9
         val carbs = max(0.0, (kcal - protein * 4 - fat * 9) / 4)
         val fiber = max(25.0, kcal / 1000 * 14)
-        // EFSA adequate intake of water from drinks (about 80 % of 2.0 / 2.5 L), more in pregnancy and
-        // breastfeeding (+0.3 / +0.7 L) and with a very active day.
-        val water = (if (p.sex == Sex.MALE) 2000.0 else 1600.0) +
+        // Drinks and soups: the EFSA adequate intake (2.0 / 2.5 L of water a day, about 80 % of it from drinks)
+        // as the minimum; a bigger body that uses more energy needs a little more, so also about 1 ml of water
+        // per kcal used a day, 80 % of it from drinks (an approximation, not an EFSA value), at most 3 L.
+        // More in pregnancy and breastfeeding (+0.3 / +0.7 L) and with a very active day.
+        val water = max(if (p.sex == Sex.MALE) 2000.0 else 1600.0, (tdee * 0.8).coerceAtMost(3000.0)) +
             (if (limit == Limit.PREGNANT) 500.0 else 0.0) + (if (p.activity >= 3) 500.0 else 0.0)
         return Targets(
             kcal, protein, fat, carbs, fiber, bmr, tdee, water,

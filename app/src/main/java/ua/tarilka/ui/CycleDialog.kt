@@ -117,7 +117,7 @@ fun CycleDialog(vm: MainViewModel, onDismiss: () -> Unit) {
                 Text(stringResource(R.string.cycle_tips), style = MaterialTheme.typography.bodyMedium)
                 if (c.seeDoctor) {
                     val why = buildList {
-                        if (c.tooShortOrLong) add(stringResource(R.string.cycle_flag_length))
+                        if (c.tooShortOrLong) add(stringResource(if (c.teen) R.string.cycle_flag_length_teen else R.string.cycle_flag_length))
                         if (c.longBleeding) add(stringResource(R.string.cycle_flag_long))
                         if (c.heavyOrPainful) add(stringResource(R.string.cycle_flag_heavy))
                     }.joinToString(" ")

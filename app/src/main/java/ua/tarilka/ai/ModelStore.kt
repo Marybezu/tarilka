@@ -24,17 +24,20 @@ class ModelStore(private val context: Context) {
     /** App-private storage: no other app can read it, and it needs no permission. */
     private val dir: File get() = File(context.filesDir, MODEL_DIR).apply { mkdirs() }
 
-    /** Where versions up to 0.1.10 downloaded the model; still used if a model is there. */
+    /**
+     * Where versions up to 0.1.10 downloaded the model. Other apps with storage access could replace a file there,
+     * so it is never loaded; it is only removed when a model is imported or deleted.
+     */
     private val legacyDir: File? get() = context.getExternalFilesDir(null)?.let { File(it, MODEL_DIR) }
 
     private fun models(d: File?): List<File> =
         d?.listFiles { f -> f.name.endsWith(".litertlm") && f.length() > MIN_SIZE }?.toList() ?: emptyList()
 
-    fun modelFile(): File? = (models(dir) + models(legacyDir)).maxByOrNull { it.lastModified() }
+    fun modelFile(): File? = models(dir).maxByOrNull { it.lastModified() }
 
     fun state(): State {
         val f = modelFile() ?: return State.Missing
-        return State.Ready(f.length() / MB)
+        return State.Ready(f.length() / 1_000_000) // decimal MB, like the size on the download page
     }
 
     data class ImportResult(val originalDeleted: Boolean?)

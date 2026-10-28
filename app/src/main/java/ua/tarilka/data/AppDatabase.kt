@@ -36,6 +36,12 @@ abstract class AppDatabase : RoomDatabase() {
                         openHelperFactory(net.zetetic.database.sqlcipher.SupportOpenHelperFactory(rawKey))
                     }
                 }
+                // Deleted entries are overwritten on disk, not just marked free.
+                .addCallback(object : RoomDatabase.Callback() {
+                    override fun onOpen(db: androidx.sqlite.db.SupportSQLiteDatabase) {
+                        db.query("PRAGMA secure_delete = ON").close()
+                    }
+                })
                 .build()
 
         /** Waist circumference. Existing data is kept. */

@@ -128,7 +128,7 @@ fun HabitChips(
         }
         if (workoutsTracked || h.workoutCount > 0 || p?.workoutCount?.let { it > 0 } == true) {
             Habit(
-                stringResource(R.string.habit_activity, h.activeMinPerWeek.f0()), h.activityLevel,
+                stringResource(R.string.habit_activity, h.activeMinPerWeek.f0(), if (h.teen) "420" else "150"), h.activityLevel,
                 h.trend({ it.activeMinPerWeek }, 20.0), true, p?.let { stringResource(R.string.minutes_n, it.activeMinPerWeek.toInt()) },
                 stringResource(R.string.habit_activity_info), stringResource(R.string.activity_noticed, h.strengthPerWeek.f1()),
                 stringResource(R.string.activity_tips),

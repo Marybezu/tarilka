@@ -57,6 +57,8 @@ data class Habits(
     val timesTracked: Boolean = true,
     /** The period before, for trend arrows; set by the caller. */
     val prev: Habits? = null,
+    /** Under 18: sleep 8–10 hours (AASM) and an hour of movement a day (WHO). */
+    val teen: Boolean = false,
 ) {
     val notHungerTotal: Int get() = notHunger.values.sum()
     enum class Level { GOOD, OK, WATCH }
@@ -83,7 +85,9 @@ data class Habits(
     }
     val fastFoodLevel get() = level(fastFoodDays == 0, perWeek(fastFoodDays) <= 1)
     /** 7–9 h is the adult range (AASM); regularly much longer sleep is worth a look too, but never orange. */
-    val sleepLevel get() = sleepAvg?.let { if (it > 9.5) Level.OK else level(it >= 7, it >= 6) } ?: Level.OK
+    val sleepLevel get() = sleepAvg?.let {
+        if (teen) { if (it > 10.5) Level.OK else level(it >= 8, it >= 7) } else if (it > 9.5) Level.OK else level(it >= 7, it >= 6)
+    } ?: Level.OK
     /** Hard-to-stop episodes twice a week or more are worth attention; eating for other reasons now and then is normal. */
     val reasonsLevel get() = when {
         perWeek(hardToStop) >= 2 -> Level.WATCH
@@ -99,7 +103,7 @@ data class Habits(
         else -> Level.GOOD
     }
     /** WHO: 150–300 minutes of moderate activity a week (or half as much vigorous). */
-    val activityLevel get() = level(activeMinPerWeek >= 150, activeMinPerWeek >= 75)
+    val activityLevel get() = if (teen) level(activeMinPerWeek >= 420, activeMinPerWeek >= 210) else level(activeMinPerWeek >= 150, activeMinPerWeek >= 75)
 
     /** Hours of sleep, % of calories, drinks a week…: compare with the period before. +1 more, −1 less, 0 about the same or unknown. */
     fun trend(value: (Habits) -> Double?, minDiff: Double): Int {
@@ -166,6 +170,7 @@ data class Habits(
             bowel: List<BowelEntry> = emptyList(),
             workouts: List<WorkoutEntry> = emptyList(),
             withTimes: Boolean = true,
+            teen: Boolean = false,
         ): Habits {
             fun food(e: DiaryEntry) = e.foodId?.let(foods::get)
             fun sweet(e: DiaryEntry) = food(e)?.let { isSweet(it, groups) } == true
@@ -183,6 +188,7 @@ data class Habits(
             fun pct(part: Double) = if (kcal > 0) part / kcal * 100 else 0.0
             fun perDay(total: Double) = if (days > 0) total / days else 0.0
             return Habits(
+                teen = teen,
                 days = days,
                 periodDays = periodDays,
                 kcalAvg = perDay(kcal),

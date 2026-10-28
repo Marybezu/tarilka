@@ -128,8 +128,8 @@ object Report {
         }
         if (cur.activityPerDay != null && h.periodDays >= 7) {
             add(
-                Metric.Key.ACTIVITY, h.activeMinPerWeek, 150.0, h.activityLevel, prev?.activityPerDay?.let { ph?.activeMinPerWeek },
-                20.0, true, { it.activityPerDay }, 150.0 / 7,
+                Metric.Key.ACTIVITY, h.activeMinPerWeek, if (h.teen) 420.0 else 150.0, h.activityLevel, prev?.activityPerDay?.let { ph?.activeMinPerWeek },
+                20.0, true, { it.activityPerDay }, (if (h.teen) 420.0 else 150.0) / 7,
             )
         }
         if (h.days >= MIN && h.alcoholPerWeek > 0) {

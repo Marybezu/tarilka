@@ -347,7 +347,9 @@ object Backup {
         val sb = StringBuilder("﻿").append(header).append('\n')
         db.diary().allOnce().forEach { e ->
             val time = Instant.ofEpochMilli(e.createdAt).atZone(zone).toLocalTime().withNano(0).withSecond(0)
-            val name = (if (ukrainian) e.nameUk else e.nameEn).replace(';', ',')
+            // A name from someone else's backup must not become a spreadsheet formula.
+            val name = (if (ukrainian) e.nameUk else e.nameEn).replace(';', ',').replace('\n', ' ')
+                .let { if (it.firstOrNull() in listOf('=', '+', '-', '@', '\t', '\r')) "'$it" else it }
             sb.append(LocalDate.ofEpochDay(e.day)).append(';').append(time).append(';')
                 .append(meals.getOrElse(e.meal) { "" }).append(';').append(name).append(';')
                 .append(n(e.grams)).append(';').append(n(e.kcal)).append(';').append(n(e.protein)).append(';')

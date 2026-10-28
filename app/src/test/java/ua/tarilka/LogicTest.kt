@@ -329,4 +329,12 @@ class LogicTest {
         // Two days say too little.
         assertTrue(ua.tarilka.data.Advice.of(entries.filter { it.day < 2 }, foods, groups, 2, true).change.isEmpty())
     }
+
+    @Test
+    fun passwordStrengthIsSensible() {
+        assertEquals(0, ua.tarilka.ui.passwordStrength("qwerty12"))
+        assertEquals(1, ua.tarilka.ui.passwordStrength("Tarilka2024"))
+        assertEquals(2, ua.tarilka.ui.passwordStrength("кіт сонце ложка вікно"))
+        assertEquals(2, ua.tarilka.ui.passwordStrength("Xk9!pQ2#vL7z"))
+    }
 }

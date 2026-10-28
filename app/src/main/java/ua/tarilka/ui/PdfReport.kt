@@ -185,7 +185,7 @@ object PdfReport {
                 if (ci.longGap) pdf.text(c.getString(R.string.cycle_long_gap), pdf.body)
                 if (ci.seeDoctor) {
                     val why = buildList {
-                        if (ci.tooShortOrLong) add(c.getString(R.string.cycle_flag_length))
+                        if (ci.tooShortOrLong) add(c.getString(if (ci.teen) R.string.cycle_flag_length_teen else R.string.cycle_flag_length))
                         if (ci.longBleeding) add(c.getString(R.string.cycle_flag_long))
                         if (ci.heavyOrPainful) add(c.getString(R.string.cycle_flag_heavy))
                     }.joinToString(" ")

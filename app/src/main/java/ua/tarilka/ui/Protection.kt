@@ -98,6 +98,27 @@ object Protection {
         prompt.authenticate(info, BiometricPrompt.CryptoObject(cipher))
     }
 
+    /**
+     * With protection on, taking data out or deleting it asks for the fingerprint or phone PIN again,
+     * so someone who finds Tarilka open cannot carry the diary away in seconds. Without protection, goes straight on.
+     */
+    fun confirm(activity: FragmentActivity, onOk: () -> Unit) {
+        val app = activity.application as TarilkaApp
+        if (!app.prefs.appLock) { onOk(); return }
+        val prompt = BiometricPrompt(
+            activity, ContextCompat.getMainExecutor(activity),
+            object : BiometricPrompt.AuthenticationCallback() {
+                override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) = onOk()
+            },
+        )
+        prompt.authenticate(
+            BiometricPrompt.PromptInfo.Builder()
+                .setTitle(activity.getString(R.string.protect_confirm_title))
+                .setAllowedAuthenticators(BIOMETRIC_STRONG or DEVICE_CREDENTIAL)
+                .build(),
+        )
+    }
+
     /** The unwrap cipher, or null (and the "key gone" state) when the hardware key is invalidated or missing. */
     private fun unlockCipher(app: TarilkaApp): Cipher? {
         val vault = KeyVault(app)
@@ -196,7 +217,10 @@ object Protection {
                     DbCrypt.decrypt(app, key!!)
                     // From here the file is plain: protection is off whatever happens next.
                     swapped = true
+                    if (!app.prefs.sealed.isOpen) app.prefs.sealed.open(key!!)
                     app.prefs.appLock = false
+                    // The profile and other personal values go back to the plain settings too.
+                    app.prefs.unsealAll()
                     enabled.value = false
                     vault.reset()
                     app.prefs.clearCache()
@@ -205,6 +229,7 @@ object Protection {
                 }.onFailure {
                     if (swapped) {
                         app.prefs.appLock = false
+                        runCatching { app.prefs.unsealAll() }
                         enabled.value = false
                         runCatching { vault.reset() }
                         if (app.dbState.value == null) runCatching { app.openDb(null) }

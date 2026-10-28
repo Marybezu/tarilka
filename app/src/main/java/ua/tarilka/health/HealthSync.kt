@@ -170,7 +170,7 @@ class HealthSync(private val context: Context) {
                 else -> MealType.MEAL_TYPE_SNACK
             },
         )
-        runCatching { c.insertRecords(listOf(rec)) }
+        runCatching { c.insertRecords(listOf(rec)) }.onSuccess { markWrote() }
     }
 
     suspend fun deleteMeal(e: DiaryEntry) {
@@ -193,7 +193,7 @@ class HealthSync(private val context: Context) {
                     ),
                 ),
             )
-        }
+        }.onSuccess { markWrote() }
     }
 
     suspend fun deleteFluid(f: FluidEntry) {
@@ -217,10 +217,15 @@ class HealthSync(private val context: Context) {
             c.insertRecords(
                 listOf(WeightRecord(t, zone.rules.getOffset(t), Mass.kilograms(w.kg), Metadata.manualEntry(clientRecordId = "weight-${w.day}"))),
             )
-        }
+        }.onSuccess { markWrote() }
     }
 
-    /** Removes every record this app wrote (Health Connect limits the delete to our own records). */
+    /** Whether Tarilka ever wrote a record (so a missing permission later still leaves records behind). */
+    private fun markWrote() {
+        val sp = context.getSharedPreferences("tarilka", Context.MODE_PRIVATE)
+        if (!sp.getBoolean("hcWrote", false)) sp.edit().putBoolean("hcWrote", true).apply()
+    }
+
     /**
      * Deletes this app's own food, fluid and weight records (Health Connect lets an app delete only its own).
      * Each type needs its write permission; returns false if any type could not be deleted.
@@ -230,8 +235,10 @@ class HealthSync(private val context: Context) {
         val have = granted()
         val range = TimeRangeFilter.before(Instant.now().plusSeconds(2 * 86_400))
         val types = listOf(NutritionRecord::class, HydrationRecord::class, WeightRecord::class)
-        // No write permission at all: the app never wrote anything, so there is nothing to delete.
-        if (types.none { HealthPermission.getWritePermission(it) in have }) return true
+        // No write permission now: nothing to delete only if Tarilka never wrote anything.
+        if (types.none { HealthPermission.getWritePermission(it) in have }) {
+            return !context.getSharedPreferences("tarilka", Context.MODE_PRIVATE).getBoolean("hcWrote", false)
+        }
         var ok = true
         types.forEach { type ->
             if (HealthPermission.getWritePermission(type) !in have) { ok = false; return@forEach }

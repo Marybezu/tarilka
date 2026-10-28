@@ -24,7 +24,7 @@ import ua.tarilka.R
 
 /** Shown once at the very first start: what the app does, that everything stays on the phone, what is optional. */
 @Composable
-fun IntroDialog(onDone: () -> Unit) {
+fun IntroDialog(onDone: (under18: Boolean) -> Unit) {
     var page by rememberSaveable { mutableIntStateOf(0) }
     val pages = listOf(R.string.intro_1_title to R.string.intro_1, R.string.intro_2_title to R.string.intro_2, R.string.intro_3_title to R.string.intro_3)
     val (title, text) = pages[page]
@@ -37,14 +37,16 @@ fun IntroDialog(onDone: () -> Unit) {
                 Text("${page + 1} / ${pages.size}", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         },
+        // The last page asks one thing: under 18 or not, so a teenager never sees calories, not even before the profile.
         confirmButton = {
-            TextButton(onClick = { if (page < pages.lastIndex) page++ else onDone() }) {
-                Text(stringResource(if (page < pages.lastIndex) R.string.next else R.string.intro_start))
+            TextButton(onClick = { if (page < pages.lastIndex) page++ else onDone(false) }) {
+                Text(stringResource(if (page < pages.lastIndex) R.string.next else R.string.intro_adult))
             }
         },
-        dismissButton = if (page < pages.lastIndex) {
-            { TextButton(onClick = onDone) { Text(stringResource(R.string.skip)) } }
-        } else null,
+        dismissButton = {
+            if (page < pages.lastIndex) TextButton(onClick = { page = pages.lastIndex }) { Text(stringResource(R.string.skip)) }
+            else TextButton(onClick = { onDone(true) }) { Text(stringResource(R.string.intro_under18)) }
+        },
     )
 }
 

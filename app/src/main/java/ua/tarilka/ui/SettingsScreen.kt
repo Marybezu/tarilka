@@ -89,7 +89,7 @@ fun SettingsScreen(vm: MainViewModel, ai: AiViewModel, padding: PaddingValues) {
         }
         item { ActivitySection(vm) }
         item { SelfSection(vm) }
-        item { RemindersSection() }
+        item { RemindersSection(vm) }
         item { ModelSection(ai) }
         item { MissingSection(vm) }
         item { DataSection(vm) }
@@ -324,7 +324,7 @@ private fun ActivitySection(vm: MainViewModel) {
 
 /** Optional reminders; each one asks for the notification permission only when switched on. */
 @Composable
-private fun RemindersSection() {
+private fun RemindersSection(vm: MainViewModel) {
     val context = androidx.compose.ui.platform.LocalContext.current
     val prefs = (context.applicationContext as ua.tarilka.TarilkaApp).prefs
     var meals by remember { mutableStateOf((0..2).map { prefs.mealReminder(it) }) }
@@ -382,7 +382,7 @@ private fun RemindersSection() {
                         FilterChip(
                             selected = before == n,
                             onClick = {
-                                fun set() { prefs.cycleRemindDays = n; before = n; apply() }
+                                fun set() { prefs.cycleRemindDays = n; before = n; vm.syncCycleNext(); apply() }
                                 if (n > 0) whenAllowed(::set) else set()
                             },
                             label = { Text(if (n < 0) stringResource(R.string.off) else stringResource(R.string.days_before, n)) },
@@ -390,7 +390,7 @@ private fun RemindersSection() {
                     }
                 }
                 SwitchRow(stringResource(R.string.remind_cycle_late_title), stringResource(R.string.remind_cycle_late_hint), late) { on ->
-                    fun set(v: Boolean) { prefs.cycleLateRemind = v; late = v; apply() }
+                    fun set(v: Boolean) { prefs.cycleLateRemind = v; late = v; vm.syncCycleNext(); apply() }
                     if (on) whenAllowed { set(true) } else set(false)
                 }
             }
@@ -492,6 +492,7 @@ private fun DataSection(vm: MainViewModel) {
     val pending by vm.pendingImport.collectAsState()
     val encrypted by vm.encryptedImport.collectAsState()
     val wrong by vm.wrongPassword.collectAsState()
+    val activity = androidx.compose.ui.platform.LocalContext.current as androidx.fragment.app.FragmentActivity
     val date = java.time.LocalDate.now().toString()
     var askPassword by remember { mutableStateOf(false) }
     var password by remember { mutableStateOf("") }
@@ -525,12 +526,12 @@ private fun DataSection(vm: MainViewModel) {
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Text(stringResource(R.string.data_hint), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Button(onClick = { askPassword = true }) { Text(stringResource(R.string.export_backup)) }
+                Button(onClick = { Protection.confirm(activity) { askPassword = true } }) { Text(stringResource(R.string.export_backup)) }
                 OutlinedButton(onClick = { importJson.launch(arrayOf("application/json", "text/plain", "application/octet-stream")) }) {
                     Text(stringResource(R.string.import_backup))
                 }
-                OutlinedButton(onClick = { exportCsv.launch("tarilka-diary-$date.csv") }) { Text(stringResource(R.string.export_csv)) }
-                OutlinedButton(onClick = { pdfDialog = true }) { Text(stringResource(R.string.pdf_button)) }
+                OutlinedButton(onClick = { Protection.confirm(activity) { exportCsv.launch("tarilka-diary-$date.csv") } }) { Text(stringResource(R.string.export_csv)) }
+                OutlinedButton(onClick = { Protection.confirm(activity) { pdfDialog = true } }) { Text(stringResource(R.string.pdf_button)) }
             }
             FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 TextButton(onClick = { clearing = false }) {
@@ -567,11 +568,11 @@ private fun DataSection(vm: MainViewModel) {
                             Text(stringResource(R.string.clear_hc), style = MaterialTheme.typography.bodyMedium)
                         }
                     }
-                    TextButton(onClick = { clearing = null; askPassword = true }) { Text(stringResource(R.string.export_first)) }
+                    TextButton(onClick = { clearing = null; Protection.confirm(activity) { askPassword = true } }) { Text(stringResource(R.string.export_first)) }
                 }
             },
             confirmButton = {
-                TextButton(onClick = { vm.clearData(everything, alsoHc && vm.healthAvailable); clearing = null }) {
+                TextButton(onClick = { val e = everything; val hc = alsoHc && vm.healthAvailable; clearing = null; Protection.confirm(activity) { vm.clearData(e, hc) } }) {
                     Text(stringResource(R.string.delete), color = MaterialTheme.colorScheme.error)
                 }
             },
@@ -580,6 +581,8 @@ private fun DataSection(vm: MainViewModel) {
     }
     if (askPassword) {
         var repeat by remember { mutableStateOf("") }
+        // A password is the default; saving without one is a deliberate choice.
+        var plain by remember { mutableStateOf(false) }
         androidx.compose.material3.AlertDialog(
             onDismissRequest = { askPassword = false },
             title = { Text(stringResource(R.string.export_backup)) },
@@ -590,17 +593,33 @@ private fun DataSection(vm: MainViewModel) {
                     if (vm.cycleEnabled.collectAsState().value) {
                         Text(stringResource(R.string.password_cycle), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.tertiary)
                     }
-                    PasswordField(stringResource(R.string.password), password) { password = it }
-                    if (password.isNotEmpty()) PasswordField(stringResource(R.string.password_repeat), repeat) { repeat = it }
-                    if (password.isNotEmpty() && password.length < 8) Text(stringResource(R.string.password_short), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.tertiary)
+                    if (!plain) {
+                        PasswordField(stringResource(R.string.password), password) { password = it }
+                        PasswordField(stringResource(R.string.password_repeat), repeat) { repeat = it }
+                        if (password.isNotEmpty() && password.length < 8) {
+                            Text(stringResource(R.string.password_short), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.tertiary)
+                        } else if (password.isNotEmpty()) {
+                            val strength = passwordStrength(password)
+                            Text(
+                                androidx.compose.ui.res.stringArrayResource(R.array.password_strength)[strength],
+                                style = MaterialTheme.typography.bodySmall,
+                                color = levelColor(listOf(ua.tarilka.data.Habits.Level.WATCH, ua.tarilka.data.Habits.Level.OK, ua.tarilka.data.Habits.Level.GOOD)[strength]),
+                            )
+                        }
+                    } else {
+                        Text(stringResource(R.string.export_plain_warning), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.tertiary)
+                    }
+                    TextButton(onClick = { plain = !plain; password = ""; repeat = "" }) {
+                        Text(stringResource(if (plain) R.string.export_use_password else R.string.export_without_password))
+                    }
                 }
             },
             confirmButton = {
-                TextButton(enabled = password.isEmpty() || (password.length >= 8 && password == repeat), onClick = {
+                TextButton(enabled = plain || (password.length >= 8 && password == repeat), onClick = {
                     askPassword = false
-                    vm.exportPassword = password
+                    vm.exportPassword = if (plain) "" else password
                     exportJson.launch("tarilka-$date.json")
-                }) { Text(stringResource(if (password.isEmpty()) R.string.export_plain else R.string.export_encrypted)) }
+                }) { Text(stringResource(if (plain) R.string.export_plain else R.string.export_encrypted)) }
             },
             dismissButton = { TextButton(onClick = { askPassword = false; password = "" }) { Text(stringResource(R.string.cancel)) } },
         )
@@ -623,13 +642,19 @@ private fun DataSection(vm: MainViewModel) {
             },
         )
     }
-    pending?.let { (_, s) ->
+    // Hidden while "save the current data first" is open; the file waits in the view model.
+    pending?.takeIf { !askPassword }?.let { (_, s) ->
         androidx.compose.material3.AlertDialog(
             onDismissRequest = { vm.pendingImport.value = null },
             title = { Text(stringResource(R.string.import_title)) },
-            text = { Text(stringResource(R.string.import_confirm, s.diary, s.fluids, s.weights, s.foods)) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(stringResource(R.string.import_confirm, s.diary, s.fluids, s.weights, s.foods))
+                    TextButton(onClick = { askPassword = true }) { Text(stringResource(R.string.import_save_first)) }
+                }
+            },
             confirmButton = {
-                TextButton(onClick = vm::confirmImport) {
+                TextButton(onClick = { Protection.confirm(activity) { vm.confirmImport() } }) {
                     Text(stringResource(R.string.import_replace), color = MaterialTheme.colorScheme.error)
                 }
             },
@@ -829,3 +854,18 @@ data class PdfRequest(
     val parts: Set<ReportPart>,
     val profile: Boolean,
 ) : java.io.Serializable
+
+/**
+ * A rough guide to how hard a backup password is to guess offline: 0 weak, 1 fair, 2 strong.
+ * Length matters most; several unrelated words are the easiest strong password to remember.
+ */
+internal fun passwordStrength(p: String): Int {
+    val kinds = listOf(p.any { it.isLowerCase() }, p.any { it.isUpperCase() }, p.any { it.isDigit() }, p.any { !it.isLetterOrDigit() }).count { it }
+    val words = p.trim().split(Regex("[\\s\\-_.]+")).count { it.length >= 3 }
+    return when {
+        p.length >= 16 || (words >= 4 && p.length >= 14) -> 2
+        p.length >= 12 && kinds >= 3 -> 2
+        p.length >= 10 && kinds >= 2 -> 1
+        else -> 0
+    }
+}

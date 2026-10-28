@@ -29,6 +29,8 @@ data class PeriodDay(
  *   period) and is not shown for irregular cycles. Not contraception, not a fertility plan.
  */
 data class CycleInfo(
+    /** Under 18: 21–45 days count as normal. */
+    val teen: Boolean = false,
     val lastStart: Long?,
     /** Valid cycle lengths, oldest first. */
     val lengths: List<Int>,
@@ -75,6 +77,7 @@ data class CycleInfo(
             fun periodDays(p: PeriodEntry) = (p.start..(p.end ?: minOf(p.start + 9, today))).mapNotNull { byDay[it] }
             val lastTwo = sorted.takeLast(2)
             return CycleInfo(
+                teen = teen,
                 lastStart = last?.start,
                 lengths = lengths,
                 avgLength = avg,

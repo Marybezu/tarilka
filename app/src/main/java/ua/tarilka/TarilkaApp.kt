@@ -114,6 +114,8 @@ class TarilkaApp : Application() {
                 throw e
             }
         }
+        // Personal settings open with the diary (protection on); before the screens can read them.
+        if (rawKey != null) prefs.onUnlocked(rawKey)
         val published = synchronized(gate) {
             if (rawKey != null && lockGen.get() != gen) {
                 false
@@ -124,6 +126,7 @@ class TarilkaApp : Application() {
             }
         }
         if (!published) {
+            if (rawKey != null) prefs.onLocked()
             d.close()
             rawKey?.fill(0)
             return
@@ -190,6 +193,7 @@ class TarilkaApp : Application() {
             lockGen.incrementAndGet()
             closeDb()
         }
+        prefs.onLocked()
         // A photo taken just before must not stay unencrypted in the cache.
         runCatching { ua.tarilka.ai.PhotoUtil.clear(this) }
     }

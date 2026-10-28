@@ -235,7 +235,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
 
     val cycle: StateFlow<ua.tarilka.data.CycleInfo?> = combine(
         prefs.cycleEnabled, allPeriods, db.cycle().days(), today,
-        combine(prefs.cycleTypical, prefs.profile) { typical, p -> typical to (p.isSet && p.age < 18) },
+        combine(prefs.cycleTypical, prefs.profile) { typical, p -> typical to (p.age < 18) },
     ) { on, periods, days, t, (typical, teen) ->
         if (!on) null else ua.tarilka.data.CycleInfo.of(periods, days, t.toEpochDay(), typical.takeIf { it > 0 }, teen = teen)
     }.onEach { info ->
@@ -250,6 +250,9 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
             }
         }
     }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    /** The expected start for the cycle reminders, stored only while one of them is on (see Prefs.cycleNext). */
+    fun syncCycleNext() { prefs.cycleNext = cycle.value?.nextStart ?: -1 }
 
     val periodDays: StateFlow<List<ua.tarilka.data.PeriodDay>> = db.cycle().days()
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
@@ -669,6 +672,9 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
 
     // ---- habits and summaries ----
 
+    /** Under 18 (from the profile): teen norms for sleep and movement. */
+    private fun isTeen() = prefs.profile.value.age < 18
+
     /** Reviewed food groups of the built-in foods (for habits and advice). */
     private val groups by lazy { ua.tarilka.data.FoodGroups.load(getApplication()) }
 
@@ -692,7 +698,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         val prev = (end - 13)..(end - 7)
         fun of(r: LongRange) = Habits.of(
             list.filter { it.day in r }, foods, groups, 7, sleep = sleepMap.filterKeys { it in r },
-            bowel = bowel.filter { it.day in r }, workouts = workouts.filter { it.day in r }, withTimes = times,
+            bowel = bowel.filter { it.day in r }, workouts = workouts.filter { it.day in r }, withTimes = times, teen = isTeen(),
         )
         of(cur).copy(prev = of(prev)).takeIf { it.days >= ua.tarilka.data.Habits.MIN_DAYS }
     }
@@ -781,7 +787,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
             var h = Habits.of(
                 r.flatMap { diaryByDay[it].orEmpty() }, foods, groups, n,
                 sleep = r.mapNotNull { d -> sleep[d]?.let { d to it } }.toMap(), bowel = r.mapNotNull { bowelByDay[it] },
-                workouts = wo, withTimes = withTimes,
+                workouts = wo, withTimes = withTimes, teen = isTeen(),
             )
             activityFrom?.let { start ->
                 val tracked = (r.last - maxOf(r.first, start) + 1).toInt()
@@ -921,8 +927,8 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         val sleepAll = sleepRange(prevFrom, end)
         val bowelAll = db.bowel().range(prevFrom.toEpochDay(), end.toEpochDay()).partition { it.day >= from.toEpochDay() }
         val workAll = db.workouts().range(prevFrom.toEpochDay(), end.toEpochDay()).partition { it.day >= from.toEpochDay() }
-        val h = Habits.of(cur, foods, groups, period.days, sleep = sleepAll.filterKeys { it >= from.toEpochDay() }, bowel = bowelAll.first, workouts = workAll.first, withTimes = prefs.mealTimes.value)
-        val hp = Habits.of(prev, foods, groups, period.days, sleep = sleepAll.filterKeys { it < from.toEpochDay() }, bowel = bowelAll.second, workouts = workAll.second, withTimes = prefs.mealTimes.value)
+        val h = Habits.of(cur, foods, groups, period.days, sleep = sleepAll.filterKeys { it >= from.toEpochDay() }, bowel = bowelAll.first, workouts = workAll.first, withTimes = prefs.mealTimes.value, teen = isTeen())
+        val hp = Habits.of(prev, foods, groups, period.days, sleep = sleepAll.filterKeys { it < from.toEpochDay() }, bowel = bowelAll.second, workouts = workAll.second, withTimes = prefs.mealTimes.value, teen = isTeen())
         // Water entries plus drinks logged as food, as on the Today screen.
         val fluidsByDay = (
             db.fluids().totalsOnce(prevFrom.toEpochDay(), end.toEpochDay()) +

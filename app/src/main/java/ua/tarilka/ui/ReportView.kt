@@ -191,7 +191,7 @@ private fun metricValueOnly(c: android.content.Context, m: Metric, v: Double, t:
         Key.SWEETS, Key.LATE -> c.getString(R.string.mv_pct_kcal, v.f0())
         Key.SLEEP -> c.getString(R.string.mv_sleep, v.f1())
         Key.STEPS -> c.getString(R.string.mv_of, v.f0(), t.f0())
-        Key.ACTIVITY -> c.getString(R.string.mv_activity, v.f0())
+        Key.ACTIVITY -> c.getString(R.string.mv_activity, v.f0(), t.f0())
         Key.ALCOHOL -> c.getString(R.string.per_week, v.f1())
         Key.FASTFOOD -> c.getString(R.string.mv_days_week, v.f1())
         Key.REASONS -> c.getString(R.string.mv_reasons, v.f0())

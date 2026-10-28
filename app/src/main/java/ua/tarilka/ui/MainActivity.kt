@@ -51,7 +51,7 @@ class MainActivity : AppCompatActivity() {
             val profile by prefs.profile.collectAsState()
             LaunchedEffect(protectedOn, noShots) { Protection.applyRecents(this@MainActivity) }
             TarilkaTheme(dynamicColor = dynamic) {
-                androidx.compose.runtime.CompositionLocalProvider(LocalShowKcal provides !(profile.isSet && profile.age < 18)) {
+                androidx.compose.runtime.CompositionLocalProvider(LocalShowKcal provides (profile.age >= 18)) {
                 if (db == null) {
                     // Locked (or being converted): the screens' view models go, they held the closed database.
                     LaunchedEffect(Unit) { viewModelStore.clear() }
@@ -125,7 +125,7 @@ private fun AppRoot() {
     val context = androidx.compose.ui.platform.LocalContext.current
     val app = context.applicationContext as ua.tarilka.TarilkaApp
     var intro by remember { mutableStateOf(!app.prefs.introShown) }
-    if (intro) IntroDialog { app.prefs.introShown = true; intro = false } else CrashDialog()
+    if (intro) IntroDialog { under18 -> app.prefs.setUnder18(under18); app.prefs.introShown = true; intro = false } else CrashDialog()
     var tab by rememberSaveable { mutableIntStateOf(0) }
     val stack = nav.stack
     fun push(o: Overlay) { stack.add(o) }

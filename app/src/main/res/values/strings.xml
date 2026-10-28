@@ -181,7 +181,7 @@
     <string name="export_done">Saved.</string>
     <string name="data_error">Error: %1$s</string>
     <string name="import_title">Restore from backup?</string>
-    <string name="import_confirm">The file has %1$d food entries, %2$d drinks, %3$d weigh-ins and %4$d own foods. Your current diary, drinks, weight and own foods will be replaced.</string>
+    <string name="import_confirm">In the file: %1$d food entries, %2$d drinks, %3$d weigh-ins, %4$d own foods. Everything current will be replaced: diary, sleep, cycle, bowel, workouts, waist, notes, own foods, favourites and profile.</string>
     <string name="import_replace">Replace</string>
     <string name="import_done">Restored: %1$d food entries, %2$d weigh-ins.</string>
     <string name="ai_steps">1. Tap Download model: your browser downloads %1$s (about 2.6 GB, Wi-Fi recommended). It is Google\'s Gemma 4 E2B; it runs on most phones with 6 GB of memory or more.\n2. Come back and tap Choose model file. The app has no internet access, so this is the only way in.</string>
@@ -191,7 +191,7 @@
     <string name="ai_original_kept">The downloaded file could not be deleted from there; you can delete it in Files.</string>
     <string name="password">Password</string>
     <string name="password_repeat">Repeat password</string>
-    <string name="password_hint">Optional. With a password the file is encrypted (AES-256) and can only be restored with it. There is no way to recover a forgotten password.</string>
+    <string name="password_hint">The file is encrypted with the password (AES-256) and can be restored only with it. A forgotten password cannot be recovered. Several random words are the strongest and easiest to remember.</string>
     <string name="password_enter">This backup is encrypted. Enter its password.</string>
     <string name="password_wrong">Wrong password.</string>
     <string name="unlock">Open</string>
@@ -216,7 +216,7 @@
     <string name="steps_from_sensor">phone sensor, since first opened today</string>
     <string name="portion_typical">Typical weight of one serving or piece. If you know the exact weight, type it in.</string>
     <string name="missing_title">Not found in the database</string>
-    <string name="missing_hint">Foods you searched for, or the AI saw in a photo, that are not in the database (times in brackets). Kept only on this phone. You can add any of them yourself: Foods → New food. To get them into the database for everyone, tap Send the list: the list is passed to a public GitHub page in your browser (it stays in the browser history), where you can edit it; it is published from your account only when you confirm.</string>
+    <string name="missing_hint">Foods you searched for, or the AI saw in a photo, that are not in the database (times in brackets). Kept only on this phone. You can add any of them yourself: Foods → New food. To get them into the database for everyone, tap Send the list: the list is passed to GitHub as the page opens and stays in the browser history; you can edit it there, and it is published from your account only when you confirm.</string>
     <string name="copy_list">Copy list</string>
     <string name="missing_empty">Empty for now. Searches in Add, or foods the AI saw in a photo, that are not in the database will appear here.</string>
     <string name="more">More</string>
@@ -227,8 +227,8 @@
     <string name="clear_done">Data deleted.</string>
     <string name="clear_diary">Clear diary</string>
     <string name="clear_all">Delete all personal data</string>
-    <string name="clear_diary_text">All food, fluid, weight, sleep, cycle, bowel, workout, note and Why I eat records will be deleted. Your foods, recipes, profile and the AI model stay. This cannot be undone.</string>
-    <string name="clear_all_text">The diary (food, fluids, weight, sleep, cycle, bowel, workouts, notes, Why I eat), your foods and recipes, favourites, profile, the photo portion correction, the phone-sensor step log and the Not found list will be deleted. Steps and sleep in Health Connect are not touched. The AI model and settings (language, theme, reminders) stay. This cannot be undone.</string>
+    <string name="clear_diary_text">All food, fluid, weight, waist, sleep, cycle, bowel, workout, note and Why I eat records will be deleted. Your foods, recipes, profile and the AI model stay. This cannot be undone.</string>
+    <string name="clear_all_text">The diary (food, fluids, weight, waist, sleep, cycle, bowel, workouts, notes, Why I eat), your foods and recipes, favourites, profile, the photo portion correction, the phone-sensor step log and the Not found list will be deleted. Steps and sleep in Health Connect are not touched. The AI model and settings (language, theme, reminders) stay. This cannot be undone.</string>
     <string name="clear_hc">Also delete the records Tarilka wrote to Health Connect</string>
     <string name="export_first">Make a backup first</string>
     <string name="copy">Copy</string>
@@ -344,7 +344,7 @@
     <string name="reasons_tips">What helps:\n• before eating, name what you feel: hunger, tiredness, sadness, boredom, stress?\n• a 10–15 minute pause: a walk, a call, a glass of water; the wave usually passes;\n• regular meals during the day, no strict restriction;\n• if you ate more than you meant to, no guilt: one evening does not cancel the week.</string>
     <string name="fastfood_tips">What helps:\n• keep a simple quick home option at hand;\n• when eating out, a smaller portion and no sugary drink;\n• add vegetables or a salad.</string>
     <string name="reminders_title">Reminders</string>
-    <string name="reminders_hint">All off; switch on only what you need. They come only when useful: if a meal is already logged, there is no reminder. Cycle reminders never show on the lock screen; the others show only Reminder if the phone is set to hide notification content on the lock screen. They are not sent to a watch.</string>
+    <string name="reminders_hint">All off; switch on only what you need. They come only when useful: if a meal is already logged, there is no reminder. Cycle reminders do not show on a screen locked with a PIN, password or fingerprint; the others show only Reminder there if the phone hides notification content. Tarilka asks for them not to be sent to a watch, but some watch and band apps ignore that.</string>
     <string name="remind_meal">Time to log %1$s.</string>
     <string name="remind_water">%1$s of %2$s L so far. Time for a glass of water.</string>
     <string name="remind_sleep">Time to wind down for sleep: dim the lights, put the phone away.</string>
@@ -365,7 +365,7 @@
     <string name="feedback">Send feedback</string>
     <string name="feedback_title">Feedback</string>
     <string name="feedback_body">Version: %1$s\n\nWhat happened or what you would like:\n\n</string>
-    <string name="feedback_hint">Opens the app\'s GitHub page (an account is needed). Issues there are public and show your account name. You see and can edit everything before sending; nothing from your diary is added.</string>
+    <string name="feedback_hint">The app\'s GitHub page opens (an account is needed). The feedback text is passed to it as the page opens and stays in the browser history; it is published only when you confirm, and shows your account name. Nothing from your diary is added.</string>
     <string name="send_list">Send the list</string>
     <string name="missing_issue_title">Not found in the database</string>
     <string name="missing_issue_body">Version: %1$s\n\nFoods that were not found (times in brackets):\n%2$s</string>
@@ -395,7 +395,7 @@
     <string name="workouts_title">Workouts</string>
     <string name="workouts_hint">A row on Today: what, how many minutes and how hard. The badge compares with the WHO recommendations.</string>
     <string name="workout_kcal_note">Calories are a rough estimate for information; they are not added to the day\'s food target, as fitness estimates usually run high.</string>
-    <string name="habit_activity">🏃 Activity: %1$s of 150 min/wk</string>
+    <string name="habit_activity">🏃 Activity: %1$s of %2$s min/wk</string>
     <string name="habit_activity_info">Workout minutes a week: moderate count as they are, vigorous double, light not counted. The WHO recommends adults 150–300 minutes of moderate activity a week and strength exercise on at least 2 days; under 18, at least 60 minutes of movement every day.</string>
     <string name="activity_noticed">Strength training: %1$s days/week.</string>
     <string name="activity_tips">What helps:\n• start with 10 minutes: they count too;\n• brisk walking is the easiest moderate activity;\n• strength twice a week: squats, wall push-ups, bands;\n• plan set days and times, like an appointment.</string>
@@ -557,7 +557,7 @@
     <string name="mv_pct_kcal">%1$s%% of calories</string>
     <string name="mv_sleep">%1$s h on average</string>
     <string name="mv_of">%1$s of %2$s</string>
-    <string name="mv_activity">%1$s of 150 min/wk</string>
+    <string name="mv_activity">%1$s of %2$s min/wk</string>
     <string name="mv_days_week">%1$s days/wk</string>
     <string name="mv_reasons">%1$s%% of meals</string>
     <string name="mv_weight">%1$s kg a week</string>
@@ -568,7 +568,7 @@
     <string name="mi_weight">Weight change along the trend line, kg a week. Weight swings with water and the cycle, so the trend over several weeks matters, not single days. More than 1% of body weight a week is too fast.</string>
     <string name="protect_title">App protection</string>
     <string name="protect_switch">Encrypt the diary and open with fingerprint or PIN</string>
-    <string name="protect_hint">The diary (food, fluids, weight, sleep, cycle, notes) is encrypted with a key kept in the phone\'s secure hardware. Tarilka opens with your fingerprint or the phone PIN and locks when the screen turns off or after a minute in the background (up to 10 minutes while a file picker or the camera opened by Tarilka is on top). Not encrypted: the profile (including pregnancy), settings, daily steps, the expected next period date and a few of today\'s numbers (for reminders) and the Not found list. Entries in Health Connect are not covered.</string>
+    <string name="protect_hint">The diary (food, fluids, weight, sleep, cycle, notes), the profile (including pregnancy) and the Not found list are encrypted with a key kept in the phone\'s secure hardware. Tarilka opens with your fingerprint or the phone PIN, so anyone who knows the phone PIN can open Tarilka too. It locks when the screen turns off or after a minute in the background (up to 10 minutes while a file picker or the camera opened by Tarilka is on top). Export and deleting data ask for the fingerprint or PIN again. Not encrypted: settings, the step log, a few of today\'s numbers for reminders, and the expected cycle date if cycle reminders are on. Entries in Health Connect are not covered.</string>
     <string name="protect_on_title">Turn on protection?</string>
     <string name="protect_on_text">⚠ Important: if you ever remove the phone\'s screen lock completely (PIN and fingerprint), Android destroys the key and the diary can no longer be opened, only restored from a backup. Adding a new fingerprint does not reset the key.\n\nSo first make an encrypted backup: Options → Data → Export backup.\n\nEntries in Health Connect are not covered by this protection.</string>
     <string name="protect_on_confirm">Turn on</string>
@@ -651,13 +651,12 @@
     <string name="intro_1_title">Welcome to Tarilka</string>
     <string name="intro_1">Log food by search, as a typed list (\u201cbuckwheat 200 g, cutlet\u201d) or with a photo of your plate. Tarilka counts calories, protein, fibre and fluids and shows habits as coloured badges, without judgement.</string>
     <string name="intro_2_title">Everything stays on your phone</string>
-    <string name="intro_2">The app has no internet permission, no accounts and no ads. Nothing is sent anywhere. If you like, the diary can be encrypted and opened with your fingerprint, and a password-protected backup saved: Options → Data.</string>
+    <string name="intro_2">The app has no internet permission, no accounts and no ads. Tarilka itself sends nothing; if you turn on Health Connect, apps you allow there can see those records. If you like, the diary can be encrypted and opened with your fingerprint (Options → App protection), and a backup saved with a password (Options → Data).</string>
     <string name="intro_3_title">The rest is optional</string>
-    <string name="intro_3">Sleep, cycle, workouts, bowel, Why I eat, reminders and on-device AI can be turned on in Options whenever you want. Start with the profile: height, weight and goal, and Tarilka works out your targets.</string>
-    <string name="intro_start">Start</string>
+    <string name="intro_3">Sleep, cycle, workouts, bowel, Why I eat, reminders and on-device AI can be turned on in Options whenever you want. Start with the profile: height, weight and goal, and Tarilka works out your targets. One question to finish: are you 18 or older? Under 18 Tarilka shows no calories.</string>
     <string name="next">Next</string>
     <string name="crash_title">Tarilka closed with an error last time</string>
-    <string name="crash_text">You can send a technical description of the error to help fix it. It contains no diary entries, only the error\'s name and places in the code. The text is passed to a public GitHub page in your browser (it stays in the browser history), where you can edit it; it is published only when you confirm there.</string>
+    <string name="crash_text">You can send a technical description of the error to help fix it. It holds only the error\'s name, places in the code and the Tarilka and Android versions, no diary entries. The text is passed to a public GitHub page as it opens and stays in the browser history; you can edit it there, and it is published only when you confirm.</string>
     <string name="crash_send">Send</string>
     <string name="crash_no">No, thanks</string>
     <string name="crash_issue_title">App error</string>
@@ -713,4 +712,16 @@
     <string name="ring_protein">of %1$s g protein</string>
     <string name="pdf_bars_hint">Each bar is the daily average of its stretch; the dashed line is the target.</string>
     <string name="no_camera">There is no camera app on this phone. You can choose a photo from the gallery.</string>
+    <string name="export_plain_warning">Without a password anyone who gets the file can read the whole diary.</string>
+    <string name="export_without_password">Save without a password…</string>
+    <string name="export_use_password">Protect with a password</string>
+    <string-array name="password_strength">
+        <item>Weak password: it can be guessed. Make it longer or use several words.</item>
+        <item>Fair password. A longer one would be safer.</item>
+        <item>Strong password.</item>
+    </string-array>
+    <string name="import_save_first">Save the current data first</string>
+    <string name="intro_adult">I am 18 or older</string>
+    <string name="intro_under18">I am under 18</string>
+    <string name="cycle_flag_length_teen">cycle length outside 21–45 days (the usual range under 18).</string>
 </resources>

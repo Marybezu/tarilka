@@ -23,8 +23,85 @@ data class Profile(
     val pregnant: Boolean = false,
 )
 
+/** Values that are personal health data: encrypted with the diary while app protection is on (see [Prefs.sealed]). */
+private val PERSONAL_KEYS = listOf("sex", "age", "height", "weight", "activity", "goal", "customKcal", "profileSet", "pregnant", "cycleTypical", "missing", "under18")
+
 class Prefs(context: Context) {
     private val sp = context.getSharedPreferences("tarilka", Context.MODE_PRIVATE)
+
+    /**
+     * Personal values ([PERSONAL_KEYS]: profile incl. pregnancy, usual cycle length, the not-found list) live in
+     * [sealed] while app protection is on, encrypted with the diary's key, and only in the plain settings when it is off.
+     */
+    val sealed = ua.tarilka.security.Sealed(context)
+
+    private fun personal(key: String): Any? =
+        if (appLock) sealed.snapshot()?.opt(key)?.takeIf { it != org.json.JSONObject.NULL } else sp.all[key]
+
+    private fun putPersonal(values: Map<String, Any?>) {
+        if (appLock) {
+            sealed.write { d -> values.forEach { (k, v) -> if (v == null) d.remove(k) else d.put(k, v) } }
+        } else {
+            sp.edit().apply {
+                values.forEach { (k, v) ->
+                    when (v) {
+                        null -> remove(k)
+                        is String -> putString(k, v)
+                        is Int -> putInt(k, v)
+                        is Double -> putFloat(k, v.toFloat())
+                        is Boolean -> putBoolean(k, v)
+                    }
+                }
+            }.apply()
+        }
+    }
+
+    /**
+     * The diary opened with protection on: personal values move from the plain settings into [sealed]
+     * (first time, or left over) and are read again.
+     */
+    fun onUnlocked(rawKey: ByteArray) {
+        sealed.open(rawKey)
+        if (appLock) {
+            val plain = sp.all.filterKeys { it in PERSONAL_KEYS }
+            if (plain.isNotEmpty()) {
+                // Existing users keep "intro shown", which was inferred from the profile.
+                if (!sp.contains("introShown")) sp.edit().putBoolean("introShown", true).apply()
+                sealed.write { d -> plain.forEach { (k, v) -> d.put(k, if (v is Float) v.toDouble() else v) } }
+                sp.edit().apply { plain.keys.forEach { remove(it) } }.commit()
+            }
+        }
+        reloadPersonal()
+    }
+
+    /** The diary locked: personal values are closed again and leave memory. */
+    fun onLocked() {
+        sealed.close()
+        reloadPersonal()
+    }
+
+    /** Protection turned off: personal values go back to the plain settings. Call while still open. */
+    fun unsealAll() {
+        val d = sealed.snapshot() ?: return
+        sp.edit().apply {
+            d.keys().forEach { k ->
+                when (val v = d.get(k)) {
+                    is String -> putString(k, v)
+                    is Boolean -> putBoolean(k, v)
+                    is Int -> putInt(k, v)
+                    is Number -> if (k == "weight") putFloat(k, v.toFloat()) else putInt(k, v.toInt())
+                }
+            }
+        }.commit()
+        sealed.wipe()
+        reloadPersonal()
+    }
+
+    private fun reloadPersonal() {
+        _profile.value = loadProfile()
+        _missing.value = loadMissing()
+        _cycleTypical.value = (personal("cycleTypical") as? Number)?.toInt() ?: -1
+    }
 
     private val _noScreenshots = MutableStateFlow(sp.getBoolean("noScreenshots", false))
     /** No screenshots or screen recording of the app (also hides it in recent apps and screen sharing). */
@@ -121,10 +198,10 @@ class Prefs(context: Context) {
     val cycleEnabled: StateFlow<Boolean> = _cycleEnabled.asStateFlow()
     fun setCycleEnabled(on: Boolean) { sp.edit().putBoolean("cycleEnabled", on).apply(); _cycleEnabled.value = on }
 
-    private val _cycleTypical = MutableStateFlow(sp.getInt("cycleTypical", -1))
+    private val _cycleTypical = MutableStateFlow((personal("cycleTypical") as? Number)?.toInt() ?: -1)
     /** The usual cycle length the person gave at setup (days), or -1; used until 2 starts are recorded. */
     val cycleTypical: StateFlow<Int> = _cycleTypical.asStateFlow()
-    fun setCycleTypical(v: Int) { sp.edit().putInt("cycleTypical", v).apply(); _cycleTypical.value = v }
+    fun setCycleTypical(v: Int) { putPersonal(mapOf("cycleTypical" to v)); _cycleTypical.value = v }
 
     /** Remind this many days before the expected start (1–3), or -1 = off. */
     var cycleRemindDays: Int
@@ -137,7 +214,8 @@ class Prefs(context: Context) {
     /** Expected next start (epoch day) for the reminders, or -1; kept up to date by the app. */
     var cycleNext: Long
         get() = sp.getLong("cycleNext", -1)
-        set(v) = sp.edit().putLong("cycleNext", v).apply()
+        // Kept only while a cycle reminder needs it (reminders run while the diary is locked).
+        set(v) = sp.edit().apply { if (v > 0 && (cycleRemindDays > 0 || cycleLateRemind)) putLong("cycleNext", v) else remove("cycleNext") }.apply()
 
     /** When the "update your activity level?" hint was last dismissed (epoch day). */
     var activityHintDismissed: Long
@@ -241,22 +319,23 @@ class Prefs(context: Context) {
         m[q] = (m[q] ?: 0) + 1
         val trimmed = m.entries.sortedByDescending { it.value }.take(50).associate { it.key to it.value }
         _missing.value = trimmed
-        sp.edit().putString("missing", org.json.JSONObject(trimmed).toString()).apply()
+        putPersonal(mapOf("missing" to org.json.JSONObject(trimmed).toString()))
     }
 
     fun clearMissing() {
         _missing.value = emptyMap()
-        sp.edit().remove("missing").apply()
+        putPersonal(mapOf("missing" to null))
     }
 
     private fun loadMissing(): Map<String, Int> = runCatching {
-        val o = org.json.JSONObject(sp.getString("missing", null) ?: return emptyMap())
+        val o = org.json.JSONObject(personal("missing") as? String ?: return emptyMap())
         o.keys().asSequence().associateWith { o.getInt(it) }
     }.getOrDefault(emptyMap())
 
     /** Forget the profile and the not-found list; app settings stay. */
     fun clearPersonal() {
-        sp.edit().apply { (PROFILE_KEYS + STEP_KEYS).forEach { remove(it) } }.remove("missing").remove("gramsRatios").apply()
+        sp.edit().apply { (PERSONAL_KEYS + STEP_KEYS).forEach { remove(it) } }.remove("gramsRatios").apply()
+        sealed.write { d -> PERSONAL_KEYS.forEach { d.remove(it) } }
         clearCache()
         _profile.value = Profile()
         _missing.value = emptyMap()
@@ -265,37 +344,46 @@ class Prefs(context: Context) {
 
     /** Cycle settings that go with the cycle records (also cleared with the diary). */
     fun clearCycle() {
-        sp.edit().remove("cycleNext").remove("cycleTypical").apply()
+        sp.edit().remove("cycleNext").apply()
+        putPersonal(mapOf("cycleTypical" to null))
         _cycleTypical.value = -1
     }
-    private val STEP_KEYS = listOf("stepLog", "stepDay", "stepBase", "stepLast", "cycleNext", "cycleTypical")
-    private val PROFILE_KEYS = listOf("sex", "age", "height", "weight", "activity", "goal", "customKcal", "profileSet", "pregnant")
+    private val STEP_KEYS = listOf("stepLog", "stepDay", "stepBase", "stepLast", "cycleNext")
 
     private val _profile = MutableStateFlow(loadProfile())
     val profile: StateFlow<Profile> = _profile.asStateFlow()
 
+    /** Answer at the start, before the profile is filled in: under 18 means no calories from the first screen. */
+    fun setUnder18(under: Boolean) {
+        putPersonal(mapOf("under18" to under))
+        _profile.value = loadProfile()
+    }
+
     fun saveProfile(p: Profile) {
-        sp.edit()
-            .putString("sex", p.sex.name).putInt("age", p.age).putInt("height", p.heightCm)
-            .putFloat("weight", p.weightKg.toFloat()).putInt("activity", p.activity)
-            .putString("goal", p.goal.name).putInt("customKcal", p.customKcal ?: -1)
-            .putBoolean("profileSet", true).putBoolean("pregnant", p.pregnant)
-            .apply()
+        putPersonal(
+            mapOf(
+                "sex" to p.sex.name, "age" to p.age, "height" to p.heightCm, "weight" to p.weightKg,
+                "activity" to p.activity, "goal" to p.goal.name, "customKcal" to (p.customKcal ?: -1),
+                "profileSet" to true, "pregnant" to p.pregnant,
+            ),
+        )
         _profile.value = p.copy(isSet = true)
     }
 
     private fun loadProfile(): Profile {
-        if (!sp.contains("profileSet")) return Profile()
+        // Not filled in yet: a person who said at the start that they are under 18 is treated as 16 until then.
+        if (personal("profileSet") != true) return if (personal("under18") == true) Profile(age = 16) else Profile()
+        fun int(k: String, d: Int) = (personal(k) as? Number)?.toInt() ?: d
         return Profile(
-            sex = runCatching { Sex.valueOf(sp.getString("sex", null)!!) }.getOrDefault(Sex.FEMALE),
-            age = sp.getInt("age", 30),
-            heightCm = sp.getInt("height", 165),
-            weightKg = sp.getFloat("weight", 65f).toDouble(),
-            activity = sp.getInt("activity", 1),
-            goal = runCatching { Goal.valueOf(sp.getString("goal", null)!!) }.getOrDefault(Goal.MAINTAIN),
-            customKcal = sp.getInt("customKcal", -1).takeIf { it > 0 },
+            sex = runCatching { Sex.valueOf(personal("sex") as String) }.getOrDefault(Sex.FEMALE),
+            age = int("age", 30),
+            heightCm = int("height", 165),
+            weightKg = (personal("weight") as? Number)?.toDouble() ?: 65.0,
+            activity = int("activity", 1),
+            goal = runCatching { Goal.valueOf(personal("goal") as String) }.getOrDefault(Goal.MAINTAIN),
+            customKcal = int("customKcal", -1).takeIf { it > 0 },
             isSet = true,
-            pregnant = sp.getBoolean("pregnant", false),
+            pregnant = personal("pregnant") == true,
         )
     }
 }

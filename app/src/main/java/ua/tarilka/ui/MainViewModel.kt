@@ -122,6 +122,9 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     val stepsFromHc = MutableStateFlow(false)
 
     val healthAvailable: Boolean get() = health.available
+    val healthInstallable: Boolean get() = health.installable
+    /** At least one kind of record may still be written to Health Connect. */
+    suspend fun healthWriteAllowed(): Boolean = health.granted().any { it in ua.tarilka.health.HealthSync.WRITE }
     val stepSensorPresent: Boolean get() = stepSensor.present
 
     val tips: StateFlow<List<Tip>> = combine(

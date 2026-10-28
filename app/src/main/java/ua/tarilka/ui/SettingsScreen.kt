@@ -284,6 +284,11 @@ private fun ActivitySection(vm: MainViewModel) {
     val stepsOn by vm.stepsEnabled.collectAsState()
     val syncOn by vm.healthSync.collectAsState()
     val hcAvailable = vm.healthAvailable
+    val context = androidx.compose.ui.platform.LocalContext.current
+    var hcNote by remember { mutableStateOf<Int?>(null) }
+    var syncAsked by remember { mutableStateOf(false) }
+    // Sync on, but the permissions were taken back in Health Connect: say so instead of failing quietly.
+    LaunchedEffect(syncOn) { if (syncOn && !vm.healthWriteAllowed()) hcNote = R.string.hc_none_granted }
     val sensorLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) {
         vm.refreshSteps()
     }
@@ -291,7 +296,16 @@ private fun ActivitySection(vm: MainViewModel) {
     val hcLauncher = rememberLauncherForActivityResult(
         androidx.health.connect.client.PermissionController.createRequestPermissionResultContract(),
     ) { granted ->
-        if (granted.containsAll(ua.tarilka.health.HealthSync.WRITE)) vm.setHealthSync(true)
+        // Sync is on when at least one kind may be written; each kind is written only with its own permission.
+        val writes = granted.intersect(ua.tarilka.health.HealthSync.WRITE)
+        if (syncAsked && writes.isNotEmpty()) vm.setHealthSync(true)
+        hcNote = when {
+            !syncAsked -> null
+            writes.isEmpty() -> R.string.hc_none_granted
+            writes.size < ua.tarilka.health.HealthSync.WRITE.size -> R.string.hc_some_granted
+            else -> null
+        }
+        syncAsked = false
         if (vm.stepsEnabled.value && vm.stepSensorPresent) {
             sensorLauncher.launch(android.Manifest.permission.ACTIVITY_RECOGNITION)
         } else {
@@ -312,11 +326,22 @@ private fun ActivitySection(vm: MainViewModel) {
             }
             if (hcAvailable) {
                 SwitchRow(stringResource(R.string.hc_sync), stringResource(R.string.hc_sync_hint), syncOn) { on ->
-                    if (on) hcLauncher.launch(ua.tarilka.health.HealthSync.WRITE + ua.tarilka.health.HealthSync.READ_STEPS)
-                    else vm.setHealthSync(false)
+                    if (on) { syncAsked = true; hcLauncher.launch(ua.tarilka.health.HealthSync.WRITE + ua.tarilka.health.HealthSync.READ_STEPS) }
+                    else { vm.setHealthSync(false); hcNote = null }
                 }
+                hcNote?.let { Text(stringResource(it), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.tertiary) }
             } else {
                 Text(stringResource(R.string.hc_unavailable), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                if (vm.healthInstallable) {
+                    TextButton(onClick = {
+                        runCatching {
+                            context.startActivity(
+                                android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse("market://details?id=com.google.android.apps.healthdata"))
+                                    .addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK),
+                            )
+                        }
+                    }) { Text(stringResource(R.string.hc_install)) }
+                }
             }
         }
     }

@@ -38,6 +38,9 @@ class MainActivity : AppCompatActivity() {
     /** The fingerprint / PIN prompt opens by itself once per lock, not again after Cancel. */
     private var promptedGen = -1L
 
+    private val healthRationale: Boolean
+        get() = intent?.action in setOf("androidx.health.ACTION_SHOW_PERMISSIONS_RATIONALE", "android.intent.action.VIEW_PERMISSION_USAGE")
+
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
@@ -51,6 +54,16 @@ class MainActivity : AppCompatActivity() {
             val profile by prefs.profile.collectAsState()
             LaunchedEffect(protectedOn, noShots) { Protection.applyRecents(this@MainActivity) }
             TarilkaTheme(dynamicColor = dynamic) {
+                // Opened by Health Connect to explain why Tarilka asks for access: only the explanation, no diary.
+                if (healthRationale) {
+                    androidx.compose.material3.AlertDialog(
+                        onDismissRequest = { finish() },
+                        title = { androidx.compose.material3.Text(stringResource(R.string.hc_privacy_title)) },
+                        text = { androidx.compose.material3.Text(stringResource(R.string.hc_privacy)) },
+                        confirmButton = { androidx.compose.material3.TextButton(onClick = { finish() }) { androidx.compose.material3.Text(stringResource(R.string.close)) } },
+                    )
+                    return@TarilkaTheme
+                }
                 androidx.compose.runtime.CompositionLocalProvider(LocalShowKcal provides (profile.age >= 18)) {
                 if (db == null) {
                     // Locked (or being converted): the screens' view models go, they held the closed database.

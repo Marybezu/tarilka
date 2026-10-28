@@ -724,4 +724,9 @@
     <string name="intro_adult">Мені вже є 18</string>
     <string name="intro_under18">Мені ще немає 18</string>
     <string name="cycle_flag_length_teen">тривалість циклу поза межами 21–45 днів (звичних до 18 років).</string>
+    <string name="hc_none_granted">Health Connect не дозволив записувати дані Тарілки. Дозволи можна змінити в Health Connect → Застосунки → Тарілка.</string>
+    <string name="hc_some_granted">Дозволено лише частину: записуватиметься тільки те, що ви дозволили (їжа, напої чи вага).</string>
+    <string name="hc_install">Встановити Health Connect</string>
+    <string name="hc_privacy_title">Тарілка і Health Connect</string>
+    <string name="hc_privacy">Тарілка не має доступу до інтернету й нікуди не надсилає дані. З Health Connect вона лише читає кроки, сон і менструальний цикл (якщо ви це дозволили), щоб показати їх у щоденнику, і записує їжу, напої та вагу, якщо ввімкнено «Записувати в Health Connect». Записи в Health Connect бачать застосунки, яким ви дали там доступ. Будь-який дозвіл можна забрати в Health Connect → Застосунки → Тарілка.</string>
 </resources>

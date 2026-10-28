@@ -43,7 +43,15 @@ class HealthSync(private val context: Context) {
         runCatching { client?.permissionController?.getGrantedPermissions() }.getOrNull() ?: emptySet()
 
     suspend fun canReadSteps() = READ_STEPS in granted()
-    suspend fun canWrite() = granted().containsAll(WRITE)
+    /** Each kind is written when its own permission was given (a person may allow only some). */
+    private suspend fun canWrite(type: kotlin.reflect.KClass<out androidx.health.connect.client.records.Record>) =
+        HealthPermission.getWritePermission(type) in granted()
+
+    /** Health Connect is missing or needs an update (Android 12–13): it can be installed from the store. */
+    val installable: Boolean
+        get() = runCatching {
+            HealthConnectClient.getSdkStatus(context) == HealthConnectClient.SDK_UNAVAILABLE_PROVIDER_UPDATE_REQUIRED
+        }.getOrDefault(false)
 
     /** Steps for a calendar day, or null when unavailable. */
     suspend fun steps(day: LocalDate): Long? {
@@ -150,7 +158,7 @@ class HealthSync(private val context: Context) {
 
     suspend fun writeMeal(e: DiaryEntry) {
         val c = client ?: return
-        if (!canWrite()) return
+        if (!canWrite(NutritionRecord::class)) return
         val t = Instant.ofEpochMilli(e.createdAt)
         val off = ZoneId.systemDefault().rules.getOffset(t)
         val rec = NutritionRecord(
@@ -181,7 +189,7 @@ class HealthSync(private val context: Context) {
 
     suspend fun writeFluid(f: FluidEntry) {
         val c = client ?: return
-        if (!canWrite()) return
+        if (!canWrite(HydrationRecord::class)) return
         val t = Instant.ofEpochMilli(f.createdAt)
         val off = ZoneId.systemDefault().rules.getOffset(t)
         runCatching {
@@ -208,7 +216,7 @@ class HealthSync(private val context: Context) {
 
     suspend fun writeWeight(w: WeightEntry) {
         val c = client ?: return
-        if (!canWrite()) return
+        if (!canWrite(WeightRecord::class)) return
         val zone = ZoneId.systemDefault()
         val day = LocalDate.ofEpochDay(w.day)
         val t = w.minutes?.let { day.atTime(it / 60, it % 60).atZone(zone).toInstant() }

@@ -2,7 +2,7 @@
 
 Приватний офлайн-трекер харчування для Android. Українська та англійська. Безкоштовно, без реклами й акаунтів.
 
-> **Статус: тестова версія.** Відгуки й помилки: Опції → Про застосунок → «Написати відгук» або [Issues](../../issues).
+> Відгуки й помилки: Опції → Про застосунок → «Написати відгук» або [Issues](../../issues).
 
 ## Особливості
 
@@ -38,7 +38,7 @@ Kotlin · Jetpack Compose · Room · [LiteRT-LM](https://github.com/google-ai-ed
 
 A private, offline food tracker for Android. Ukrainian and English. Free, no ads, no accounts.
 
-> **Status: test version.** Feedback and bugs: Options → About → Send feedback, or [Issues](../../issues).
+> Feedback and bugs: Options → About → Send feedback, or [Issues](../../issues).
 
 ## Features
 

@@ -8,6 +8,8 @@ plugins {
 }
 
 val ciVersionCode = System.getenv("VERSION_CODE")?.toIntOrNull() ?: 1
+// The version people see (major.minor.patch), set by hand before each release in version.txt.
+val appVersion = rootProject.file("version.txt").readText().trim()
 
 android {
     namespace = "ua.tarilka"
@@ -18,7 +20,7 @@ android {
         minSdk = 31
         targetSdk = 36
         versionCode = ciVersionCode
-        versionName = "0.1.$ciVersionCode"
+        versionName = appVersion
     }
 
     buildTypes {

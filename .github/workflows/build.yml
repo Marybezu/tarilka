@@ -151,7 +151,7 @@ jobs:
           rm "$RUNNER_TEMP/p"
           mkdir -p out
           "$BT/zipalign" -P 16 -f 4 unsigned/app-release-unsigned.apk "$RUNNER_TEMP/aligned.apk"
-          OUT="out/tarilka-0.1.${{ github.run_number }}.apk"
+          OUT="out/tarilka-$(tr -d '[:space:]' < version.txt).apk"
           "$BT/apksigner" sign --ks "$RUNNER_TEMP/tarilka.jks" --ks-key-alias tarilka \
             --ks-pass env:STORE --key-pass env:STORE --out "$OUT" "$RUNNER_TEMP/aligned.apk"
           rm -f "$RUNNER_TEMP/tarilka.jks"
@@ -184,7 +184,9 @@ jobs:
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
-          sparse-checkout: .github/release-notes.md
+          sparse-checkout: |
+            .github/release-notes.md
+            version.txt
           sparse-checkout-cone-mode: false
           persist-credentials: false
       - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
@@ -195,6 +197,8 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release create "v0.1.${{ github.run_number }}" out/*.apk \
+          # The same version can be released only once: the tag already exists otherwise.
+          V="$(tr -d '[:space:]' < version.txt)"
+          gh release create "v$V" out/*.apk \
             --repo "${{ github.repository }}" --target "${{ github.sha }}" \
-            --title "Tarilka 0.1.${{ github.run_number }}" --notes-file .github/release-notes.md --latest
+            --title "Tarilka $V" --notes-file .github/release-notes.md --latest

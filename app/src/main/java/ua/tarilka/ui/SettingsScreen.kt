@@ -299,7 +299,16 @@ private fun ActivitySection(vm: MainViewModel) {
     LaunchedEffect(syncOn, resumes) {
         hcAvailable = vm.healthAvailable
         hcInstallable = vm.healthInstallable
-        if (syncOn && hcAvailable && !vm.healthWriteAllowed()) hcNote = R.string.hc_none_granted
+        if (syncOn && hcAvailable) {
+            val g = vm.healthWriteGranted()
+            hcNote = when {
+                g == 0 -> R.string.hc_none_granted
+                g < ua.tarilka.health.HealthSync.WRITE.size -> R.string.hc_some_granted
+                else -> null
+            }
+        } else if (!syncOn) {
+            hcNote = null
+        }
     }
     val sensorLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) {
         vm.refreshSteps()

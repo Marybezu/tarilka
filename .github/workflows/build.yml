@@ -20,6 +20,18 @@ jobs:
         with:
           persist-credentials: false
 
+      - name: Check version
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          V="$(tr -d '[:space:]' < version.txt)"
+          echo "$V" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$' || { echo "::error::version.txt must be major.minor.patch, got '$V'"; exit 1; }
+          # A push to main becomes a release: stop here, before any approval, if this version is already out.
+          if [ "${{ github.event_name }}" = push ] && [ "${{ github.ref }}" = refs/heads/main ] \
+             && gh api "repos/${{ github.repository }}/releases/tags/v$V" >/dev/null 2>&1; then
+            echo "::error::v$V is already released; raise version.txt first."; exit 1
+          fi
+
       - name: Check food database
         run: python3 scripts/check_foods.py
 

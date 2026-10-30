@@ -148,6 +148,9 @@ interface FluidDao {
     @Insert
     suspend fun insert(entry: FluidEntry): Long
 
+    @Query("SELECT * FROM fluids WHERE day = :day")
+    suspend fun onDay(day: Long): List<FluidEntry>
+
     @Query("SELECT COALESCE(SUM(ml), 0) FROM fluids WHERE day = :day")
     suspend fun mlOnce(day: Long): Double
 
@@ -332,7 +335,7 @@ object FluidRules {
     val ALCOHOL = Habits.ALCOHOL_G.keys.toList()
     val MILK_DRINKS = listOf(
         "d01", "d02", "d03", "d04", "d05", "d06", "d21", "d41", "d51", "d52", "d53", "d54", "d58", "d61",
-        "d63", "l15", "n20",
+        "d63", "d66", "d72", "l15", "n20",
     )
     /** Soups and borscht: about 80 % of their weight is water. */
     val SOUPS = listOf("u01", "u02", "u03", "u04", "u05", "u06", "u07", "u32", "u33", "u34", "u35", "u36", "u37", "u73", "u74", "u86", "u87")

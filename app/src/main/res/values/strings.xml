@@ -224,6 +224,9 @@
     <string name="delete_fluids_day">Delete all fluids for the day</string>
     <string name="deleted_n">Deleted: %1$d</string>
     <string name="undo">Undo</string>
+    <string name="delete_day">Delete day</string>
+    <string name="delete_day_title">Delete %1$s?</string>
+    <string name="delete_day_text">Everything logged on this day goes: food, drinks, the note, sleep, bowel, workouts, weight and waist. Cycle dates stay. Right after deleting you can tap Undo.</string>
     <string name="clear_done">Data deleted.</string>
     <string name="clear_diary">Clear diary</string>
     <string name="clear_all">Delete all personal data</string>

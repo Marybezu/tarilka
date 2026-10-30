@@ -224,6 +224,9 @@
     <string name="delete_fluids_day">Видалити всю рідину за день</string>
     <string name="deleted_n">Видалено: %1$d</string>
     <string name="undo">Повернути</string>
+    <string name="delete_day">Видалити день</string>
+    <string name="delete_day_title">Видалити %1$s?</string>
+    <string name="delete_day_text">Зникне все, записане за цей день: їжа, напої, нотатка, сон, кишківник, тренування, вага й талія. Дати циклу залишаться. Одразу після видалення можна натиснути «Повернути».</string>
     <string name="clear_done">Дані видалено.</string>
     <string name="clear_diary">Очистити щоденник</string>
     <string name="clear_all">Видалити всі особисті дані</string>

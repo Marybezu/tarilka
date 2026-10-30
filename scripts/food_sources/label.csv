@@ -86,3 +86,20 @@ c50;sweets;Цукерки желейні в шоколаді;Chocolate-covered j
 c51;sweets;Цукерки вафельні в шоколаді;Chocolate-covered wafer candies;510;5.3;27.5;60;0;0;15;шт;piece;LABEL;
 c52;sweets;Марципан у шоколаді;Chocolate-covered marzipan;515;9;29.5;52;3;0;15;шт;piece;LABEL;
 c45;sweets;Еклер із заварним кремом;Eclair with custard and chocolate glaze;262;6.4;15.7;24.2;0.6;0;60;шт;piece;LABEL;
+# Diet and light products: typical label values.
+d66;dairy;Кефір 0%;Kefir 0%;30;3.0;0.1;4.0;0;0;250;склянка;glass;LABEL;
+d67;dairy;Сир кисломолочний 2%;Cottage cheese (quark) 2%;103;18.0;2.0;3.3;0;0;150;порція;serving;LABEL;
+d68;dairy;Скир 0%;Skyr 0%;62;11.0;0.2;4.0;0;0;150;порція;serving;LABEL;
+d69;dairy;Сир зернистий 5%;Cottage cheese in cream 5%;101;12.0;5.0;2.0;0;0;150;порція;serving;LABEL;
+d70;dairy;Сир твердий легкий 17%;Light hard cheese 17%;265;28.0;17.0;0;0;0;30;скибка;slice;LABEL;
+d71;dairy;Пудинг протеїновий;Protein pudding;78;10.0;1.5;6.0;0;0;200;стаканчик;cup;LABEL;
+d72;dairy;Напій протеїновий молочний (готовий);Protein milk drink, ready to drink;53;8.0;1.0;3.0;0;0;330;пляшка;bottle;LABEL;
+b26;bread;Хлібці рисові;Rice cakes;380;8.0;3.0;78.0;4.0;0;8;шт;piece;LABEL;
+b27;bread;Хлібці гречані;Buckwheat crispbread;345;12.0;3.0;70.0;9.0;0;8;шт;piece;LABEL;
+b28;bread;Хлібці житні цільнозернові;Whole-grain rye crispbread;330;9.0;1.5;66.0;16.0;0;10;шт;piece;LABEL;
+b29;bread;Хліб з висівками;Bran bread;230;8.5;3.0;41.0;8.0;0;30;скибка;slice;LABEL;
+g40;grains;Локшина ширатаки (конжак);Shirataki (konjac) noodles;9;0;0;3.0;3.0;0;200;порція;serving;LABEL;
+g41;grains;Макарони із сочевиці сухі;Red lentil pasta, dry;340;25.0;1.8;50.0;11.0;0;80;порція;serving;LABEL;
+a21;sauces;Кетчуп без цукру;Ketchup, no added sugar;32;1.5;0.2;6.0;1.0;0;15;ложка;tbsp;LABEL;
+dr36;drinks;Газований напій без цукру;Sugar-free soft drink;1;0;0;0.2;0;0;330;банка;can;LABEL;
+c53;sweets;Желе без цукру (з підсолоджувачем);Sugar-free jelly (with sweetener);8;1.5;0;0.5;0;0;125;порція;serving;LABEL;

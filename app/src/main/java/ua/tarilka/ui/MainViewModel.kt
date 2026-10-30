@@ -648,6 +648,57 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     /**
+     * Deletes everything logged on one day: food, drinks, note, sleep, bowel, workouts, weight and waist.
+     * Cycle dates stay (they span several days). What this app wrote to Health Connect for the day goes too.
+     * Undo brings it all back.
+     */
+    fun deleteDay(d: LocalDate) = viewModelScope.launch {
+        val day = d.toEpochDay()
+        val food = db.diary().range(day, day)
+        val drinks = db.fluids().onDay(day)
+        val note = db.notes().forDay(day).first()
+        val sleep = db.sleep().range(day, day).firstOrNull()
+        val bowel = db.bowel().range(day, day).firstOrNull()
+        val work = db.workouts().range(day, day)
+        val weight = db.weights().allOnce().firstOrNull { it.day == day }
+        val waist = db.waist().allOnce().firstOrNull { it.day == day }
+        val count = food.size + drinks.size + work.size + listOfNotNull(note, sleep, bowel, weight, waist).size
+        if (count == 0) return@launch
+        db.withTransaction {
+            if (food.isNotEmpty()) db.diary().deleteMany(food)
+            if (drinks.isNotEmpty()) db.fluids().deleteMany(drinks)
+            db.notes().delete(day)
+            db.sleep().delete(day)
+            db.bowel().delete(day)
+            work.forEach { db.workouts().delete(it) }
+            weight?.let { db.weights().delete(it) }
+            waist?.let { db.waist().delete(it) }
+        }
+        sync {
+            food.forEach { health.deleteMeal(it) }
+            drinks.forEach { health.deleteFluid(it) }
+            weight?.let { health.deleteWeight(it) }
+        }
+        offerUndo(count) {
+            db.withTransaction {
+                db.diary().insertAll(food)
+                db.fluids().insertAll(drinks)
+                note?.let { db.notes().upsert(it) }
+                sleep?.let { db.sleep().upsert(it) }
+                bowel?.let { db.bowel().upsert(it) }
+                db.workouts().insertAll(work)
+                weight?.let { db.weights().upsert(it) }
+                waist?.let { db.waist().upsert(it) }
+            }
+            sync {
+                food.forEach { health.writeMeal(it) }
+                drinks.forEach { health.writeFluid(it) }
+                weight?.let { health.writeWeight(it) }
+            }
+        }
+    }
+
+    /**
      * Clears the diary (food, drinks, weight, notes). With [everything] also own foods, recipes,
      * favorites, the profile and the not-found list. The AI model and app settings stay.
      */

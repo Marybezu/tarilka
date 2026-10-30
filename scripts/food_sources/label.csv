@@ -103,3 +103,17 @@ g41;grains;Макарони із сочевиці сухі;Red lentil pasta, dry
 a21;sauces;Кетчуп без цукру;Ketchup, no added sugar;32;1.5;0.2;6.0;1.0;0;15;ложка;tbsp;LABEL;
 dr36;drinks;Газований напій без цукру;Sugar-free soft drink;1;0;0;0.2;0;0;330;банка;can;LABEL;
 c53;sweets;Желе без цукру (з підсолоджувачем);Sugar-free jelly (with sweetener);8;1.5;0;0.5;0;0;125;порція;serving;LABEL;
+# Sports nutrition: typical label values.
+d73;dairy;Протеїн сироватковий ізолят (порошок);Whey protein isolate powder;377;90.0;1.0;2.0;0;0;30;мірна ложка;scoop;LABEL;
+d74;dairy;Казеїн (порошок);Casein protein powder;358;80.0;1.5;6.0;0;0;30;мірна ложка;scoop;LABEL;
+d75;dairy;Гейнер (порошок);Mass gainer powder;396;20.0;4.0;70.0;0;0;100;порція;serving;LABEL;
+l20;legumes;Протеїн гороховий (порошок);Pea protein powder;375;75.0;6.0;5.0;0;0;30;мірна ложка;scoop;LABEL;
+c54;sweets;Печиво протеїнове;Protein cookie;400;20.0;15.0;45.0;5.0;0;60;шт;piece;LABEL;
+c55;sweets;Батончик фініково-горіховий без цукру;Date and nut bar, no added sugar;410;7.0;18.0;55.0;6.0;0;40;шт;piece;LABEL;
+c56;sweets;Енергетичний гель;Energy gel;260;0;0;65.0;0;0;40;саше;sachet;LABEL;
+dr37;drinks;Ізотонік (спортивний напій);Sports drink (isotonic);24;0;0;6.0;0;0;500;пляшка;bottle;LABEL;
+dr38;drinks;Напій з електролітами без цукру;Electrolyte drink, sugar-free;1;0;0;0.2;0;0;500;пляшка;bottle;LABEL;
+dr39;drinks;Енергетик без цукру;Sugar-free energy drink;3;0;0;0.5;0;0;250;банка;can;LABEL;
+dr40;drinks;Комбуча;Kombucha;18;0;0;4.5;0;0;330;пляшка;bottle;LABEL;
+o12;fats;Олія MCT;MCT oil;900;0;100.0;0;0;0;15;ложка;tbsp;LABEL;
+a22;sauces;Креатин моногідрат;Creatine monohydrate;0;0;0;0;0;0;5;мірна ложка;scoop;LABEL;

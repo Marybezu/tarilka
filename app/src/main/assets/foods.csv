@@ -49,6 +49,7 @@ u61;grains;Пшоняна каша з гарбузом;Millet porridge with pump
 u62;grains;Гречка з молоком;Buckwheat with milk;73;3.14;1.56;12.32;1.35;0;300;тарілка;bowl;RECIPE;
 u101;grains;Ячна каша на воді;Barley grits porridge, cooked with water;95;2.68;0.31;21.01;4.22;0;200;тарілка;plate;RECIPE;
 u102;grains;Пшенична каша на воді;Wheat groats porridge, cooked with water;90;3.23;0.35;19.97;3.29;0;200;тарілка;plate;RECIPE;
+u127;grains;Вівсянка протеїнова (на ніч);Overnight protein oats;159;13.54;3.29;18.87;2.59;0;225;порція;serving;RECIPE;
 b01;bread;Хліб білий пшеничний;White bread;266;8.85;3.33;49.42;2.7;0;30;скибка;slice;USDA;Bread, white, commercially prepared (includes soft bread crumbs)
 b02;bread;Хліб житній;Rye bread;259;8.5;3.3;48.3;5.8;0;30;скибка;slice;USDA;Bread, rye
 b03;bread;Хліб цільнозерновий;Whole-wheat bread;252;12.45;3.5;42.71;6;0;30;скибка;slice;USDA;Bread, whole-wheat, commercially prepared
@@ -398,6 +399,9 @@ d69;dairy;Сир зернистий 5%;Cottage cheese in cream 5%;101;12;5;2;0;0
 d70;dairy;Сир твердий легкий 17%;Light hard cheese 17%;265;28;17;0;0;0;30;скибка;slice;LABEL;
 d71;dairy;Пудинг протеїновий;Protein pudding;78;10;1.5;6;0;0;200;стаканчик;cup;LABEL;
 d72;dairy;Напій протеїновий молочний (готовий);Protein milk drink, ready to drink;53;8;1;3;0;0;330;пляшка;bottle;LABEL;
+d73;dairy;Протеїн сироватковий ізолят (порошок);Whey protein isolate powder;377;90;1;2;0;0;30;мірна ложка;scoop;LABEL;
+d74;dairy;Казеїн (порошок);Casein protein powder;358;80;1.5;6;0;0;30;мірна ложка;scoop;LABEL;
+d75;dairy;Гейнер (порошок);Mass gainer powder;396;20;4;70;0;0;100;порція;serving;LABEL;
 u121;dairy;Сирна маса з родзинками;Sweet cottage cheese spread with raisins;330;8.72;20.72;28.12;0.36;0;100;порція;serving;RECIPE;
 u122;dairy;Згущене молоко варене;Boiled sweetened condensed milk (dulce de leche style);321;7.91;8.7;54.4;0;0;20;ложка;tbsp;RECIPE;
 e01;eggs;Яйце куряче варене;Egg, boiled;155;12.58;10.61;1.12;0;0;50;шт;piece;USDA;Egg, whole, cooked, hard-boiled
@@ -427,6 +431,7 @@ l16;legumes;Соя варена;Soybeans, cooked;172;18.21;8.97;8.36;6;0;150;п�
 l17;legumes;Маш варений;Mung beans, cooked;105;7.02;0.38;19.15;7.6;0;150;порція;serving;USDA;Mung beans, mature seeds, cooked, boiled, without salt
 l18;legumes;Тофу смажений;Fried tofu;270;18.82;20.18;8.86;3.9;0;100;порція;serving;USDA;Tofu, fried
 l19;legumes;Темпе;Tempeh;192;20.29;10.8;7.64;4;0;100;порція;serving;USDA;Tempeh
+l20;legumes;Протеїн гороховий (порошок);Pea protein powder;375;75;6;5;0;0;30;мірна ложка;scoop;LABEL;
 n01;nuts;Волоські горіхи;Walnuts;654;15.23;65.21;13.71;6.7;0;30;жменя;handful;USDA;Nuts, walnuts, english
 n02;nuts;Мигдаль;Almonds;579;21.15;49.93;21.55;12.5;0;30;жменя;handful;USDA;Nuts, almonds
 n03;nuts;Фундук;Hazelnuts;628;14.95;60.75;16.7;9.7;0;30;жменя;handful;USDA;Nuts, hazelnuts or filberts
@@ -462,6 +467,7 @@ o08;fats;Маргарин;Margarine;717;0.16;80.71;0.7;0;0;10;ложка;tbsp;US
 o09;fats;Смалець;Lard;902;0;100;0;0;0;10;ложка;tbsp;USDA;Lard
 o10;fats;Майонез легкий;Light mayonnaise;238;0.37;22.22;9.23;0;0;15;ложка;tbsp;USDA;Salad dressing, mayonnaise, light
 o11;fats;Олія кунжутна;Sesame oil;884;0;100;0;0;0;10;ложка;tbsp;USDA;Oil, sesame, salad or cooking
+o12;fats;Олія MCT;MCT oil;900;0;100;0;0;0;15;ложка;tbsp;LABEL;
 c01;sweets;Цукор;Sugar;387;0;0;99.98;0;0;5;ложечка;tsp;USDA;Sugars, granulated
 c02;sweets;Мед;Honey;304;0.3;0;82.4;0.2;0;20;ложка;tbsp;USDA;Honey
 c03;sweets;Шоколад чорний 70–85%;Dark chocolate 70–85%;598;7.79;42.63;45.9;10.9;0;25;ряд;row;USDA;Chocolate, dark, 70-85% cacao solids
@@ -514,6 +520,9 @@ c50;sweets;Цукерки желейні в шоколаді;Chocolate-covered j
 c51;sweets;Цукерки вафельні в шоколаді;Chocolate-covered wafer candies;510;5.3;27.5;60;0;0;15;шт;piece;LABEL;
 c52;sweets;Марципан у шоколаді;Chocolate-covered marzipan;515;9;29.5;52;3;0;15;шт;piece;LABEL;
 c53;sweets;Желе без цукру (з підсолоджувачем);Sugar-free jelly (with sweetener);8;1.5;0;0.5;0;0;125;порція;serving;LABEL;
+c54;sweets;Печиво протеїнове;Protein cookie;400;20;15;45;5;0;60;шт;piece;LABEL;
+c55;sweets;Батончик фініково-горіховий без цукру;Date and nut bar, no added sugar;410;7;18;55;6;0;40;шт;piece;LABEL;
+c56;sweets;Енергетичний гель;Energy gel;260;0;0;65;0;0;40;саше;sachet;LABEL;
 u55;sweets;Шарлотка;Sharlotka (apple sponge cake);207;4.51;2.88;41.62;1.89;0;100;шматок;piece;RECIPE;
 u90;sweets;Сочник із сиром;Sochnyk (shortcrust pastry with cottage cheese);346;11.19;13.91;43.33;0.97;0;80;шт;piece;RECIPE;
 u91;sweets;Тістечко «Наполеон»;Napoleon pastry;322;4.87;19.66;31.05;0.64;0;100;шт;piece;RECIPE;
@@ -563,6 +572,10 @@ dr33;drinks;Сидр;Cider;50;0;0;6.2;0;3.5;500;пляшка;bottle;LABEL;
 dr34;drinks;Вино ігристе напівсолодке;Sparkling wine, semi-sweet;81;0.1;0;4.5;0;9;150;келих;glass;LABEL;
 dr35;drinks;Кава «3 в 1» (суха суміш);3-in-1 instant coffee mix, dry;420;2;13;72;3;0;15;стік;sachet;LABEL;
 dr36;drinks;Газований напій без цукру;Sugar-free soft drink;1;0;0;0.2;0;0;330;банка;can;LABEL;
+dr37;drinks;Ізотонік (спортивний напій);Sports drink (isotonic);24;0;0;6;0;0;500;пляшка;bottle;LABEL;
+dr38;drinks;Напій з електролітами без цукру;Electrolyte drink, sugar-free;1;0;0;0.2;0;0;500;пляшка;bottle;LABEL;
+dr39;drinks;Енергетик без цукру;Sugar-free energy drink;3;0;0;0.5;0;0;250;банка;can;LABEL;
+dr40;drinks;Комбуча;Kombucha;18;0;0;4.5;0;0;330;пляшка;bottle;LABEL;
 u63;drinks;Кисіль журавлинний;Cranberry kysil;44;0.06;0.02;11.04;0.43;0;250;склянка;glass;RECIPE;
 u64;drinks;Морс журавлинний;Cranberry mors;31;0.06;0.02;8.08;0.47;0;250;склянка;glass;RECIPE;
 u65;drinks;Кава з молоком (латте);Caffe latte;44;2.26;1.96;4;0;0;260;чашка;cup;RECIPE;
@@ -570,6 +583,10 @@ u66;drinks;Капучино;Cappuccino;39;1.97;1.73;3.69;0;0;180;чашка;cup;
 u67;drinks;Какао на молоці;Hot cocoa with milk;80;3.41;2.82;12.05;1.37;0;270;чашка;cup;RECIPE;
 u68;drinks;Чай з цукром;Tea with sugar;16;0;0;4.13;0;0;260;чашка;cup;RECIPE;
 u85;drinks;Смузі банановий;Banana smoothie;85;2.86;1.97;14.81;1.51;0;340;склянка;glass;RECIPE;
+u123;drinks;Протеїновий коктейль на молоці;Protein shake with milk;81;9.74;2.41;4.84;0.28;0;330;склянка;glass;RECIPE;
+u124;drinks;Протеїновий коктейль на воді;Protein shake with water;32;7.1;0.14;0.57;0.28;0;330;склянка;glass;RECIPE;
+u125;drinks;Банановий протеїновий коктейль;Banana protein shake;87;8;1.78;10.26;1.01;0;400;склянка;glass;RECIPE;
+u126;drinks;Молочний коктейль з морозивом;Milkshake with ice cream;105;3.1;5.33;11;0.23;0;300;склянка;glass;RECIPE;
 a01;sauces;Кетчуп;Ketchup;101;1.04;0.1;27.4;0.3;0;15;ложка;tbsp;USDA;Catsup
 a02;sauces;Гірчиця;Mustard;60;3.74;3.34;5.83;4;0;10;ложечка;tsp;USDA;Mustard, prepared, yellow
 a03;sauces;Соєвий соус;Soy sauce;53;8.14;0.57;4.93;0.8;0;15;ложка;tbsp;USDA;Soy sauce made from soy and wheat (shoyu)
@@ -591,6 +608,7 @@ a18;sauces;Майонез 67%;Mayonnaise 67%;618;0.8;67;3;0;0;15;ложка;tbsp
 a19;sauces;Майонез легкий 30%;Light mayonnaise 30%;296;0.5;30;6;0;0;15;ложка;tbsp;LABEL;
 a20;sauces;Соус цацикі;Tzatziki;100;4;7.5;4;0.5;0;30;ложка;tbsp;LABEL;
 a21;sauces;Кетчуп без цукру;Ketchup, no added sugar;32;1.5;0.2;6;1;0;15;ложка;tbsp;LABEL;
+a22;sauces;Креатин моногідрат;Creatine monohydrate;0;0;0;0;0;0;5;мірна ложка;scoop;LABEL;
 u117;sauces;Аджика;Adjika (tomato-pepper-garlic sauce);72;1.51;3.25;10.4;1.85;0;20;ложка;tbsp;RECIPE;
 u01;dishes;Борщ з мʼясом;Borscht with meat;51;2.37;2.94;3.97;0.81;0;350;тарілка;plate;RECIPE;
 u02;dishes;Борщ пісний;Borscht, vegetarian;28;0.57;1.16;4.1;0.85;0;350;тарілка;plate;RECIPE;

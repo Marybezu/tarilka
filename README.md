@@ -7,7 +7,7 @@
 ## Особливості
 
 - 🔒 **Приватність.** Дозволу на інтернет немає, дані лише на телефоні, хмарну копію вимкнено. За бажанням щоденник і профіль шифруються й відкриваються відбитком або PIN-кодом телефону; експорт і видалення ще раз просять підтвердження; можна заборонити знімки екрана. Резервна копія вручну, типово з паролем (AES-256).
-- 🔬 **693 продукти офлайн.** Дані USDA, етикетки українських продуктів, дієтичні й легкі продукти (кефір 0%, скир, хлібці, ширатаки) і ~130 страв за рецептами: борщ, вареники, сочник, фастфуд, суші, торти. Біля кожного продукту видно джерело.
+- 🔬 **711 продуктів офлайн.** Дані USDA, етикетки українських продуктів, дієтичні й спортивні продукти (кефір 0%, скир, хлібці, протеїн, протеїнові коктейлі, ізотонік) і ~130 страв за рецептами: борщ, вареники, сочник, фастфуд, суші, торти. Біля кожного продукту видно джерело.
 - 🍽️ **Швидкий запис.** Пошук, список текстом («гречка 200 г, котлета»), фото тарілки, «Як учора», свої продукти й рецепти. День в історії можна видалити цілком.
 - 🛡️ **Безпечні цілі.** Норма ніколи не нижча за базовий обмін. Схуднення не пропонується до 18 років, при ІМТ < 18,5, у вагітність і при годуванні груддю; до 18 років калорій не видно зовсім.
 - 🌱 **Звички без осуду.** Кольорові плашки, підсумки за тиждень, місяць і рік із графіками, поради «менше · замінити · додати» з вашими продуктами й джерелом (ВООЗ, EFSA, WCRF, NHS).
@@ -43,7 +43,7 @@ A private, offline food tracker for Android. Ukrainian and English. Free, no ads
 ## Features
 
 - 🔒 **Privacy.** No internet permission, data stays on the phone, cloud backup is off. Optionally the diary and profile are encrypted and open with fingerprint or the phone PIN; export and deleting ask again; screenshots can be blocked. Backups by hand, with a password by default (AES-256).
-- 🔬 **693 foods offline.** USDA data, Ukrainian product labels, diet and light products (0% kefir, skyr, crispbread, shirataki) and ~130 dishes calculated from recipes: borscht, varenyky, sochnyk, fast food, sushi, cakes. Every food shows its source.
+- 🔬 **711 foods offline.** USDA data, Ukrainian product labels, diet and sports products (0% kefir, skyr, crispbread, protein powder, protein shakes, sports drinks) and ~130 dishes calculated from recipes: borscht, varenyky, sochnyk, fast food, sushi, cakes. Every food shows its source.
 - 🍽️ **Quick logging.** Search, a typed list ("buckwheat 200 g, cutlet"), a plate photo, "Same as yesterday", your own foods and recipes. A whole day can be deleted from the history.
 - 🛡️ **Safe targets.** Never below basal metabolism. No weight loss offered under 18, with a BMI under 18.5, in pregnancy or while breastfeeding; no calories shown at all under 18.
 - 🌱 **Habits without judgement.** Colour badges, weekly, monthly and yearly summaries with charts, "less · swap · add" suggestions with your own foods and the source (WHO, EFSA, WCRF, NHS).

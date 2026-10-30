@@ -569,6 +569,9 @@ private fun DataSection(vm: MainViewModel) {
     }
     val stepsOn by vm.stepsEnabled.collectAsState()
     var stepsInfo by remember { mutableStateOf(false) }
+    val importSteps = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        if (uri != null) vm.importStepsCsv(uri)
+    }
     val importJson = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         if (uri != null) vm.readImport(uri)
     }
@@ -583,6 +586,9 @@ private fun DataSection(vm: MainViewModel) {
                 OutlinedButton(onClick = { Protection.confirm(activity) { exportCsv.launch("tarilka-diary-$date.csv") } }) { Text(stringResource(R.string.export_csv)) }
                 OutlinedButton(onClick = { Protection.confirm(activity) { pdfDialog = true } }) { Text(stringResource(R.string.pdf_button)) }
                 OutlinedButton(onClick = { stepsInfo = true }) { Text(stringResource(R.string.export_steps)) }
+                OutlinedButton(onClick = { importSteps.launch(arrayOf("text/csv", "text/comma-separated-values", "text/plain", "application/octet-stream")) }) {
+                    Text(stringResource(R.string.import_steps))
+                }
             }
             FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 TextButton(onClick = { clearing = false }) {

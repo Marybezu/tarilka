@@ -12,7 +12,7 @@
 - 🛡️ **Безпечні цілі.** Норма ніколи не нижча за базовий обмін. Схуднення не пропонується до 18 років, при ІМТ < 18,5, у вагітність і при годуванні груддю; до 18 років калорій не видно зовсім.
 - 🌱 **Звички без осуду.** Кольорові плашки, підсумки за тиждень, місяць і рік із графіками, поради «менше · замінити · додати» з вашими продуктами й джерелом (ВООЗ, EFSA, WCRF, NHS).
 - 📄 **Звіт PDF** з графіками для лікаря чи дієтолога.
-- 💧 **Рідина, кроки, вага, талія.** Супи й напої враховуються в рідині; кроки з Health Connect або датчика, експорт кроків у CSV.
+- 💧 **Рідина, кроки, вага, талія.** Супи й напої враховуються в рідині; кроки з Health Connect або датчика, експорт і імпорт кроків у CSV.
 - 🌙 **За бажанням:** сон, «Чому я їм», тренування, кишківник, цикл, AUDIT-C, нагадування.
 - 🤖 **Локальний ШІ (Gemma 4), за бажанням:** розпізнає їжу на фото й пише підсумки. Усе на телефоні.
 
@@ -48,7 +48,7 @@ A private, offline food tracker for Android. Ukrainian and English. Free, no ads
 - 🛡️ **Safe targets.** Never below basal metabolism. No weight loss offered under 18, with a BMI under 18.5, in pregnancy or while breastfeeding; no calories shown at all under 18.
 - 🌱 **Habits without judgement.** Colour badges, weekly, monthly and yearly summaries with charts, "less · swap · add" suggestions with your own foods and the source (WHO, EFSA, WCRF, NHS).
 - 📄 **PDF report** with charts for a doctor or dietitian.
-- 💧 **Fluids, steps, weight, waist.** Soups and drinks count as fluid; steps from Health Connect or the phone's sensor, steps export as CSV.
+- 💧 **Fluids, steps, weight, waist.** Soups and drinks count as fluid; steps from Health Connect or the phone's sensor, steps export and import as CSV.
 - 🌙 **Optional:** sleep, Why I eat, workouts, bowel, cycle, AUDIT-C, reminders.
 - 🤖 **On-device AI (Gemma 4), optional:** recognises food on photos and writes summaries. Everything stays on the phone.
 

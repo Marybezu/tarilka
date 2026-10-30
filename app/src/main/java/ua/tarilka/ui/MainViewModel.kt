@@ -1227,6 +1227,32 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         }.getOrElse { failedExport(uri, it) }
     }
 
+    /** Adds the days of a steps file (as written by [exportStepsCsv] or another step app) to the step log. */
+    fun importStepsCsv(uri: android.net.Uri) = viewModelScope.launch {
+        val app = getApplication<Application>()
+        dataMessage.value = runCatching {
+            val text = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                // At most 5 MB: about 200 years of days; anything bigger is not a steps file.
+                app.contentResolver.openInputStream(uri)!!.use { input ->
+                    val out = java.io.ByteArrayOutputStream()
+                    val buf = ByteArray(64 * 1024)
+                    while (true) {
+                        val n = input.read(buf)
+                        if (n < 0) break
+                        out.write(buf, 0, n)
+                        require(out.size() <= 5 * 1024 * 1024) { app.getString(ua.tarilka.R.string.steps_import_bad) }
+                    }
+                    out.toString(Charsets.UTF_8.name())
+                }
+            }
+            val file = ua.tarilka.data.Backup.parseStepsCsv(text)
+            require(file.days.isNotEmpty()) { app.getString(ua.tarilka.R.string.steps_import_bad) }
+            prefs.mergeSteps(file.days)
+            refreshSteps()
+            app.getString(ua.tarilka.R.string.steps_imported, file.days.size, file.skipped)
+        }.getOrElse { if (it is kotlinx.coroutines.CancellationException) throw it else it.message ?: app.getString(ua.tarilka.R.string.steps_import_bad) }
+    }
+
     private val MAX_BACKUP_BYTES = 64 * 1024 * 1024
 
     /** Password chosen for the export in progress ("" = no encryption, null = unknown). */

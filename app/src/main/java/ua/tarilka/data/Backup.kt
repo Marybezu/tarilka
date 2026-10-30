@@ -362,6 +362,37 @@ object Backup {
         return sb.toString()
     }
 
+    /** Days read from a steps file, and lines that could not be read (a header, a broken line). */
+    data class StepsFile(val days: Map<Long, Long>, val skipped: Int)
+
+    /**
+     * Reads "date,steps" lines: the date as 2026-10-31 or 31.10.2026, or (older Stepsy files) milliseconds;
+     * a comma, semicolon or tab between. Counts over 200 000 a day or dates outside 2000–next year are skipped.
+     */
+    fun parseStepsCsv(text: String): StepsFile {
+        val days = mutableMapOf<Long, Long>()
+        var skipped = 0
+        val min = java.time.LocalDate.of(2000, 1, 1).toEpochDay()
+        val max = java.time.LocalDate.now().plusYears(1).toEpochDay()
+        for (raw in text.lineSequence()) {
+            val line = raw.trim().removePrefix("\uFEFF")
+            if (line.isEmpty()) continue
+            val parts = line.split(',', ';', '\t').map { it.trim().trim('"') }
+            val day = parts.getOrNull(0)?.let(::stepDay)
+            val n = parts.getOrNull(1)?.toLongOrNull()
+            if (day == null || n == null || n !in 0..200_000 || day !in min..max) { skipped++; continue }
+            days[day] = maxOf(days[day] ?: 0L, n)
+        }
+        return StepsFile(days, skipped)
+    }
+
+    private fun stepDay(s: String): Long? = runCatching { java.time.LocalDate.parse(s).toEpochDay() }.getOrNull()
+        ?: runCatching { java.time.LocalDate.parse(s, java.time.format.DateTimeFormatter.ofPattern("dd.MM.yyyy")).toEpochDay() }.getOrNull()
+        // Stepsy before 1.6 wrote local midnight in milliseconds; adding half a day lands safely on that date.
+        ?: s.toLongOrNull()?.takeIf { it > 100_000_000_000L }?.let {
+            java.time.Instant.ofEpochMilli(it + 43_200_000L).atZone(java.time.ZoneOffset.UTC).toLocalDate().toEpochDay()
+        }
+
     /** "yyyy-MM-dd,steps" per day, oldest first, no header, CRLF (what step apps such as Stepsy read). Days without steps are left out. */
     fun stepsCsv(steps: Map<Long, Long>): String =
         steps.filterValues { it > 0 }.toSortedMap().entries

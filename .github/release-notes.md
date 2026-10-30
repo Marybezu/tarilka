@@ -9,7 +9,7 @@
 - Свої продукти й рецепти: можна вказати, що це (овочі, солодке, напій, бобові, риба…), і вони враховуються у звичках і порадах. До 18 років поле калорій у редакторі сховано, їх рахує застосунок.
 - Список текстом без ком: «2 котлети гречка 200 г» тепер дві страви, кожна зі своєю кількістю.
 - Якщо після оновлення щоденник не відкриється, застосунок не закривається, а пропонує зберегти копію файлу. Кожна збірка перевіряє оновлення структури бази від найпершої версії.
-- Експорт кроків у CSV за всі дні й роки (Опції → Дані → «Експорт кроків»); файл відкривають таблиці й застосунки для кроків, наприклад Stepsy.
+- Експорт і імпорт кроків у CSV («дата,кроки») за всі дні й роки: Опції → Дані. Файл відкривають таблиці й застосунки для кроків, наприклад Stepsy; з них кроки можна й перенести в Тарілку. Журнал кроків тепер зберігається за всі роки.
 
 Завантажте .apk нижче й відкрийте його на телефоні. Відгук або помилка: Опції → Про застосунок → «Написати відгук», або Issues.
 
@@ -24,6 +24,6 @@
 - Own foods and recipes: say what they are (vegetables, sweets, a drink, beans, fish…) and they count in habits and advice. Under 18 the calorie field in the editor is hidden; the app works it out.
 - Typed lists without commas: "2 cutlets buckwheat 200 g" is now two foods, each with its own amount.
 - If the diary does not open after an update, the app does not keep closing but offers to save a copy of the file. Every build checks the database updates from the very first version.
-- Steps export as CSV for all days and years (Options → Data → Export steps); spreadsheets and step apps such as Stepsy open it.
+- Steps export and import as CSV ("date,steps") for all days and years: Options → Data. Spreadsheets and step apps such as Stepsy open the file, and their steps can be brought into Tarilka. The step log now keeps all years.
 
 Download the .apk below and open it on your phone. Feedback or a bug: Options → About → Send feedback, or Issues.

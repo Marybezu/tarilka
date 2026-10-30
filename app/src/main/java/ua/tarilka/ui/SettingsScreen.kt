@@ -281,7 +281,6 @@ private fun LanguageSection() {
 
 @Composable
 private fun ActivitySection(vm: MainViewModel) {
-    val stepsOn by vm.stepsEnabled.collectAsState()
     val syncOn by vm.healthSync.collectAsState()
     val context = androidx.compose.ui.platform.LocalContext.current
     var hcAvailable by remember { mutableStateOf(vm.healthAvailable) }
@@ -583,7 +582,7 @@ private fun DataSection(vm: MainViewModel) {
                 }
                 OutlinedButton(onClick = { Protection.confirm(activity) { exportCsv.launch("tarilka-diary-$date.csv") } }) { Text(stringResource(R.string.export_csv)) }
                 OutlinedButton(onClick = { Protection.confirm(activity) { pdfDialog = true } }) { Text(stringResource(R.string.pdf_button)) }
-                if (stepsOn) OutlinedButton(onClick = { stepsInfo = true }) { Text(stringResource(R.string.export_steps)) }
+                OutlinedButton(onClick = { stepsInfo = true }) { Text(stringResource(R.string.export_steps)) }
             }
             FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 TextButton(onClick = { clearing = false }) {
@@ -604,7 +603,7 @@ private fun DataSection(vm: MainViewModel) {
             title = { Text(stringResource(R.string.export_steps)) },
             text = { Text(stringResource(R.string.export_steps_text)) },
             confirmButton = {
-                TextButton(onClick = { stepsInfo = false; Protection.confirm(activity) { exportSteps.launch("stepsy_tarilka-$date.csv") } }) { Text(stringResource(R.string.save)) }
+                TextButton(onClick = { stepsInfo = false; Protection.confirm(activity) { exportSteps.launch("tarilka-steps-$date.csv") } }) { Text(stringResource(R.string.save)) }
             },
             dismissButton = { TextButton(onClick = { stepsInfo = false }) { Text(stringResource(R.string.cancel)) } },
         )

@@ -1203,15 +1203,24 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     /**
-     * Steps per day as "2026-10-31,8450" lines, the format Stepsy (F-Droid) imports. Steps counted by the phone
-     * and those from Health Connect (about a year back), as on the Today screen.
+     * Every day with steps, in all years: those counted by the phone and those in Health Connect.
+     * Lines "2026-10-31,8450" (date,steps), a plain format other step apps (e.g. Stepsy) also read.
      */
     fun exportStepsCsv(uri: android.net.Uri) = viewModelScope.launch {
         dataMessage.value = runCatching {
-            val today = LocalDate.now()
-            val first = prefs.loggedSteps().keys.minOrNull()?.let(LocalDate::ofEpochDay)
-            val from = listOfNotNull(first, today.minusDays(365)).minOrNull()!!
-            val text = ua.tarilka.data.Backup.stepsCsv(stepsByDay(from, today))
+            val all = prefs.loggedSteps().toMutableMap()
+            // Health Connect a year at a time, back until two years in a row have nothing (at most 30 years).
+            var end = LocalDate.now()
+            var empty = 0
+            repeat(30) {
+                if (empty >= 2) return@repeat
+                val start = end.minusYears(1).plusDays(1)
+                val year = runCatching { health.stepsByDay(start, end) }.getOrDefault(emptyMap()).filterValues { it > 0 }
+                empty = if (year.isEmpty()) empty + 1 else 0
+                year.forEach { (d, n) -> all[d] = maxOf(all[d] ?: 0L, n) }
+                end = start.minusDays(1)
+            }
+            val text = ua.tarilka.data.Backup.stepsCsv(all)
             require(text.isNotEmpty()) { getApplication<Application>().getString(ua.tarilka.R.string.steps_none) }
             writeText(uri, text)
             getApplication<Application>().getString(ua.tarilka.R.string.export_done)

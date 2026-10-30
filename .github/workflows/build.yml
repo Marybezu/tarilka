@@ -72,6 +72,11 @@ jobs:
           { echo "run ${{ github.run_number }} ${{ job.status }}"; grep -E "^e: |error:|FAILED|What went wrong|Dependency verification" -A3 build.log | head -300; echo ----; tail -150 build.log; cat permissions.txt 2>/dev/null; } > log/build.log || true
           find app/build/test-results -name "*.xml" -exec cp {} log/ \; 2>/dev/null || true
           cp gradle/verification-metadata.xml log/ 2>/dev/null || true
+          # The first errors as annotations, so they show on the pull request without opening the log.
+          { grep -E "^e: |What went wrong|FAILED|AssertionError|expected:|PROBLEM:" -A2 build.log 2>/dev/null | grep -v "^--$" | head -15 \
+            | sed -E 's/%/%25/g' | while IFS= read -r l; do echo "::warning title=build::$l"; done; } || true
+          grep -h -o -E '<failure message="[^"]{0,300}' app/build/test-results/*/*.xml 2>/dev/null | head -5 \
+            | while IFS= read -r l; do echo "::warning title=test::${l#<failure message=\"}"; done || true
 
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: always()

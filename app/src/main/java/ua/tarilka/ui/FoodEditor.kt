@@ -115,6 +115,8 @@ fun EditFoodScreen(
         }
     }
 
+    // Under 18 no calorie field: the app works the number out from protein, fat and carbs.
+    val showKcal = LocalShowKcal.current
     Scaffold(
         topBar = {
             TopAppBar(
@@ -143,7 +145,7 @@ fun EditFoodScreen(
 
             if (!draft.isRecipe) {
                 item { Text(stringResource(R.string.label_hint), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant) }
-                if (LocalShowKcal.current) item { Field(stringResource(R.string.kcal_100), draft.kcal, { draft.kcal = it }) }
+                if (showKcal) item { Field(stringResource(R.string.kcal_100), draft.kcal, { draft.kcal = it }) }
                 item {
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         Field(stringResource(R.string.protein), draft.protein, { draft.protein = it }, Modifier.weight(1f))

@@ -30,6 +30,11 @@ class TarilkaApp : Application() {
     val dbState: kotlinx.coroutines.flow.StateFlow<AppDatabase?> = _db
     /** For screens and view models, which exist only while the database is open. */
     val db: AppDatabase get() = _db.value ?: error("The diary is locked")
+    /**
+     * The plain diary could not be opened (most likely an update of its structure failed). The screens then
+     * offer to save the database file, so nothing is lost, instead of the app closing again and again.
+     */
+    val dbBroken = kotlinx.coroutines.flow.MutableStateFlow(false)
     lateinit var prefs: Prefs
         private set
     lateinit var models: ModelStore
@@ -107,15 +112,16 @@ class TarilkaApp : Application() {
      */
     fun openDb(rawKey: ByteArray?, gen: Long = lockGen.get()) {
         val d = AppDatabase.create(this, rawKey)
-        // Encrypted: open now, so a wrong key fails here and not later in a screen.
-        if (rawKey != null) {
-            try {
-                d.openHelper.writableDatabase
-            } catch (e: Exception) {
-                runCatching { d.close() }
-                rawKey.fill(0)
-                throw e
-            }
+        // Open now (this also runs the updates of its structure), so a failure shows here and not later in a screen.
+        try {
+            d.openHelper.writableDatabase
+        } catch (e: Exception) {
+            runCatching { d.close() }
+            // Encrypted: a wrong key; the caller says so.
+            if (rawKey != null) { rawKey.fill(0); throw e }
+            CrashLog.record(this, e)
+            dbBroken.value = true
+            return
         }
         // Personal settings open with the diary (protection on); before the screens can read them.
         if (rawKey != null) prefs.onUnlocked(rawKey)

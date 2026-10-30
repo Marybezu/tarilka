@@ -255,6 +255,19 @@ class LogicTest {
         assertEquals(0.5, c[1].amount!!, 0.01)
         assertEquals(100.0, c[2].amount!!, 0.01)
         assertEquals(250.0, c[3].amount!!, 0.01)
+        // No comma between two foods: with a food list each keeps its own amount.
+        val known = setOf("котлети", "гречка", "яйця", "хліб")
+        val d = t.parse("2 котлети гречка 200 г", isFood = { it in known })
+        assertEquals(listOf("котлети", "гречка"), d.map { it.name })
+        assertEquals(listOf(2.0, 200.0), d.map { it.amount })
+        assertEquals(ua.tarilka.data.TextMeal.Unit.PIECES, d[0].unit)
+        // Words that are one food together stay together.
+        val e = t.parse("2 варені яйця", isFood = { it in known })
+        assertEquals(listOf("варені яйця"), e.map { it.name })
+        // The same with the real database and matcher, as the app does it.
+        val real = t.parse("2 котлети гречка 200 г") { FoodMatcher.best(it, it, foods, threshold = 0.8) != null }
+        assertEquals(listOf("котлети", "гречка"), real.map { it.name })
+        assertEquals(listOf("варена картопля"), t.parse("варена картопля 200 г") { FoodMatcher.best(it, it, foods, threshold = 0.8) != null }.map { it.name })
     }
 
     @Test

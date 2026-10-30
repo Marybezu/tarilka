@@ -187,13 +187,14 @@ class AiViewModel(app: Application) : AndroidViewModel(app) {
             _photo.value = PhotoUi(note = text, working = true, fromText = true)
             try {
                 val foods = tapp.db.foods().allOnce()
-                val items = ua.tarilka.data.TextMeal.parse(text).map { item ->
+                // A word pair counts as a food only with a clear match, so "варена картопля" is not split in two.
+                val items = ua.tarilka.data.TextMeal.parse(text) { FoodMatcher.best(it, it, foods, threshold = 0.8) != null }.map { item ->
                     val food = FoodMatcher.best(item.name, item.name, foods)?.food
                     val grams = when {
                         item.amount == null -> food?.portionG ?: 100.0
                         item.unit == ua.tarilka.data.TextMeal.Unit.PIECES -> item.amount * (food?.portionG ?: 100.0)
                         else -> item.amount
-                    }
+                    }.coerceIn(1.0, 3000.0) // "1000 шт" is a typo, not three tonnes
                     ReviewItem(DetectedFood(item.name, item.name, grams, "manual"), food, grams, include = food != null)
                 }
                 items.filter { it.food == null }.forEach { tapp.prefs.recordMissing(it.detected.nameEn) }

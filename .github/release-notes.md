@@ -6,6 +6,9 @@
 - Поради ШІ звучать простіше: «клітковина» замість дивних перекладів, конкретні продукти замість «зʼїжте клітковину».
 - Безпечніше до 18 років і у вагітність: ШІ не радить «пити менше» (найбезпечніше — без алкоголю) і не показує калорій, навіть якщо модель їх вигадала; алкоголь у підсумках завжди позначено як «варто уваги».
 - Норма клітковини — від 25 до 35 г; порада ШІ не переходить на інший день; простіші формулювання підказок.
+- Свої продукти й рецепти: можна вказати, що це (овочі, солодке, напій, бобові, риба…), і вони враховуються у звичках і порадах. До 18 років поле калорій у редакторі сховано, їх рахує застосунок.
+- Список текстом без ком: «2 котлети гречка 200 г» тепер дві страви, кожна зі своєю кількістю.
+- Якщо після оновлення щоденник не відкриється, застосунок не закривається, а пропонує зберегти копію файлу. Кожна збірка перевіряє оновлення структури бази від найпершої версії.
 
 Завантажте .apk нижче й відкрийте його на телефоні. Відгук або помилка: Опції → Про застосунок → «Написати відгук», або Issues.
 
@@ -17,5 +20,8 @@
 - AI advice reads more plainly: consistent wording for fibre, concrete foods instead of "eat more fibre".
 - Safer under 18 and in pregnancy: the AI gives no "drink less" tips (the safest is no alcohol) and never shows calories, even if the model makes them up; alcohol in summaries is always marked "worth attention".
 - Fibre target 25–35 g; AI advice stays with its own day; plainer tip wording.
+- Own foods and recipes: say what they are (vegetables, sweets, a drink, beans, fish…) and they count in habits and advice. Under 18 the calorie field in the editor is hidden; the app works it out.
+- Typed lists without commas: "2 cutlets buckwheat 200 g" is now two foods, each with its own amount.
+- If the diary does not open after an update, the app does not keep closing but offers to save a copy of the file. Every build checks the database updates from the very first version.
 
 Download the .apk below and open it on your phone. Feedback or a bug: Options → About → Send feedback, or Issues.

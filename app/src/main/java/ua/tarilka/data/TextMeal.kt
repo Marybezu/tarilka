@@ -19,7 +19,11 @@ object TextMeal {
     /** Commas between items, but not the decimal comma in "0,5 л". */
     private val SEPARATORS = Regex("(?<!\\d),|,(?!\\d)|[;\\n]")
 
-    fun parse(text: String): List<Item> {
+    /**
+     * [isFood] tells whether some words name a known food. It splits "2 котлети гречка 200 г" (no comma) into
+     * two foods, each with its own amount; without it, or when no split names two foods, the words stay together.
+     */
+    fun parse(text: String, isFood: ((String) -> Boolean)? = null): List<Item> {
         val out = mutableListOf<Item>()
         // Commas, semicolons and new lines separate items; inside a piece, every amount closes an item.
         for (piece in text.split(SEPARATORS)) {
@@ -38,8 +42,16 @@ object TextMeal {
                 when {
                     name == null -> pending = number to unit
                     pending != null -> {
-                        out += item(name, pending.first, pending.second)
-                        pending = number to unit
+                        // "2 котлети гречка 200 г": the first food takes the waiting amount, the last one this amount.
+                        val split = isFood?.let { splitTwo(name, it) }
+                        if (split != null) {
+                            out += item(split.first, pending.first, pending.second)
+                            out += item(split.second, number, unit)
+                            pending = null
+                        } else {
+                            out += item(name, pending.first, pending.second)
+                            pending = number to unit
+                        }
                     }
                     else -> out += item(name, number, unit)
                 }
@@ -47,6 +59,18 @@ object TextMeal {
             }
         }
         return out
+    }
+
+    /** "котлети гречка" → ("котлети", "гречка") when both parts are foods; the longest second part wins. */
+    private fun splitTwo(name: String, isFood: (String) -> Boolean): Pair<String, String>? {
+        val words = name.split(Regex("\\s+"))
+        if (words.size < 2) return null
+        for (k in 1 until words.size) {
+            val a = words.take(k).joinToString(" ")
+            val b = words.drop(k).joinToString(" ")
+            if (isFood(a) && isFood(b)) return a to b
+        }
+        return null
     }
 
     private fun number(s: String): Double? {

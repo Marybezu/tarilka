@@ -19,6 +19,11 @@ object CrashLog {
         }
     }
 
+    /** Keeps an error that was caught (the app goes on), the same way as a crash. */
+    fun record(context: Context, e: Throwable) {
+        runCatching { File(context.filesDir, FILE).writeText(describe(context, e)) }
+    }
+
     /** Type and stack lines only: exception messages can contain entered text, so they are left out. */
     private fun describe(context: Context, e: Throwable): String = buildString {
         val version = runCatching { context.packageManager.getPackageInfo(context.packageName, 0).versionName }.getOrNull()

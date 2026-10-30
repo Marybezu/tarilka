@@ -55,6 +55,11 @@ jobs:
           test -f gradle/verification-metadata.xml || { echo "gradle/verification-metadata.xml is missing" | tee build.log; exit 1; }
           gradle --no-daemon testReleaseUnitTest assembleRelease 2>&1 | tee build.log
 
+      - name: Check database updates (migrations from version 1 against Room's schema)
+        run: |
+          S="$(ls app/schemas/ua.tarilka.data.AppDatabase/*.json | sort -V | tail -1)"
+          python3 scripts/check_migrations.py "$S"
+
       - name: Check permissions (no internet, only what is expected)
         shell: bash
         run: bash .github/check-permissions.sh app/build/outputs/apk/release/app-release-unsigned.apk

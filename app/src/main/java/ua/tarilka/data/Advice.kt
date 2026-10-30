@@ -11,6 +11,27 @@ enum class FoodGroup {
     WHOLE_GRAIN, REFINED_GRAIN, SFA_RICH, FASTFOOD, SUGARY_DRINK, SWEETS, VEG_FRUIT,
 }
 
+/**
+ * What an own food is, chosen in its editor and kept as its category: it lets own foods and recipes count
+ * as vegetables, sweets, fast food or a drink in the habits and advice. "custom" means "other".
+ */
+object OwnKinds {
+    val ALL = listOf("custom", "veg", "sweets", "fastfood", "drinks", "legumes", "fish", "nuts")
+
+    fun group(category: String): FoodGroup? = when (category) {
+        "veg", "fruit" -> FoodGroup.VEG_FRUIT
+        "sweets" -> FoodGroup.SWEETS
+        "fastfood" -> FoodGroup.FASTFOOD
+        "legumes" -> FoodGroup.LEGUMES
+        "fish" -> FoodGroup.FISH
+        "nuts" -> FoodGroup.NUTS
+        else -> null
+    }
+
+    /** A value read from a backup: only the known kinds, anything else is "other". */
+    fun clean(category: String?): String = category?.takeIf { it in ALL } ?: "custom"
+}
+
 object FoodGroups {
     @Volatile private var map: Map<String, FoodGroup>? = null
 
@@ -55,7 +76,9 @@ object Advice {
      */
     fun of(entries: List<DiaryEntry>, foods: Map<Long, Food>, groups: Map<String, FoodGroup>, days: Int, mayReduce: Boolean): Result {
         if (days < Habits.MIN_DAYS || entries.isEmpty()) return Result(emptyList(), null)
-        fun group(e: DiaryEntry): FoodGroup? = e.foodId?.let(foods::get)?.code?.let(groups::get)
+        fun group(e: DiaryEntry): FoodGroup? = e.foodId?.let(foods::get)?.let { f ->
+            if (f.isCustom) OwnKinds.group(f.category) else f.code?.let(groups::get)
+        }
         // Same span as the measures (Habits): a few logged days are not stretched to a whole week.
         val perWeek = 7.0 / maxOf(days, 7)
         val byGroup = entries.groupBy { group(it) }

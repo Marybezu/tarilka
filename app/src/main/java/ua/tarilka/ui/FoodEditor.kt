@@ -54,13 +54,17 @@ class FoodDraft(val initial: Food?) {
     var carbs by mutableStateOf(initial?.carbs?.f1() ?: "")
     var fiber by mutableStateOf(initial?.fiber?.f1() ?: "")
     var portion by mutableStateOf(initial?.portionG?.f0() ?: "")
+    var kind by mutableStateOf(ua.tarilka.data.OwnKinds.clean(initial?.category))
     var isRecipe by mutableStateOf(initial?.recipe != null)
     val items = mutableStateListOf<RecipeItem>()
     var cooked by mutableStateOf("")
     var recipeLoaded = initial?.recipe == null
 
     private val name get() = nameUk.isNotBlank() || nameEn.isNotBlank()
-    val valid: Boolean get() = name && if (isRecipe) items.isNotEmpty() else kcal.toNumber()?.let { it <= 900 } == true
+    /** Calories as typed, or from protein, fat and carbs (4/9/4) when left empty: under 18 the field is hidden. */
+    private val kcalValue: Double? get() = kcal.toNumber() ?: listOf(protein, fat, carbs).map { it.toNumber() }
+        .takeIf { l -> l.any { it != null } }?.let { l -> 4 * (l[0] ?: 0.0) + 9 * (l[1] ?: 0.0) + 4 * (l[2] ?: 0.0) }
+    val valid: Boolean get() = name && if (isRecipe) items.isNotEmpty() else kcalValue?.let { it <= 900 } == true
 
     fun build(): Food {
         val uk = nameUk.trim().ifEmpty { nameEn.trim() }
@@ -71,7 +75,7 @@ class FoodDraft(val initial: Food?) {
             carbs = 0.0, fiber = 0.0, source = "CUSTOM",
         )
         val common = base.copy(
-            nameUk = uk, nameEn = en, portionG = pg,
+            nameUk = uk, nameEn = en, portionG = pg, category = kind,
             portionUk = pg?.let { "порція" }, portionEn = pg?.let { "serving" },
         )
         return if (isRecipe) {
@@ -83,7 +87,7 @@ class FoodDraft(val initial: Food?) {
             )
         } else {
             common.copy(
-                kcal = kcal.toNumber() ?: 0.0, protein = protein.toNumber() ?: 0.0, fat = fat.toNumber() ?: 0.0,
+                kcal = kcalValue ?: 0.0, protein = protein.toNumber() ?: 0.0, fat = fat.toNumber() ?: 0.0,
                 carbs = carbs.toNumber() ?: 0.0, fiber = fiber.toNumber() ?: 0.0,
                 source = "CUSTOM", recipe = null,
             )
@@ -135,10 +139,11 @@ fun EditFoodScreen(
             }
             item { Field(stringResource(R.string.name_uk), draft.nameUk, { draft.nameUk = it }, number = false) }
             item { Field(stringResource(R.string.name_en), draft.nameEn, { draft.nameEn = it }, number = false) }
+            item { KindPicker(draft.kind) { draft.kind = it } }
 
             if (!draft.isRecipe) {
                 item { Text(stringResource(R.string.label_hint), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant) }
-                item { Field(stringResource(R.string.kcal_100), draft.kcal, { draft.kcal = it }) }
+                if (LocalShowKcal.current) item { Field(stringResource(R.string.kcal_100), draft.kcal, { draft.kcal = it }) }
                 item {
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         Field(stringResource(R.string.protein), draft.protein, { draft.protein = it }, Modifier.weight(1f))
@@ -175,6 +180,32 @@ fun EditFoodScreen(
             item { Field(stringResource(R.string.portion_g), draft.portion, { draft.portion = it }) }
         }
     }
+}
+
+/** What the food is, so it counts in the habits and advice (vegetables, sweets, a drink...). */
+@OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
+@Composable
+private fun KindPicker(kind: String, onPick: (String) -> Unit) {
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Text(stringResource(R.string.own_kind), style = MaterialTheme.typography.bodyMedium)
+        androidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            ua.tarilka.data.OwnKinds.ALL.forEach { k ->
+                FilterChip(k == kind, { onPick(k) }, { Text(stringResource(ownKindName(k)), maxLines = 1) })
+            }
+        }
+        Text(stringResource(R.string.own_kind_hint), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+    }
+}
+
+private fun ownKindName(k: String) = when (k) {
+    "veg", "fruit" -> R.string.kind_veg
+    "sweets" -> R.string.kind_sweets
+    "fastfood" -> R.string.kind_fastfood
+    "drinks" -> R.string.kind_drinks
+    "legumes" -> R.string.kind_legumes
+    "fish" -> R.string.kind_fish
+    "nuts" -> R.string.kind_nuts
+    else -> R.string.kind_other
 }
 
 @Composable

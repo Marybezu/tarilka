@@ -73,7 +73,7 @@ object Backup {
             .put("customFoods", JSONArray().apply {
                 custom.forEach { f ->
                     put(
-                        JSONObject().put("id", f.id).put("nameUk", f.nameUk).put("nameEn", f.nameEn)
+                        JSONObject().put("id", f.id).put("nameUk", f.nameUk).put("nameEn", f.nameEn).put("category", f.category)
                             .put("kcal", f.kcal).put("protein", f.protein).put("fat", f.fat)
                             .put("carbs", f.carbs).put("fiber", f.fiber)
                             .put("portionG", f.portionG ?: JSONObject.NULL).put("favorite", f.favorite)
@@ -182,7 +182,7 @@ object Backup {
                     val en = f.getString("nameEn")
                     val newId = db.foods().insert(
                         Food(
-                            category = "custom", nameUk = uk, nameEn = en,
+                            category = OwnKinds.clean(f.optString("category", "custom")), nameUk = uk, nameEn = en,
                             kcal = f.amount("kcal"), protein = f.amount("protein"), fat = f.amount("fat"),
                             carbs = f.amount("carbs"), fiber = f.amount("fiber", 0.0),
                             portionG = if (f.isNull("portionG")) null else f.amount("portionG"),

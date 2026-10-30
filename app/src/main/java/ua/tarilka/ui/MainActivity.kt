@@ -28,6 +28,8 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.foundation.layout.padding
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import ua.tarilka.R
 import ua.tarilka.data.Food
@@ -49,6 +51,7 @@ class MainActivity : AppCompatActivity() {
         setContent {
             val dynamic by prefs.dynamicColor.collectAsState()
             val db by app.dbState.collectAsState()
+            val dbBroken by app.dbBroken.collectAsState()
             val protectedOn by Protection.enabled.collectAsState()
             val noShots by prefs.noScreenshots.collectAsState()
             val profile by prefs.profile.collectAsState()
@@ -65,7 +68,9 @@ class MainActivity : AppCompatActivity() {
                     return@TarilkaTheme
                 }
                 androidx.compose.runtime.CompositionLocalProvider(LocalShowKcal provides (profile.age >= 18)) {
-                if (db == null) {
+                if (dbBroken) {
+                    DbBrokenScreen()
+                } else if (db == null) {
                     // Locked (or being converted): the screens' view models go, they held the closed database.
                     LaunchedEffect(Unit) { viewModelStore.clear() }
                     LockScreen(onUnlock = { Protection.unlock(this) }, onStartFresh = { Protection.startFresh(this) })
@@ -324,6 +329,48 @@ private fun Tabs(vm: MainViewModel, ai: AiViewModel, tab: Int, onTab: (Int) -> U
             1 -> WeightScreen(vm, pad)
             2 -> FoodsScreen(vm, pad, onEdit = { push(Overlay.EditFood(it)) })
             else -> SettingsScreen(vm, ai, pad)
+        }
+    }
+}
+
+/**
+ * The diary did not open (an update of its structure failed). Nothing is deleted: the person can save the
+ * database file and send feedback; the next version of the app can then open it.
+ */
+@Composable
+private fun DbBrokenScreen() {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    var saved by remember { mutableStateOf<Boolean?>(null) }
+    val save = androidx.activity.compose.rememberLauncherForActivityResult(
+        androidx.activity.result.contract.ActivityResultContracts.CreateDocument("application/zip"),
+    ) { uri ->
+        if (uri != null) saved = runCatching {
+            context.contentResolver.openOutputStream(uri)!!.use { out ->
+                java.util.zip.ZipOutputStream(out).use { zip ->
+                    val main = context.getDatabasePath(ua.tarilka.data.AppDatabase.NAME)
+                    // The -wal file holds the latest changes; both are needed to read the diary.
+                    listOf(main, java.io.File(main.path + "-wal"), java.io.File(main.path + "-shm")).filter { it.exists() }.forEach { f ->
+                        zip.putNextEntry(java.util.zip.ZipEntry(f.name))
+                        f.inputStream().use { it.copyTo(zip) }
+                        zip.closeEntry()
+                    }
+                }
+            }
+        }.isSuccess
+    }
+    androidx.compose.material3.Scaffold { pad ->
+        androidx.compose.foundation.layout.Column(
+            androidx.compose.ui.Modifier.padding(pad).padding(24.dp),
+            verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(16.dp),
+        ) {
+            androidx.compose.material3.Text(stringResource(R.string.db_broken_title), style = androidx.compose.material3.MaterialTheme.typography.titleLarge)
+            androidx.compose.material3.Text(stringResource(R.string.db_broken_text))
+            androidx.compose.material3.Button(onClick = { save.launch("tarilka-diary.zip") }) {
+                androidx.compose.material3.Text(stringResource(R.string.db_broken_save))
+            }
+            saved?.let {
+                androidx.compose.material3.Text(stringResource(if (it) R.string.db_broken_saved else R.string.db_broken_failed))
+            }
         }
     }
 }

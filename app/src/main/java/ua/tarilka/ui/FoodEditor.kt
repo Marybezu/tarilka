@@ -61,8 +61,11 @@ class FoodDraft(val initial: Food?) {
     var recipeLoaded = initial?.recipe == null
 
     private val name get() = nameUk.isNotBlank() || nameEn.isNotBlank()
-    /** Calories as typed, or from protein, fat and carbs (4/9/4) when left empty: under 18 the field is hidden. */
-    private val kcalValue: Double? get() = kcal.toNumber() ?: listOf(protein, fat, carbs).map { it.toNumber() }
+    /** Under 18 the calorie field is hidden: calories always come from protein, fat and carbs, never from an old value. */
+    var autoKcal = false
+
+    /** Calories as typed, or from protein, fat and carbs (4/9/4) when left empty or hidden. */
+    private val kcalValue: Double? get() = kcal.toNumber()?.takeIf { !autoKcal } ?: listOf(protein, fat, carbs).map { it.toNumber() }
         .takeIf { l -> l.any { it != null } }?.let { l -> 4 * (l[0] ?: 0.0) + 9 * (l[1] ?: 0.0) + 4 * (l[2] ?: 0.0) }
     val valid: Boolean get() = name && if (isRecipe) items.isNotEmpty() else kcalValue?.let { it <= 900 } == true
 
@@ -117,6 +120,7 @@ fun EditFoodScreen(
 
     // Under 18 no calorie field: the app works the number out from protein, fat and carbs.
     val showKcal = LocalShowKcal.current
+    draft.autoKcal = !showKcal
     Scaffold(
         topBar = {
             TopAppBar(

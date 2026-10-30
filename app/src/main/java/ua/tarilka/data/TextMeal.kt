@@ -65,13 +65,24 @@ object TextMeal {
     /** Words that join one dish ("млинці зі сметаною", "кава з молоком"): never split next to them. */
     private val JOINS = setOf("з", "із", "зі", "і", "й", "та", "на", "в", "у", "with", "and", "on", "in")
 
+    /**
+     * Ukrainian adjectives ("гречана", "куряче", "житній", "варені"): a dish name starts with them, so no split
+     * right after one. A few nouns end the same way and are allowed.
+     */
+    private val ADJECTIVE_END = Regex("(ий|ій|на|ва|ча|ня|не|ве|че|нє|ні|ві|чі|ька|ьке|ькі|ська|ське|ські)$")
+    private val NOUNS_LIKE_ADJECTIVES = setOf("сметана", "пельмені", "манна")
+
+    private fun adjective(word: String) = word.lowercase().let { it !in NOUNS_LIKE_ADJECTIVES && ADJECTIVE_END.containsMatchIn(it) }
+
     /** "котлети гречка" → ("котлети", "гречка"), the split whose weaker part matches best. */
     private fun splitTwo(name: String, match: (String) -> Double): Pair<String, String>? {
         val words = name.split(Regex("\\s+"))
         if (words.size < 2) return null
         val whole = match(name)
+        // The words together already name a food ("салат цезар", "варені яйця"): one dish.
+        if (whole >= 0.5) return null
         return (1 until words.size)
-            .filter { k -> words[k - 1].lowercase() !in JOINS && words[k].lowercase() !in JOINS }
+            .filter { k -> words[k - 1].lowercase() !in JOINS && words[k].lowercase() !in JOINS && !adjective(words[k - 1]) }
             .map { k -> words.take(k).joinToString(" ") to words.drop(k).joinToString(" ") }
             .map { (a, b) -> Triple(a, b, minOf(match(a), match(b))) }
             .filter { it.third >= 0.5 && it.third > whole }

@@ -291,15 +291,26 @@ class AiViewModel(app: Application) : AndroidViewModel(app) {
     private val _adviceFor = MutableStateFlow<java.time.LocalDate?>(null)
     val adviceFor: StateFlow<java.time.LocalDate?> = _adviceFor.asStateFlow()
 
-    fun requestAdvice(summary: String, ukrainian: Boolean, day: java.time.LocalDate) = viewModelScope.launch {
+    private var adviceJob: kotlinx.coroutines.Job? = null
+
+    /** [noKcal]: under 18, an answer that talks about calories is not shown. An earlier request still running stops. */
+    fun requestAdvice(summary: String, ukrainian: Boolean, day: java.time.LocalDate, noKcal: Boolean) {
+        adviceJob?.cancel()
+        _advice.value = null
         _adviceFor.value = day
-        ask(summary, ukrainian, _advice, _adviceLoading, 400)
+        adviceJob = viewModelScope.launch {
+            try {
+                ask(summary, ukrainian, _advice, _adviceLoading, 400, noKcal)
+            } finally {
+                _adviceLoading.value = false
+            }
+        }
     }
 
     /** The text for the model is built by the caller (it needs the diary), so it is passed as a function. */
     private var summaryJob: kotlinx.coroutines.Job? = null
 
-    fun requestSummary(text: suspend () -> String, ukrainian: Boolean) {
+    fun requestSummary(text: suspend () -> String, ukrainian: Boolean, noKcal: Boolean) {
         summaryJob?.cancel()
         summaryJob = viewModelScope.launch {
             _summaryLoading.value = true
@@ -309,7 +320,7 @@ class AiViewModel(app: Application) : AndroidViewModel(app) {
                     _summary.value = "⚠ ${it.message}"
                     return@launch
                 }
-                ask(prompt, ukrainian, _summary, _summaryLoading, 600)
+                ask(prompt, ukrainian, _summary, _summaryLoading, 600, noKcal)
             } finally {
                 _summaryLoading.value = false
             }
@@ -323,13 +334,12 @@ class AiViewModel(app: Application) : AndroidViewModel(app) {
         _summaryLoading.value = false
     }
 
-    private suspend fun ask(summary: String, ukrainian: Boolean, out: MutableStateFlow<String?>, loading: MutableStateFlow<Boolean>, maxTokens: Int) {
+    private suspend fun ask(summary: String, ukrainian: Boolean, out: MutableStateFlow<String?>, loading: MutableStateFlow<Boolean>, maxTokens: Int, noKcal: Boolean) {
         loading.value = true
         out.value = runCatching {
             var text = gemma.advice(summary, ukrainian, maxTokens)
             // The small model sometimes slips into Russian or another alphabet: ask once more, then show nothing.
             // Under 18 the app never shows a calorie number; the prompt says so, and the answer is checked too.
-            val noKcal = ua.tarilka.data.Lang.NO_KCAL_MARK in summary
             fun ok(t: String) = ua.tarilka.data.Lang.isClean(t, ukrainian) && !(noKcal && ua.tarilka.data.Lang.mentionsCalories(t))
             if (!ok(text)) text = gemma.advice(summary, ukrainian, maxTokens)
             if (ok(text)) text else null

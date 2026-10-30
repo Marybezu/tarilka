@@ -467,7 +467,7 @@ o08;fats;Маргарин;Margarine;717;0.16;80.71;0.7;0;0;10;ложка;tbsp;US
 o09;fats;Смалець;Lard;902;0;100;0;0;0;10;ложка;tbsp;USDA;Lard
 o10;fats;Майонез легкий;Light mayonnaise;238;0.37;22.22;9.23;0;0;15;ложка;tbsp;USDA;Salad dressing, mayonnaise, light
 o11;fats;Олія кунжутна;Sesame oil;884;0;100;0;0;0;10;ложка;tbsp;USDA;Oil, sesame, salad or cooking
-o12;fats;Олія MCT;MCT oil;900;0;100;0;0;0;15;ложка;tbsp;LABEL;
+o12;fats;Олія MCT;MCT oil;855;0;100;0;0;0;15;ложка;tbsp;LABEL;
 c01;sweets;Цукор;Sugar;387;0;0;99.98;0;0;5;ложечка;tsp;USDA;Sugars, granulated
 c02;sweets;Мед;Honey;304;0.3;0;82.4;0.2;0;20;ложка;tbsp;USDA;Honey
 c03;sweets;Шоколад чорний 70–85%;Dark chocolate 70–85%;598;7.79;42.63;45.9;10.9;0;25;ряд;row;USDA;Chocolate, dark, 70-85% cacao solids

@@ -100,7 +100,7 @@ object FoodMatcher {
             if (f.category in setOf("fats", "sauces") && FAT_WORDS.none { it in queryAll }) s *= 0.5
             if (f.category in setOf("dishes", "fastfood") && f.code != null) s *= 0.85
             // "greens" are leaves, not green tea.
-            if (f.category == "drinks" && DRINK_WORDS.none { it in queryAll }) s *= 0.5
+            if (f.category == "drinks" && f.code != null && DRINK_WORDS.none { it in queryAll }) s *= 0.5
             // Ingredients without a typical portion (flour, dry grains) are not what a plate shows.
             if (f.portionG == null && f.code != null) s *= 0.8
             val b = best

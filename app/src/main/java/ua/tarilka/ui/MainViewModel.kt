@@ -654,17 +654,20 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
      */
     fun deleteDay(d: LocalDate) = viewModelScope.launch {
         val day = d.toEpochDay()
-        val food = db.diary().range(day, day)
-        val drinks = db.fluids().onDay(day)
-        val note = db.notes().forDay(day).first()
-        val sleep = db.sleep().range(day, day).firstOrNull()
-        val bowel = db.bowel().range(day, day).firstOrNull()
-        val work = db.workouts().range(day, day)
-        val weight = db.weights().allOnce().firstOrNull { it.day == day }
-        val waist = db.waist().allOnce().firstOrNull { it.day == day }
-        val count = food.size + drinks.size + work.size + listOfNotNull(note, sleep, bowel, weight, waist).size
-        if (count == 0) return@launch
-        db.withTransaction {
+        // Read and delete in one transaction, so what Undo brings back is exactly what was deleted.
+        class Gone(
+            val food: List<DiaryEntry>, val drinks: List<FluidEntry>, val note: ua.tarilka.data.DayNote?,
+            val sleep: ua.tarilka.data.SleepEntry?, val bowel: ua.tarilka.data.BowelEntry?, val work: List<ua.tarilka.data.WorkoutEntry>,
+            val weight: WeightEntry?, val waist: ua.tarilka.data.WaistEntry?,
+        )
+        val gone = db.withTransaction {
+            val g = Gone(
+                db.diary().range(day, day), db.fluids().onDay(day), db.notes().onDay(day),
+                db.sleep().range(day, day).firstOrNull(), db.bowel().range(day, day).firstOrNull(), db.workouts().range(day, day),
+                db.weights().allOnce().firstOrNull { it.day == day }, db.waist().allOnce().firstOrNull { it.day == day },
+            )
+            val (food, drinks, work) = Triple(g.food, g.drinks, g.work)
+            val (weight, waist) = g.weight to g.waist
             if (food.isNotEmpty()) db.diary().deleteMany(food)
             if (drinks.isNotEmpty()) db.fluids().deleteMany(drinks)
             db.notes().delete(day)
@@ -673,7 +676,12 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
             work.forEach { db.workouts().delete(it) }
             weight?.let { db.weights().delete(it) }
             waist?.let { db.waist().delete(it) }
+            g
         }
+        val food = gone.food; val drinks = gone.drinks; val note = gone.note; val sleep = gone.sleep
+        val bowel = gone.bowel; val work = gone.work; val weight = gone.weight; val waist = gone.waist
+        val count = food.size + drinks.size + work.size + listOfNotNull(note, sleep, bowel, weight, waist).size
+        if (count == 0) return@launch
         sync {
             food.forEach { health.deleteMeal(it) }
             drinks.forEach { health.deleteFluid(it) }

@@ -270,6 +270,11 @@ class LogicTest {
         assertEquals(listOf("котлети", "гречка"), real("2 котлети гречка 200 г"))
         assertEquals(listOf("житній хліб"), real("2 житній хліб 50 г").take(1))
         assertEquals(listOf("млинці зі сметаною"), real("3 млинці зі сметаною 100 г").take(1))
+        // An adjective starts a dish name: no split after it.
+        for (dish in listOf("гречана каша", "вівсяна каша", "молочна каша", "куряче філе", "варені яйця")) {
+            assertEquals(dish, real("1 $dish 250 г").first())
+        }
+        assertEquals(listOf("яйця", "хліб"), real("2 яйця хліб 50 г"))
     }
 
     @Test

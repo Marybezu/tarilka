@@ -140,7 +140,7 @@ interface FluidDao {
     @Query(
         """SELECT d.day AS day, SUM(CASE WHEN f.code IN (:soups) THEN d.grams * 0.8 ELSE d.grams END) AS ml FROM diary d JOIN foods f ON f.id = d.foodId
            WHERE d.day BETWEEN :from AND :to AND f.kcal < 150 AND (
-             (f.category = 'drinks' AND f.code NOT IN (:alcohol)) OR f.code IN (:milkDrinks) OR f.code IN (:soups))
+             (f.category = 'drinks' AND (f.code IS NULL OR f.code NOT IN (:alcohol))) OR f.code IN (:milkDrinks) OR f.code IN (:soups))
            GROUP BY d.day"""
     )
     fun drinksFromDiaryRange(from: Long, to: Long, alcohol: List<String>, milkDrinks: List<String>, soups: List<String>): Flow<List<DayFluid>>
@@ -183,6 +183,9 @@ interface NoteDao {
 
     @Query("SELECT * FROM notes ORDER BY day")
     fun all(): Flow<List<DayNote>>
+
+    @Query("SELECT * FROM notes WHERE day = :day")
+    suspend fun onDay(day: Long): DayNote?
 
     @Query("SELECT * FROM notes ORDER BY day")
     suspend fun allOnce(): List<DayNote>

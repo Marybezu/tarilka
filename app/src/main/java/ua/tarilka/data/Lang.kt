@@ -23,7 +23,7 @@ object Lang {
     /** Text fit to show: no stray alphabets, and for Ukrainian no Russian. */
     fun isClean(s: String, ukrainian: Boolean): Boolean = !hasForeignScript(s) && !(ukrainian && looksRussian(s))
 
-    /** Words that carry the under-18 rule in a prompt (see [Targets.aiSafety]); their presence turns on [mentionsCalories]. */
+    /** The words of the under-18 rule in the prompts (see [Targets.aiSafety]); checked by a test. */
     const val NO_KCAL_MARK = "never mention calories"
 
     private val CALORIES = Regex("(?iu)ккал|kcal|калор|calor")

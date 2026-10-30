@@ -117,8 +117,10 @@ class TarilkaApp : Application() {
             d.openHelper.writableDatabase
         } catch (e: Exception) {
             runCatching { d.close() }
-            // Encrypted: a wrong key; the caller says so.
-            if (rawKey != null) { rawKey.fill(0); throw e }
+            rawKey?.fill(0)
+            // Room says the structure update failed (IllegalStateException); anything else with a key is a wrong key,
+            // which the caller reports.
+            if (rawKey != null && e !is IllegalStateException) throw e
             CrashLog.record(this, e)
             dbBroken.value = true
             return

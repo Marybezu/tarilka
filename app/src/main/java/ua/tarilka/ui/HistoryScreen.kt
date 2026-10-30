@@ -207,7 +207,7 @@ private fun Summaries(vm: MainViewModel, ai: AiViewModel, dayCount: Int) {
                         TextButton(onClick = ai::clearSummary) { Text(stringResource(R.string.hide)) }
                     }
                 }
-                else -> FilledTonalButton(onClick = { ai.requestSummary({ vm.periodSummary(period) }, ua.tarilka.data.isUkrainian()) }) {
+                else -> FilledTonalButton(onClick = { ai.requestSummary({ vm.periodSummary(period) }, ua.tarilka.data.isUkrainian(), noKcal = !vm.targets.value.showKcal) }) {
                     Icon(Icons.Filled.Star, null, Modifier.size(18.dp))
                     Spacer(Modifier.width(8.dp))
                     Text(stringResource(R.string.ai_summary))

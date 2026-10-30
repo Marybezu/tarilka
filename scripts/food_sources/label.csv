@@ -115,5 +115,5 @@ dr37;drinks;Ізотонік (спортивний напій);Sports drink (iso
 dr38;drinks;Напій з електролітами без цукру;Electrolyte drink, sugar-free;1;0;0;0.2;0;0;500;пляшка;bottle;LABEL;
 dr39;drinks;Енергетик без цукру;Sugar-free energy drink;3;0;0;0.5;0;0;250;банка;can;LABEL;
 dr40;drinks;Комбуча;Kombucha;18;0;0;4.5;0;0;330;пляшка;bottle;LABEL;
-o12;fats;Олія MCT;MCT oil;900;0;100.0;0;0;0;15;ложка;tbsp;LABEL;
+o12;fats;Олія MCT;MCT oil;855;0;100.0;0;0;0;15;ложка;tbsp;LABEL;
 a22;sauces;Креатин моногідрат;Creatine monohydrate;0;0;0;0;0;0;5;мірна ложка;scoop;LABEL;

@@ -317,7 +317,7 @@ fun TodayScreen(
                             }
                             else -> FilledTonalButton(onClick = {
                                 val summary = adviceSummary(context, day, entries, totals, targets, tips, fluidMl, steps, note, mealTimesOn)
-                                ai.requestAdvice(summary, isUkrainian(), day)
+                                ai.requestAdvice(summary, isUkrainian(), day, noKcal = !targets.showKcal)
                             }) {
                                 Icon(Icons.Filled.Star, null, Modifier.size(18.dp))
                                 Spacer(Modifier.width(8.dp))

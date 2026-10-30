@@ -373,4 +373,10 @@ class LogicTest {
         assertTrue(ua.tarilka.data.Lang.NO_KCAL_MARK in teen.aiSafety())
         assertTrue("no alcohol for teens", "no alcohol" in teen.aiSafety())
     }
+
+    @Test
+    fun stepsForStepsy() {
+        val d = java.time.LocalDate.of(2026, 10, 30).toEpochDay()
+        assertEquals("2026-10-30,8450\r\n2026-10-31,120\r\n", ua.tarilka.data.Backup.stepsCsv(mapOf(d + 1 to 120L, d to 8450L, d - 1 to 0L)))
+    }
 }

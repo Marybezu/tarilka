@@ -565,6 +565,11 @@ private fun DataSection(vm: MainViewModel) {
     val exportCsv = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("text/csv")) { uri ->
         if (uri != null) vm.exportCsv(uri)
     }
+    val exportSteps = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("text/csv")) { uri ->
+        if (uri != null) vm.exportStepsCsv(uri)
+    }
+    val stepsOn by vm.stepsEnabled.collectAsState()
+    var stepsInfo by remember { mutableStateOf(false) }
     val importJson = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         if (uri != null) vm.readImport(uri)
     }
@@ -578,6 +583,7 @@ private fun DataSection(vm: MainViewModel) {
                 }
                 OutlinedButton(onClick = { Protection.confirm(activity) { exportCsv.launch("tarilka-diary-$date.csv") } }) { Text(stringResource(R.string.export_csv)) }
                 OutlinedButton(onClick = { Protection.confirm(activity) { pdfDialog = true } }) { Text(stringResource(R.string.pdf_button)) }
+                if (stepsOn) OutlinedButton(onClick = { stepsInfo = true }) { Text(stringResource(R.string.export_steps)) }
             }
             FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 TextButton(onClick = { clearing = false }) {
@@ -591,6 +597,17 @@ private fun DataSection(vm: MainViewModel) {
                 Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.primary)
             }
         }
+    }
+    if (stepsInfo) {
+        androidx.compose.material3.AlertDialog(
+            onDismissRequest = { stepsInfo = false },
+            title = { Text(stringResource(R.string.export_steps)) },
+            text = { Text(stringResource(R.string.export_steps_text)) },
+            confirmButton = {
+                TextButton(onClick = { stepsInfo = false; Protection.confirm(activity) { exportSteps.launch("stepsy_tarilka-$date.csv") } }) { Text(stringResource(R.string.save)) }
+            },
+            dismissButton = { TextButton(onClick = { stepsInfo = false }) { Text(stringResource(R.string.cancel)) } },
+        )
     }
     if (pdfDialog) {
         PdfDialog(vm, onDismiss = { pdfDialog = false }) { req ->

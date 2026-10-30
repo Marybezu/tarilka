@@ -1202,6 +1202,22 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         }.getOrElse { failedExport(uri, it) }
     }
 
+    /**
+     * Steps per day as "2026-10-31,8450" lines, the format Stepsy (F-Droid) imports. Steps counted by the phone
+     * and those from Health Connect (about a year back), as on the Today screen.
+     */
+    fun exportStepsCsv(uri: android.net.Uri) = viewModelScope.launch {
+        dataMessage.value = runCatching {
+            val today = LocalDate.now()
+            val first = prefs.loggedSteps().keys.minOrNull()?.let(LocalDate::ofEpochDay)
+            val from = listOfNotNull(first, today.minusDays(365)).minOrNull()!!
+            val text = ua.tarilka.data.Backup.stepsCsv(stepsByDay(from, today))
+            require(text.isNotEmpty()) { getApplication<Application>().getString(ua.tarilka.R.string.steps_none) }
+            writeText(uri, text)
+            getApplication<Application>().getString(ua.tarilka.R.string.export_done)
+        }.getOrElse { failedExport(uri, it) }
+    }
+
     private val MAX_BACKUP_BYTES = 64 * 1024 * 1024
 
     /** Password chosen for the export in progress ("" = no encryption, null = unknown). */

@@ -371,4 +371,9 @@ private fun JSONObject.amount(key: String, default: Double? = null): Double {
     val v = if (has(key) && !isNull(key)) optDouble(key) else default ?: throw org.json.JSONException("no $key")
     require(v.isFinite() && v >= 0) { "bad number: $key" }
     return v
+
+    /** "yyyy-MM-dd,steps" per day, oldest first, no header, CRLF: what Stepsy writes and reads. Days without steps are left out. */
+    fun stepsCsv(steps: Map<Long, Long>): String =
+        steps.filterValues { it > 0 }.toSortedMap().entries
+            .joinToString("") { (d, n) -> "${java.time.LocalDate.ofEpochDay(d)},$n\r\n" }
 }

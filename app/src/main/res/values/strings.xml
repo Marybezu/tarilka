@@ -178,6 +178,9 @@
     <string name="export_backup">Export backup</string>
     <string name="import_backup">Import</string>
     <string name="export_csv">Diary as CSV</string>
+    <string name="export_steps">Steps for Stepsy</string>
+    <string name="export_steps_text">Saves steps per day (date, steps) as a CSV that Stepsy (F-Droid) opens: there, Settings → Backup → Import. Note: Stepsy deletes all its own steps when importing, so if it has been counting, back it up there first. The file is not encrypted.</string>
+    <string name="steps_none">No steps yet.</string>
     <string name="export_done">Saved.</string>
     <string name="data_error">Error: %1$s</string>
     <string name="import_title">Restore from backup?</string>

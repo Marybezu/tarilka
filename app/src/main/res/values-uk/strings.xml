@@ -178,6 +178,9 @@
     <string name="export_backup">Експорт копії</string>
     <string name="import_backup">Імпорт</string>
     <string name="export_csv">Журнал у CSV</string>
+    <string name="export_steps">Кроки для Stepsy</string>
+    <string name="export_steps_text">Збереже кроки по днях (дата, кроки) у CSV, який відкриває Stepsy (F-Droid): там Settings → Backup → Import (Stepsy поки без української). Увага: Stepsy під час імпорту стирає всі свої кроки, тож якщо він уже рахував, спершу зробіть у ньому резервну копію. Файл не шифрується.</string>
+    <string name="steps_none">Кроків ще немає.</string>
     <string name="export_done">Збережено.</string>
     <string name="data_error">Помилка: %1$s</string>
     <string name="import_title">Відновити з копії?</string>

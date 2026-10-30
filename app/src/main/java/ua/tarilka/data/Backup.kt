@@ -324,7 +324,7 @@ object Backup {
                         weightKg = p.optDouble("weightKg", 65.0).takeIf { it in 30.0..300.0 } ?: 65.0,
                         activity = p.optInt("activity", 1).coerceIn(0, 4),
                         goal = runCatching { Goal.valueOf(p.getString("goal")) }.getOrDefault(Goal.MAINTAIN),
-                        customKcal = if (p.isNull("customKcal")) null else p.optInt("customKcal"),
+                        customKcal = if (p.isNull("customKcal")) null else p.optInt("customKcal").takeIf { it in 800..6000 },
                         pregnant = p.optBoolean("pregnant", false),
                     ),
                 )

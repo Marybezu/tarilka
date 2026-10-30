@@ -69,6 +69,8 @@ class ModelStore(private val context: Context) {
                         out.write(buf, 0, n)
                         sha.update(buf, 0, n)
                         copied += n
+                        // A wrong, huge file must not fill the phone before the checksum says no.
+                        if (copied > E2B_BYTES) error(context.getString(ua.tarilka.R.string.ai_wrong_file, E2B_FILE))
                         if (total > 0) onProgress(copied.toFloat() / total)
                     }
                 }
@@ -109,6 +111,7 @@ class ModelStore(private val context: Context) {
         private const val E2B_REVISION = "1caa527c1e88b55f046fcd8d2b4265606680663d"
         const val E2B_DOWNLOAD = "$E2B_PAGE/resolve/$E2B_REVISION/$E2B_FILE?download=true"
         /** SHA-256 of that file as published (Hugging Face LFS), 2 588 147 712 bytes. */
+        private const val E2B_BYTES = 2_588_147_712L
         private const val E2B_SHA256 = "181938105e0eefd105961417e8da75903eacda102c4fce9ce90f50b97139a63c"
         private const val MODEL_DIR = "models"
         private const val MB = 1024L * 1024L

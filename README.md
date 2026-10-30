@@ -24,7 +24,7 @@
 ## Прозорість
 
 - **Дозволи** лише для ввімкнених функцій: кроки, Health Connect, сповіщення. Збірка зупиняється, якщо зʼявляється дозвіл на інтернет.
-- **Шифрування:** із захистом не шифруються налаштування, журнал кроків, кілька чисел за сьогодні для нагадувань і очікувана дата циклу (лише якщо ввімкнено нагадування про цикл). Захист — це PIN телефону: хто його знає, відкриє й Тарілку. CSV і PDF не шифруються.
+- **Шифрування:** із захистом не шифруються налаштування, журнал кроків, кілька чисел за сьогодні для нагадувань і очікувана дата циклу (лише якщо ввімкнено нагадування про цикл). Не шифруються також фото, поки ШІ його розбирає, і копії в Health Connect (з назвами страв). Дані, внесені до ввімкнення захисту, можуть лишатися в памʼяті телефону: найнадійніше ввімкнути захист одразу. Захист — це PIN телефону: хто його знає, відкриє й Тарілку. CSV і PDF не шифруються.
 - **Підпис:** справжній APK підписано сертифікатом із відбитком SHA-256 `64:EA:F9:73:EC:74:AA:88:AB:62:A6:B3:2B:95:52:CC:87:13:04:23:85:FA:3D:74:9F:66:69:8B:CD:B2:5C:60`.
 - **Збірка:** APK збирається з цього коду в GitHub Actions і підписується лише після схвалення автора. База — `scripts/food_sources/` і `scripts/build_foods.py`.
 - **Як створено:** код написано за допомогою ШІ (Claude, Anthropic) під керівництвом і з тестуванням автора.
@@ -60,7 +60,7 @@ A private, offline food tracker for Android. Ukrainian and English. Free, no ads
 ## Transparency
 
 - **Permissions** only for features you turn on: steps, Health Connect, notifications. The build stops if an internet permission appears.
-- **Encryption:** with protection on, not encrypted are settings, the step log, a few of today's numbers for reminders and the expected cycle date (only if cycle reminders are on). Protection is the phone PIN: anyone who knows it can open Tarilka. CSV and PDF are not encrypted.
+- **Encryption:** with protection on, not encrypted are settings, the step log, a few of today's numbers for reminders and the expected cycle date (only if cycle reminders are on). Also not encrypted: a photo while the AI reads it, and copies in Health Connect (with food names). Data entered before protection was on may remain in the phone's storage: it is safest to turn protection on right away. Protection is the phone PIN: anyone who knows it can open Tarilka. CSV and PDF are not encrypted.
 - **Signature:** the genuine APK is signed with a certificate whose SHA-256 fingerprint is `64:EA:F9:73:EC:74:AA:88:AB:62:A6:B3:2B:95:52:CC:87:13:04:23:85:FA:3D:74:9F:66:69:8B:CD:B2:5C:60`.
 - **Build:** the APK is built from this code in GitHub Actions and signed only after the author's approval. Food database: `scripts/food_sources/` and `scripts/build_foods.py`.
 - **How it was made:** written with AI assistance (Claude, Anthropic), directed and tested by the author.

@@ -79,6 +79,7 @@ fun TodayScreen(
     val model by ai.model.collectAsState()
     val advice by ai.advice.collectAsState()
     val adviceLoading by ai.adviceLoading.collectAsState()
+    val adviceFor by ai.adviceFor.collectAsState()
     val fluidMl by vm.fluidMl.collectAsState()
     val fluids by vm.fluids.collectAsState()
     val steps by vm.steps.collectAsState()
@@ -304,19 +305,19 @@ fun TodayScreen(
                     if (model is ModelStore.State.Ready && entries.isNotEmpty()) {
                         Spacer(Modifier.height(4.dp))
                         when {
-                            adviceLoading -> Row(verticalAlignment = Alignment.CenterVertically) {
+                            adviceLoading && adviceFor == day -> Row(verticalAlignment = Alignment.CenterVertically) {
                                 CircularProgressIndicator(Modifier.size(18.dp), strokeWidth = 2.dp)
                                 Spacer(Modifier.width(8.dp))
                                 Text(stringResource(R.string.ai_thinking), style = MaterialTheme.typography.bodyMedium)
                             }
-                            advice != null -> {
+                            advice != null && adviceFor == day -> {
                                 HorizontalDivider()
                                 Text(advice!!, style = MaterialTheme.typography.bodyMedium)
                                 TextButton(onClick = ai::clearAdvice) { Text(stringResource(R.string.hide)) }
                             }
                             else -> FilledTonalButton(onClick = {
                                 val summary = adviceSummary(context, day, entries, totals, targets, tips, fluidMl, steps, note, mealTimesOn)
-                                ai.requestAdvice(summary, isUkrainian())
+                                ai.requestAdvice(summary, isUkrainian(), day)
                             }) {
                                 Icon(Icons.Filled.Star, null, Modifier.size(18.dp))
                                 Spacer(Modifier.width(8.dp))

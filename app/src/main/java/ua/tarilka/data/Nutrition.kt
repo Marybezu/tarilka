@@ -75,7 +75,8 @@ object Nutrition {
         val protein = proteinPerKg * proteinWeight
         val fat = kcal * 0.30 / 9
         val carbs = max(0.0, (kcal - protein * 4 - fat * 9) / 4)
-        val fiber = max(25.0, kcal / 1000 * 14)
+        // 25 g (EFSA, WHO), or 14 g per 1000 kcal (US) for larger needs, up to 35 g: more is rarely advised.
+        val fiber = (kcal / 1000 * 14).coerceIn(25.0, 35.0)
         // Drinks and soups: the EFSA adequate intake (2.0 / 2.5 L of water a day, about 80 % of it from drinks)
         // as the minimum; a bigger body that uses more energy needs a little more, so also about 1 ml of water
         // per kcal used a day, 80 % of it from drinks (an approximation, not an EFSA value), at most 3 L.
@@ -136,8 +137,8 @@ object Nutrition {
  */
 fun Targets.aiSafety(): String = when (limit) {
     Limit.PREGNANT -> "The person is pregnant or breastfeeding: never suggest eating less or losing weight; weight gain in pregnancy is expected; the safest is no alcohol at all. "
-    Limit.TEEN -> "The person is under 18: never suggest eating less or losing weight and never mention calories or calorie targets; talk about regular meals, vegetables, drinks, sleep and movement. "
+    Limit.TEEN -> "The person is under 18: never suggest eating less or losing weight and never mention calories or calorie targets; the safest is no alcohol at all; talk about regular meals, vegetables, drinks, sleep and movement. "
     Limit.UNDERWEIGHT -> "BMI is under 18.5: never suggest eating less or losing weight; gently suggest a doctor if weight is falling. "
     null -> ""
-} + (if (teen && limit != Limit.TEEN) "The person is under 18: never mention calories or calorie targets. " else "") +
+} + (if (teen && limit != Limit.TEEN) "The person is under 18: never mention calories or calorie targets; the safest is no alcohol at all. " else "") +
     "Never comment on body shape or size, never suggest skipping meals or burning off food with exercise."

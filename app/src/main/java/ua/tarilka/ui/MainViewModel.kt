@@ -1111,7 +1111,11 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
             }
             appendLine("Techniques you may suggest (pick 1–2 that fit what you see, explain simply):")
             Habits.TECHNIQUES.forEach { appendLine("- $it") }
-            if (h.alcoholPerWeek > 0) {
+            // Cutting-down tips ("alcohol-free days") would read as permission under 18 or in pregnancy.
+            val noAlcohol = !tg.showKcal || tg.limit == ua.tarilka.data.Limit.PREGNANT
+            if (h.alcoholPerWeek > 0 && noAlcohol) {
+                appendLine("Alcohol was logged. For this person no amount of alcohol is advised: say kindly that the safest is none, give no tips for drinking less, and mention a doctor or a trusted adult can help.")
+            } else if (h.alcoholPerWeek > 0) {
                 appendLine("For alcohol (WHO brief intervention; if there is alcohol, always include 2 of these, more if drinking is frequent or heavy):")
                 Habits.ALCOHOL_TECHNIQUES.forEach { appendLine("- $it") }
             }

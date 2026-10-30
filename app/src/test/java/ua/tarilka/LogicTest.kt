@@ -12,6 +12,7 @@ import ua.tarilka.data.Nutrition
 import ua.tarilka.data.Profile
 import ua.tarilka.data.Sex
 import ua.tarilka.data.WeightEntry
+import ua.tarilka.data.aiSafety
 import java.io.File
 
 class LogicTest {
@@ -336,5 +337,25 @@ class LogicTest {
         assertEquals(1, ua.tarilka.ui.passwordStrength("Tarilka2024"))
         assertEquals(2, ua.tarilka.ui.passwordStrength("кіт сонце ложка вікно"))
         assertEquals(2, ua.tarilka.ui.passwordStrength("Xk9!pQ2#vL7z"))
+    }
+
+    @Test
+    fun fibreTargetStaysInRange() {
+        val small = Nutrition.targets(Profile(Sex.FEMALE, 30, 160, 55.0, 0, Goal.MAINTAIN), null)
+        assertEquals(25.0, small.fiber, 0.01)
+        val big = Nutrition.targets(Profile(Sex.MALE, 25, 190, 95.0, 4, Goal.GAIN), null)
+        assertTrue("fibre is capped at 35 g, got ${big.fiber}", big.fiber <= 35.0)
+    }
+
+    @Test
+    fun caloriesInAiTextAreCaught() {
+        assertTrue(ua.tarilka.data.Lang.mentionsCalories("Це приблизно 600 ккал."))
+        assertTrue(ua.tarilka.data.Lang.mentionsCalories("Менше калорій увечері"))
+        assertTrue(ua.tarilka.data.Lang.mentionsCalories("About 600 kcal"))
+        assertTrue(!ua.tarilka.data.Lang.mentionsCalories("Додайте до вечері тарілку овочів."))
+        // The under-18 safety text carries the mark that turns the check on.
+        val teen = Nutrition.targets(Profile(Sex.FEMALE, 16, 160, 50.0, 1, Goal.MAINTAIN), null)
+        assertTrue(ua.tarilka.data.Lang.NO_KCAL_MARK in teen.aiSafety())
+        assertTrue("no alcohol for teens", "no alcohol" in teen.aiSafety())
     }
 }

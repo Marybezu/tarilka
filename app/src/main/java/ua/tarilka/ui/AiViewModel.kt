@@ -287,7 +287,12 @@ class AiViewModel(app: Application) : AndroidViewModel(app) {
     private val _summaryLoading = MutableStateFlow(false)
     val summaryLoading: StateFlow<Boolean> = _summaryLoading.asStateFlow()
 
-    fun requestAdvice(summary: String, ukrainian: Boolean) = viewModelScope.launch {
+    /** The day the shown advice was written for: another day on screen does not show it. */
+    private val _adviceFor = MutableStateFlow<java.time.LocalDate?>(null)
+    val adviceFor: StateFlow<java.time.LocalDate?> = _adviceFor.asStateFlow()
+
+    fun requestAdvice(summary: String, ukrainian: Boolean, day: java.time.LocalDate) = viewModelScope.launch {
+        _adviceFor.value = day
         ask(summary, ukrainian, _advice, _adviceLoading, 400)
     }
 
@@ -323,9 +328,11 @@ class AiViewModel(app: Application) : AndroidViewModel(app) {
         out.value = runCatching {
             var text = gemma.advice(summary, ukrainian, maxTokens)
             // The small model sometimes slips into Russian or another alphabet: ask once more, then show nothing.
-            val lang = ua.tarilka.data.Lang
-            if (!lang.isClean(text, ukrainian)) text = gemma.advice(summary, ukrainian, maxTokens)
-            if (lang.isClean(text, ukrainian)) text else null
+            // Under 18 the app never shows a calorie number; the prompt says so, and the answer is checked too.
+            val noKcal = ua.tarilka.data.Lang.NO_KCAL_MARK in summary
+            fun ok(t: String) = ua.tarilka.data.Lang.isClean(t, ukrainian) && !(noKcal && ua.tarilka.data.Lang.mentionsCalories(t))
+            if (!ok(text)) text = gemma.advice(summary, ukrainian, maxTokens)
+            if (ok(text)) text else null
         }.getOrElse { if (it is kotlinx.coroutines.CancellationException) throw it else "⚠ ${it.message}" }
         loading.value = false
     }

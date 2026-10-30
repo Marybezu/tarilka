@@ -54,12 +54,12 @@
     <string name="tip_empty">Nothing logged yet. Add a meal by hand or take a photo of your plate.</string>
     <string name="tip_remaining">About %1$d kcal left for today.</string>
     <string name="tip_over">Over today\'s target by %1$d kcal. One day doesn\'t matter much; look at the weekly average.</string>
-    <string name="tip_under">Only %1$d kcal logged. If that is real, it is too little to feel well; check whether something is missing.</string>
+    <string name="tip_under">Only %1$d kcal logged. If nothing is missing, it is too little to feel well.</string>
     <string name="tip_on_target">Calories are right on target.</string>
     <string name="tip_protein_low">Protein is low: %1$d of %2$d g. Good sources: cottage cheese, eggs, poultry, fish, beans, lentils.</string>
     <string name="tip_fiber_low">Fibre is low: %1$d of %2$d g. Add vegetables, buckwheat or oats, beans, berries, whole-grain bread.</string>
     <string name="tip_fat_high">Fat is high today (%1$d g). Most often it comes from mayonnaise, sausages, pastries and fried food.</string>
-    <string name="tip_balance_good">Great balance of protein and fibre today.</string>
+    <string name="tip_balance_good">You got enough protein and fibre today.</string>
     <string name="tip_weight_fast">Weight is dropping fast (%1$.1f kg a week). More than 1%% of body weight a week is a lot; consider eating a bit more or talking to a doctor.</string>
     <string name="tip_weight_up">Your weight is trending up (%1$.1f kg a week), although the goal is to lose weight. Check portions and snacks.</string>
     <string name="tip_weight_down_good">Your weight is going down gradually (%1$.1f kg a week), at a safe pace.</string>
@@ -405,7 +405,7 @@
     <string name="habit_bowel">🌿 Bowel: %1$s</string>
     <string name="habit_bowel_info">Days with a bowel movement out of the recorded ones. Anything from 3 times a week to 3 times a day is considered normal; being regular and effortless matters more.</string>
     <string name="bowel_noticed">Hard: %1$d days, loose: %2$d days. Fibre on average %3$s g a day.</string>
-    <string name="bowel_tips">What helps:\n• 25–30 g of fibre a day, increased gradually: vegetables, fruit, whole grains, pulses;\n• enough fluids, especially with more fibre;\n• daily movement;\n• don\'t put off the urge; a calm moment after breakfast.</string>
+    <string name="bowel_tips">What helps:\n• at least 25 g of fibre a day, increased gradually: vegetables, fruit, whole grains, pulses;\n• enough fluids, especially with more fibre;\n• daily movement;\n• don\'t put off the urge; a calm moment after breakfast.</string>
     <string name="bowel_help">See a doctor if there is blood or black stool, strong pain, unexplained weight loss, or changes lasting more than 2–3 weeks. Loose stools with fever or signs of dehydration are a reason too.</string>
     <string name="activity_hint">From your steps and workouts in recent weeks, your activity is closer to "%1$s" than the profile says. Update? Your daily target depends on it.</string>
     <string-array name="bowel_forms">
@@ -566,7 +566,7 @@
     <string name="mv_weight">%1$s kg a week</string>
     <string name="mi_kcal">Average over days with entries. Green is within 10% of the target, amber within 25%. One day decides little; the average matters.</string>
     <string name="mi_protein">Protein helps keep muscle and stay full, especially when losing weight. Good sources: cottage cheese, eggs, poultry, fish, beans.</string>
-    <string name="mi_fiber">Fibre helps digestion and fullness: vegetables, fruit, whole grains, beans. The target is at least 25 g a day (EFSA, WHO); with more food the app uses 14 g per 1000 kcal (US guidelines).</string>
+    <string name="mi_fiber">Fibre helps digestion and fullness: vegetables, fruit, whole grains, beans. The target is at least 25 g a day (EFSA, WHO); people who eat more need a bit more, up to 35 g (US guidelines: 14 g per 1000 calories eaten).</string>
     <string name="mi_fluid">Average over days with entries: water and drinks you added, drinks from the database logged as food (juice, kefir, milk) and soups (80 % of their weight); alcohol is not counted. Your own foods are not counted; add such a drink as fluid. The guide is at least the EFSA level (1.6 L for women and 2 L for men from drinks; soups count here too); a bigger body that uses more energy needs a little more. More in heat, with activity, in pregnancy and while breastfeeding. The best daily sign is thirst and pale urine.</string>
     <string name="mi_weight">Weight change along the trend line, kg a week. Weight swings with water and the cycle, so the trend over several weeks matters, not single days. More than 1% of body weight a week is too fast.</string>
     <string name="protect_title">App protection</string>

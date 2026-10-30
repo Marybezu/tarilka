@@ -281,6 +281,7 @@ private fun LanguageSection() {
 
 @Composable
 private fun ActivitySection(vm: MainViewModel) {
+    val stepsOn by vm.stepsEnabled.collectAsState()
     val syncOn by vm.healthSync.collectAsState()
     val context = androidx.compose.ui.platform.LocalContext.current
     var hcAvailable by remember { mutableStateOf(vm.healthAvailable) }
@@ -567,7 +568,6 @@ private fun DataSection(vm: MainViewModel) {
     val exportSteps = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("text/csv")) { uri ->
         if (uri != null) vm.exportStepsCsv(uri)
     }
-    val stepsOn by vm.stepsEnabled.collectAsState()
     var stepsInfo by remember { mutableStateOf(false) }
     val importSteps = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         if (uri != null) vm.importStepsCsv(uri)

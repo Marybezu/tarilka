@@ -187,8 +187,7 @@ class AiViewModel(app: Application) : AndroidViewModel(app) {
             _photo.value = PhotoUi(note = text, working = true, fromText = true)
             try {
                 val foods = tapp.db.foods().allOnce()
-                // A word pair counts as a food only with a clear match, so "варена картопля" is not split in two.
-                val items = ua.tarilka.data.TextMeal.parse(text) { FoodMatcher.best(it, it, foods, threshold = 0.8) != null }.map { item ->
+                val items = ua.tarilka.data.TextMeal.parse(text) { FoodMatcher.best(it, it, foods)?.score ?: 0.0 }.map { item ->
                     val food = FoodMatcher.best(item.name, item.name, foods)?.food
                     val grams = when {
                         item.amount == null -> food?.portionG ?: 100.0

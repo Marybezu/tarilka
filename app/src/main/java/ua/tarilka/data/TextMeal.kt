@@ -20,10 +20,11 @@ object TextMeal {
     private val SEPARATORS = Regex("(?<!\\d),|,(?!\\d)|[;\\n]")
 
     /**
-     * [isFood] tells whether some words name a known food. It splits "2 котлети гречка 200 г" (no comma) into
-     * two foods, each with its own amount; without it, or when no split names two foods, the words stay together.
+     * [match] says how well some words name a known food (0 = not at all, 1 = exactly). It splits
+     * "2 котлети гречка 200 г" (no comma) into two foods, each with its own amount, when both parts are foods
+     * and each matches better than the words together; otherwise ("варена картопля") they stay together.
      */
-    fun parse(text: String, isFood: ((String) -> Boolean)? = null): List<Item> {
+    fun parse(text: String, match: ((String) -> Double)? = null): List<Item> {
         val out = mutableListOf<Item>()
         // Commas, semicolons and new lines separate items; inside a piece, every amount closes an item.
         for (piece in text.split(SEPARATORS)) {
@@ -43,7 +44,7 @@ object TextMeal {
                     name == null -> pending = number to unit
                     pending != null -> {
                         // "2 котлети гречка 200 г": the first food takes the waiting amount, the last one this amount.
-                        val split = isFood?.let { splitTwo(name, it) }
+                        val split = match?.let { splitTwo(name, it) }
                         if (split != null) {
                             out += item(split.first, pending.first, pending.second)
                             out += item(split.second, number, unit)
@@ -61,16 +62,21 @@ object TextMeal {
         return out
     }
 
-    /** "котлети гречка" → ("котлети", "гречка") when both parts are foods; the longest second part wins. */
-    private fun splitTwo(name: String, isFood: (String) -> Boolean): Pair<String, String>? {
+    /** Words that join one dish ("млинці зі сметаною", "кава з молоком"): never split next to them. */
+    private val JOINS = setOf("з", "із", "зі", "і", "й", "та", "на", "в", "у", "with", "and", "on", "in")
+
+    /** "котлети гречка" → ("котлети", "гречка"), the split whose weaker part matches best. */
+    private fun splitTwo(name: String, match: (String) -> Double): Pair<String, String>? {
         val words = name.split(Regex("\\s+"))
         if (words.size < 2) return null
-        for (k in 1 until words.size) {
-            val a = words.take(k).joinToString(" ")
-            val b = words.drop(k).joinToString(" ")
-            if (isFood(a) && isFood(b)) return a to b
-        }
-        return null
+        val whole = match(name)
+        return (1 until words.size)
+            .filter { k -> words[k - 1].lowercase() !in JOINS && words[k].lowercase() !in JOINS }
+            .map { k -> words.take(k).joinToString(" ") to words.drop(k).joinToString(" ") }
+            .map { (a, b) -> Triple(a, b, minOf(match(a), match(b))) }
+            .filter { it.third >= 0.5 && it.third > whole }
+            .maxByOrNull { it.third }
+            ?.let { it.first to it.second }
     }
 
     private fun number(s: String): Double? {

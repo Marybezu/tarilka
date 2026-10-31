@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="ua.tarilka.LogicTest" tests="20" skipped="0" failures="0" errors="0" timestamp="2026-10-31T01:45:55.894Z" hostname="runnervmnwato" time="3.184">
+  <properties/>
+  <testcase name="typedListIsRead" classname="ua.tarilka.LogicTest" time="0.674"/>
+  <testcase name="weeklyTrend" classname="ua.tarilka.LogicTest" time="0.001"/>
+  <testcase name="passwordStrengthIsSensible" classname="ua.tarilka.LogicTest" time="0.013"/>
+  <testcase name="caloriesInAiTextAreCaught" classname="ua.tarilka.LogicTest" time="0.012"/>
+  <testcase name="fibreTargetStaysInRange" classname="ua.tarilka.LogicTest" time="0.007"/>
+  <testcase name="cycleIsHonest" classname="ua.tarilka.LogicTest" time="0.008"/>
+  <testcase name="habitsAreCounted" classname="ua.tarilka.LogicTest" time="0.016"/>
+  <testcase name="matcherFindsCommonFoods" classname="ua.tarilka.LogicTest" time="0.149"/>
+  <testcase name="russianIsCaught" classname="ua.tarilka.LogicTest" time="0.001"/>
+  <testcase name="reportIsConsistent" classname="ua.tarilka.LogicTest" time="0.011"/>
+  <testcase name="backupEncryption" classname="ua.tarilka.LogicTest" time="2.125"/>
+  <testcase name="adviceFollowsTheRules" classname="ua.tarilka.LogicTest" time="0.007"/>
+  <testcase name="reasonsAndSleepAreCounted" classname="ua.tarilka.LogicTest" time="0.012"/>
+  <testcase name="alcoholLevels" classname="ua.tarilka.LogicTest" time="0.001"/>
+  <testcase name="databaseParses" classname="ua.tarilka.LogicTest" time="0.036"/>
+  <testcase name="recipePer100" classname="ua.tarilka.LogicTest" time="0.046"/>
+  <testcase name="bowelAndWorkouts" classname="ua.tarilka.LogicTest" time="0.002"/>
+  <testcase name="noDietWhenNotSafe" classname="ua.tarilka.LogicTest" time="0.0"/>
+  <testcase name="parsesModelAnswers" classname="ua.tarilka.LogicTest" time="0.034"/>
+  <testcase name="targetsAreSane" classname="ua.tarilka.LogicTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

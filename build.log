@@ -1,0 +1,133 @@
+run 115 success
+----
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/8.14.3/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build 
+
+> Configure project :app
+w: ⚠️ Deprecated Gradle Version
+The used Gradle version (Gradle 8.14.3) is deprecated and will not be supported in future Kotlin Gradle Plugin releases.
+The minimum supported Gradle version will become Gradle 8.14.4 in Kotlin 2.5.0.
+
+This warning can be suppressed in 'gradle.properties':
+    kotlin.suppressGradlePluginWarnings=DeprecatedGradleVersionWarning
+Solution: Please update the Gradle version to at least Gradle 8.14.4.
+
+
+> Task :app:buildKotlinToolingMetadata
+> Task :app:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :app:preBuild UP-TO-DATE
+> Task :app:preReleaseBuild UP-TO-DATE
+> Task :app:checkReleaseAarMetadata
+> Task :app:processReleaseNavigationResources
+> Task :app:generateReleaseResValues
+> Task :app:compileReleaseNavigationResources
+> Task :app:mapReleaseSourceSetPaths
+> Task :app:extractReleaseSupportedLocales
+> Task :app:generateReleaseResources
+> Task :app:generateReleaseLocaleConfig
+> Task :app:createReleaseCompatibleScreenManifests
+> Task :app:packageReleaseResources
+
+> Task :app:mergeReleaseResources
+/home/runner/work/tarilka/tarilka/app/src/main/res/values/strings.xml:259:4: Multiple substitutions specified in non-positional format of string resource string/habit_sweets_info. Did you mean to add the formatted="false" attribute?
+/home/runner/work/tarilka/tarilka/app/src/main/res/values/strings.xml:582:4: Multiple substitutions specified in non-positional format of string resource string/mi_kcal. Did you mean to add the formatted="false" attribute?
+/home/runner/work/tarilka/tarilka/app/src/main/res/values/strings.xml:645:4: Multiple substitutions specified in non-positional format of string resource string/pdf_macros_note. Did you mean to add the formatted="false" attribute?
+/home/runner/work/tarilka/tarilka/app/src/main/res/values-uk/strings.xml:259:4: Multiple substitutions specified in non-positional format of string resource string/habit_sweets_info. Did you mean to add the formatted="false" attribute?
+/home/runner/work/tarilka/tarilka/app/src/main/res/values-uk/strings.xml:582:4: Multiple substitutions specified in non-positional format of string resource string/mi_kcal. Did you mean to add the formatted="false" attribute?
+/home/runner/work/tarilka/tarilka/app/src/main/res/values-uk/strings.xml:645:4: Multiple substitutions specified in non-positional format of string resource string/pdf_macros_note. Did you mean to add the formatted="false" attribute?
+
+> Task :app:extractDeepLinksRelease
+> Task :app:parseReleaseLocalResources
+
+> Task :app:processReleaseMainManifest
+/home/runner/work/tarilka/tarilka/app/src/main/AndroidManifest.xml:6:5-87 Warning:
+	uses-permission#android.permission.INTERNET was tagged at AndroidManifest.xml:6 to remove other declarations but no other declaration present
+/home/runner/work/tarilka/tarilka/app/src/main/AndroidManifest.xml:7:5-99 Warning:
+	uses-permission#android.permission.ACCESS_NETWORK_STATE was tagged at AndroidManifest.xml:7 to remove other declarations but no other declaration present
+
+> Task :app:processReleaseManifest
+> Task :app:processReleaseManifestForPackage
+> Task :app:javaPreCompileRelease
+> Task :app:preReleaseUnitTestBuild UP-TO-DATE
+> Task :app:javaPreCompileReleaseUnitTest
+> Task :app:mergeReleaseJniLibFolders
+> Task :app:mergeReleaseNativeLibs
+> Task :app:desugarReleaseFileDependencies
+> Task :app:mergeReleaseStartupProfile
+> Task :app:checkReleaseDuplicateClasses
+> Task :app:mergeReleaseArtProfile
+
+> Task :app:stripReleaseDebugSymbols
+Unable to strip the following libraries, packaging them as they are: libandroidx.graphics.path.so, liblitertlm_jni.so, libsqlcipher.so. Run with --info option to learn more.
+
+> Task :app:processReleaseResources
+> Task :app:extractReleaseNativeSymbolTables
+> Task :app:mergeReleaseShaders
+> Task :app:mergeReleaseNativeDebugMetadata NO-SOURCE
+> Task :app:compileReleaseShaders NO-SOURCE
+> Task :app:generateReleaseAssets UP-TO-DATE
+> Task :app:mergeReleaseAssets
+> Task :app:compressReleaseAssets
+> Task :app:extractReleaseVersionControlInfo
+> Task :app:extractProguardFiles
+> Task :app:collectReleaseDependencies
+> Task :app:sdkReleaseDependencyData
+> Task :app:writeReleaseAppMetadata
+> Task :app:writeReleaseSigningConfigVersions
+> Task :app:optimizeReleaseResources
+> Task :app:mergeExtDexRelease
+> Task :app:kspReleaseKotlin
+> Task :app:compileReleaseKotlin
+w: file:///home/runner/work/tarilka/tarilka/app/src/main/java/ua/tarilka/ui/MainActivity.kt:90:19 'fun startActivityForResult(intent: Intent, requestCode: Int, options: Bundle?): Unit' is deprecated. This method has been deprecated in favor of using the Activity Result API
+      which brings increased type safety via an {@link ActivityResultContract} and the prebuilt
+      contracts for common intents available in
+      {@link androidx.activity.result.contract.ActivityResultContracts}, provides hooks for
+      testing, and allow receiving results in separate, testable classes independent from your
+      activity. Use
+      {@link #registerForActivityResult(ActivityResultContract, ActivityResultCallback)}
+      passing in a {@link StartActivityForResult} object for the {@link ActivityResultContract}.
+w: file:///home/runner/work/tarilka/tarilka/app/src/main/java/ua/tarilka/ui/Protection.kt:218:54 Unnecessary non-null assertion (!!) on a non-null receiver of type 'ByteArray'.
+w: file:///home/runner/work/tarilka/tarilka/app/src/main/java/ua/tarilka/ui/Protection.kt:219:45 Unnecessary non-null assertion (!!) on a non-null receiver of type 'ByteArray'.
+w: file:///home/runner/work/tarilka/tarilka/app/src/main/java/ua/tarilka/ui/SettingsScreen.kt:192:104 Elvis operator (?:) always returns the left operand of non-nullable type 'Int'.
+
+> Task :app:compileReleaseJavaWithJavac NO-SOURCE
+> Task :app:processReleaseJavaRes
+> Task :app:bundleReleaseClassesToCompileJar
+> Task :app:bundleReleaseClassesToRuntimeJar
+> Task :app:dexBuilderRelease
+> Task :app:kspReleaseUnitTestKotlin
+> Task :app:mergeReleaseGlobalSynthetics
+> Task :app:generateReleaseLintVitalReportModel
+> Task :app:compileReleaseUnitTestKotlin
+> Task :app:compileReleaseUnitTestJavaWithJavac NO-SOURCE
+> Task :app:processReleaseUnitTestJavaRes
+> Task :app:testReleaseUnitTest
+> Task :app:mergeDexRelease
+> Task :app:mergeReleaseJavaResource
+> Task :app:compileReleaseArtProfile
+> Task :app:lintVitalAnalyzeRelease
+> Task :app:lintVitalReportRelease
+> Task :app:lintVitalRelease
+> Task :app:packageRelease
+> Task :app:createReleaseApkListingFileRedirect
+> Task :app:assembleRelease
+gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_3-1793411057427.json
+
+[Incubating] Problems report is available at: file:///home/runner/work/tarilka/tarilka/build/reports/problems/problems-report.html
+
+BUILD SUCCESSFUL in 2m 17s
+59 actionable tasks: 59 executed
+package: ua.tarilka
+uses-permission: name='android.permission.ACTIVITY_RECOGNITION'
+uses-permission: name='android.permission.POST_NOTIFICATIONS'
+uses-permission: name='android.permission.RECEIVE_BOOT_COMPLETED'
+uses-permission: name='android.permission.health.READ_STEPS'
+uses-permission: name='android.permission.health.READ_SLEEP'
+uses-permission: name='android.permission.health.READ_MENSTRUATION'
+uses-permission: name='android.permission.health.WRITE_NUTRITION'
+uses-permission: name='android.permission.health.WRITE_HYDRATION'
+uses-permission: name='android.permission.health.WRITE_WEIGHT'
+uses-permission: name='android.permission.USE_BIOMETRIC'
+uses-permission: name='android.permission.USE_FINGERPRINT'
+permission: ua.tarilka.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION
+uses-permission: name='ua.tarilka.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION'

@@ -299,10 +299,12 @@ class AiViewModel(app: Application) : AndroidViewModel(app) {
         _advice.value = null
         _adviceFor.value = day
         adviceJob = viewModelScope.launch {
+            val me = coroutineContext[kotlinx.coroutines.Job]
             try {
                 ask(summary, ukrainian, _advice, _adviceLoading, 400, noKcal)
             } finally {
-                _adviceLoading.value = false
+                // A replaced request must not hide the spinner of the one now running.
+                if (adviceJob === me) _adviceLoading.value = false
             }
         }
     }
@@ -313,6 +315,7 @@ class AiViewModel(app: Application) : AndroidViewModel(app) {
     fun requestSummary(text: suspend () -> String, ukrainian: Boolean, noKcal: Boolean) {
         summaryJob?.cancel()
         summaryJob = viewModelScope.launch {
+            val me = coroutineContext[kotlinx.coroutines.Job]
             _summaryLoading.value = true
             try {
                 val prompt = runCatching { text() }.getOrElse {
@@ -322,7 +325,7 @@ class AiViewModel(app: Application) : AndroidViewModel(app) {
                 }
                 ask(prompt, ukrainian, _summary, _summaryLoading, 600, noKcal)
             } finally {
-                _summaryLoading.value = false
+                if (summaryJob === me) _summaryLoading.value = false
             }
         }
     }
@@ -336,7 +339,7 @@ class AiViewModel(app: Application) : AndroidViewModel(app) {
 
     private suspend fun ask(summary: String, ukrainian: Boolean, out: MutableStateFlow<String?>, loading: MutableStateFlow<Boolean>, maxTokens: Int, noKcal: Boolean) {
         loading.value = true
-        out.value = runCatching {
+        val result = runCatching {
             var text = gemma.advice(summary, ukrainian, maxTokens)
             // The small model sometimes slips into Russian or another alphabet: ask once more, then show nothing.
             // Under 18 the app never shows a calorie number; the prompt says so, and the answer is checked too.
@@ -344,6 +347,9 @@ class AiViewModel(app: Application) : AndroidViewModel(app) {
             if (!ok(text)) text = gemma.advice(summary, ukrainian, maxTokens)
             if (ok(text)) text else null
         }.getOrElse { if (it is kotlinx.coroutines.CancellationException) throw it else "⚠ ${it.message}" }
+        // The model may finish after the request was replaced: its answer belongs to another day or period.
+        kotlinx.coroutines.currentCoroutineContext().ensureActive()
+        out.value = result
         loading.value = false
     }
 

@@ -179,7 +179,7 @@
     <string name="import_backup">Import</string>
     <string name="export_csv">Diary as CSV</string>
     <string name="export_steps">Export steps</string>
-    <string name="export_steps_text">Saves every day with steps, in all years, as a CSV: one line a day, "date,steps". Spreadsheets and other step apps open it, such as Stepsy (which replaces its own data when importing). The file is not encrypted.</string>
+    <string name="export_steps_text">Saves every day with steps as a CSV: all the phone counted and all Health Connect gives Tarilka (usually from about a month before access was given). One line a day, "date,steps". Spreadsheets and other step apps open it, such as Stepsy (which replaces its own data when importing). The file is not encrypted.</string>
     <string name="steps_none">No steps yet.</string>
     <string name="import_steps">Import steps</string>
     <string name="steps_imported">Steps added: %1$d days. Lines skipped: %2$d. Where a day was already there, the larger number stays.</string>

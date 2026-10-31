@@ -275,6 +275,7 @@ class LogicTest {
             assertEquals(dish, real("1 $dish 250 г").first())
         }
         assertEquals(listOf("яйця", "хліб"), real("2 яйця хліб 50 г"))
+        assertEquals(listOf("банан", "кефір"), real("1 банан кефір 200 г"))
     }
 
     @Test

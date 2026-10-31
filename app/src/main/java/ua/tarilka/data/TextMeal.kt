@@ -70,7 +70,9 @@ object TextMeal {
      * right after one. A few nouns end the same way and are allowed.
      */
     private val ADJECTIVE_END = Regex("(ий|ій|на|ва|ча|ня|не|ве|че|нє|ні|ві|чі|ька|ьке|ькі|ська|ське|ські)$")
-    private val NOUNS_LIKE_ADJECTIVES = setOf("сметана", "пельмені", "манна")
+    private val NOUNS_LIKE_ADJECTIVES = setOf(
+        "сметана", "пельмені", "манна", "кава", "слива", "сливи", "вишня", "вишні", "яєчня", "печеня", "диня", "халва", "морква", "брюква", "капуста",
+    )
 
     private fun adjective(word: String) = word.lowercase().let { it !in NOUNS_LIKE_ADJECTIVES && ADJECTIVE_END.containsMatchIn(it) }
 
@@ -79,8 +81,8 @@ object TextMeal {
         val words = name.split(Regex("\\s+"))
         if (words.size < 2) return null
         val whole = match(name)
-        // The words together already name a food ("салат цезар", "варені яйця"): one dish.
-        if (whole >= 0.5) return null
+        // The words together clearly name one food: one dish. (Any two words where one is a food score about 0.6.)
+        if (whole >= 0.85) return null
         return (1 until words.size)
             .filter { k -> words[k - 1].lowercase() !in JOINS && words[k].lowercase() !in JOINS && !adjective(words[k - 1]) }
             .map { k -> words.take(k).joinToString(" ") to words.drop(k).joinToString(" ") }

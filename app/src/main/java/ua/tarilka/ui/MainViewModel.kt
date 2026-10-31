@@ -1210,57 +1210,6 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         }.getOrElse { failedExport(uri, it) }
     }
 
-    /**
-     * Every day with steps, in all years: those counted by the phone and those in Health Connect.
-     * Lines "2026-10-31,8450" (date,steps), a plain format other step apps (e.g. Stepsy) also read.
-     */
-    fun exportStepsCsv(uri: android.net.Uri) = viewModelScope.launch {
-        dataMessage.value = runCatching {
-            val all = prefs.loggedSteps().toMutableMap()
-            // Health Connect a year at a time, back until two years in a row have nothing (at most 30 years).
-            var end = LocalDate.now()
-            var empty = 0
-            repeat(30) {
-                if (empty >= 2) return@repeat
-                val start = end.minusYears(1).plusDays(1)
-                val year = runCatching { health.stepsByDay(start, end) }.getOrDefault(emptyMap()).filterValues { it > 0 }
-                empty = if (year.isEmpty()) empty + 1 else 0
-                year.forEach { (d, n) -> all[d] = maxOf(all[d] ?: 0L, n) }
-                end = start.minusDays(1)
-            }
-            val text = ua.tarilka.data.Backup.stepsCsv(all)
-            require(text.isNotEmpty()) { getApplication<Application>().getString(ua.tarilka.R.string.steps_none) }
-            writeText(uri, text)
-            getApplication<Application>().getString(ua.tarilka.R.string.export_done)
-        }.getOrElse { failedExport(uri, it) }
-    }
-
-    /** Adds the days of a steps file (as written by [exportStepsCsv] or another step app) to the step log. */
-    fun importStepsCsv(uri: android.net.Uri) = viewModelScope.launch {
-        val app = getApplication<Application>()
-        dataMessage.value = runCatching {
-            val text = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
-                // At most 5 MB: about 200 years of days; anything bigger is not a steps file.
-                app.contentResolver.openInputStream(uri)!!.use { input ->
-                    val out = java.io.ByteArrayOutputStream()
-                    val buf = ByteArray(64 * 1024)
-                    while (true) {
-                        val n = input.read(buf)
-                        if (n < 0) break
-                        out.write(buf, 0, n)
-                        require(out.size() <= 5 * 1024 * 1024) { app.getString(ua.tarilka.R.string.steps_import_bad) }
-                    }
-                    out.toString(Charsets.UTF_8.name())
-                }
-            }
-            val file = ua.tarilka.data.Backup.parseStepsCsv(text)
-            require(file.days.isNotEmpty()) { app.getString(ua.tarilka.R.string.steps_import_bad) }
-            prefs.mergeSteps(file.days)
-            refreshSteps()
-            app.getString(ua.tarilka.R.string.steps_imported, file.days.size, file.skipped)
-        }.getOrElse { if (it is kotlinx.coroutines.CancellationException) throw it else it.message ?: app.getString(ua.tarilka.R.string.steps_import_bad) }
-    }
-
     private val MAX_BACKUP_BYTES = 64 * 1024 * 1024
 
     /** Password chosen for the export in progress ("" = no encryption, null = unknown). */

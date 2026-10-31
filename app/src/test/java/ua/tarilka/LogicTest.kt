@@ -379,18 +379,4 @@ class LogicTest {
         assertTrue(ua.tarilka.data.Lang.NO_KCAL_MARK in teen.aiSafety())
         assertTrue("no alcohol for teens", "no alcohol" in teen.aiSafety())
     }
-
-    @Test
-    fun stepsForStepsy() {
-        val d = java.time.LocalDate.of(2026, 10, 30).toEpochDay()
-        assertEquals("2026-10-30,8450\r\n2026-10-31,120\r\n", ua.tarilka.data.Backup.stepsCsv(mapOf(d + 1 to 120L, d to 8450L, d - 1 to 0L)))
-        // Read back: our own file, a header, other separators and dates, an old Stepsy timestamp, bad lines.
-        val back = ua.tarilka.data.Backup.parseStepsCsv(ua.tarilka.data.Backup.stepsCsv(mapOf(d to 8450L, d + 1 to 120L)))
-        assertEquals(mapOf(d to 8450L, d + 1 to 120L), back.days)
-        assertEquals(0, back.skipped)
-        val mixed = ua.tarilka.data.Backup.parseStepsCsv("\uFEFFdate,steps\n29.10.2026;5000\n1761696000000,7000\n2026-10-31,abc\n2026-10-31,999999\n\n")
-        assertEquals(5000L, mixed.days[d - 1])
-        assertEquals(7000L, mixed.days[java.time.LocalDate.of(2025, 10, 29).toEpochDay()])
-        assertEquals(3, mixed.skipped)
-    }
 }

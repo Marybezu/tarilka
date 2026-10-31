@@ -257,11 +257,11 @@ class Prefs(context: Context) {
     fun logSteps(day: Long, steps: Long) {
         val o = runCatching { org.json.JSONObject(sp.getString("stepLog", "{}")!!) }.getOrDefault(org.json.JSONObject())
         o.put(day.toString(), steps)
-        // Kept for all years (about 7 KB a year), so an export has every day.
+        // Kept for all years (about 7 KB a year), so history and backups have every day.
         sp.edit().putString("stepLog", o.toString()).apply()
     }
 
-    /** Adds imported days in one write; a day already logged keeps the larger number. */
+    /** Adds days restored from a backup in one write; a day already logged keeps the larger number. */
     fun mergeSteps(days: Map<Long, Long>) {
         val o = runCatching { org.json.JSONObject(sp.getString("stepLog", "{}")!!) }.getOrDefault(org.json.JSONObject())
         days.forEach { (d, n) -> o.put(d.toString(), maxOf(o.optLong(d.toString(), 0L), n)) }

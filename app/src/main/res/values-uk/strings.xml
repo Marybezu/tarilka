@@ -178,12 +178,6 @@
     <string name="export_backup">Експорт копії</string>
     <string name="import_backup">Імпорт</string>
     <string name="export_csv">Журнал у CSV</string>
-    <string name="export_steps">Експорт кроків</string>
-    <string name="export_steps_text">Збереже у CSV усі дні з кроками: усе, що порахував телефон, і все, що Health Connect дає Тарілці (зазвичай від приблизно місяця до надання доступу). Рядок на день, «дата,кроки». Такий файл відкривають таблиці й інші застосунки для кроків, наприклад Stepsy (він під час імпорту замінює свої дані). Файл не шифрується.</string>
-    <string name="steps_none">Кроків ще немає.</string>
-    <string name="import_steps">Імпорт кроків</string>
-    <string name="steps_imported">Кроки додано: %1$d дн. Пропущено рядків: %2$d. Якщо день уже був, лишилося більше число.</string>
-    <string name="steps_import_bad">Це не файл кроків: потрібні рядки «дата,кроки».</string>
     <string name="export_done">Збережено.</string>
     <string name="data_error">Помилка: %1$s</string>
     <string name="import_title">Відновити з копії?</string>

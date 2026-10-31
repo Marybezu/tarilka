@@ -367,42 +367,6 @@ object Backup {
         }
         return sb.toString()
     }
-
-    /** Days read from a steps file, and lines that could not be read (a header, a broken line). */
-    data class StepsFile(val days: Map<Long, Long>, val skipped: Int)
-
-    /**
-     * Reads "date,steps" lines: the date as 2026-10-31 or 31.10.2026, or (older Stepsy files) milliseconds;
-     * a comma, semicolon or tab between. Counts over 200 000 a day, days without steps and dates outside 2000–today are skipped.
-     */
-    fun parseStepsCsv(text: String): StepsFile {
-        val days = mutableMapOf<Long, Long>()
-        var skipped = 0
-        val min = java.time.LocalDate.of(2000, 1, 1).toEpochDay()
-        val max = java.time.LocalDate.now().toEpochDay()
-        for (raw in text.lineSequence()) {
-            val line = raw.trim().removePrefix("\uFEFF")
-            if (line.isEmpty()) continue
-            val parts = line.split(',', ';', '\t').map { it.trim().trim('"') }
-            val day = parts.getOrNull(0)?.let(::stepDay)
-            val n = parts.getOrNull(1)?.toLongOrNull()
-            if (day == null || n == null || n !in 1..200_000 || day !in min..max) { skipped++; continue }
-            days[day] = maxOf(days[day] ?: 0L, n)
-        }
-        return StepsFile(days, skipped)
-    }
-
-    private fun stepDay(s: String): Long? = runCatching { java.time.LocalDate.parse(s).toEpochDay() }.getOrNull()
-        ?: runCatching { java.time.LocalDate.parse(s, java.time.format.DateTimeFormatter.ofPattern("dd.MM.yyyy")).toEpochDay() }.getOrNull()
-        // Older Stepsy wrote local midnight in milliseconds: read in the phone's time zone (an hour later, for clock changes).
-        ?: s.toLongOrNull()?.takeIf { it > 100_000_000_000L }?.let {
-            java.time.Instant.ofEpochMilli(it + 3_600_000L).atZone(java.time.ZoneId.systemDefault()).toLocalDate().toEpochDay()
-        }
-
-    /** "yyyy-MM-dd,steps" per day, oldest first, no header, CRLF (what step apps such as Stepsy read). Days without steps are left out. */
-    fun stepsCsv(steps: Map<Long, Long>): String =
-        steps.filterValues { it > 0 }.toSortedMap().entries
-            .joinToString("") { (d, n) -> "${java.time.LocalDate.ofEpochDay(d)},$n\r\n" }
 }
 
 /**

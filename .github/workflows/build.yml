@@ -3,7 +3,10 @@ name: Build APK
 on:
   push:
     branches: [main, next]
+    # Only documents changed: nothing to build or release.
+    paths-ignore: ["**.md", "LICENSE"]
   pull_request:
+    paths-ignore: ["**.md", "LICENSE"]
   workflow_dispatch:
 
 # Nothing gets write access unless a job asks for it below

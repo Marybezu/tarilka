@@ -1,5 +1,6 @@
 package ua.tarilka.ui
 
+import kotlinx.coroutines.ensureActive
 import android.app.Application
 import android.net.Uri
 import androidx.lifecycle.AndroidViewModel

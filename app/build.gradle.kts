@@ -50,6 +50,11 @@ android {
     }
 }
 
+// Room writes the database structure here; scripts/check_migrations.py compares the migrations with it.
+ksp {
+    arg("room.schemaLocation", "$projectDir/schemas")
+}
+
 kotlin {
     compilerOptions {
         jvmTarget.set(JvmTarget.JVM_17)

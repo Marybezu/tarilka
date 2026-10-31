@@ -1,5 +1,6 @@
 package ua.tarilka.ui
 
+import kotlinx.coroutines.ensureActive
 import android.app.Application
 import android.net.Uri
 import androidx.lifecycle.AndroidViewModel
@@ -187,13 +188,13 @@ class AiViewModel(app: Application) : AndroidViewModel(app) {
             _photo.value = PhotoUi(note = text, working = true, fromText = true)
             try {
                 val foods = tapp.db.foods().allOnce()
-                val items = ua.tarilka.data.TextMeal.parse(text).map { item ->
+                val items = ua.tarilka.data.TextMeal.parse(text) { FoodMatcher.best(it, it, foods)?.score ?: 0.0 }.map { item ->
                     val food = FoodMatcher.best(item.name, item.name, foods)?.food
                     val grams = when {
                         item.amount == null -> food?.portionG ?: 100.0
                         item.unit == ua.tarilka.data.TextMeal.Unit.PIECES -> item.amount * (food?.portionG ?: 100.0)
                         else -> item.amount
-                    }
+                    }.coerceIn(1.0, 3000.0) // "1000 шт" is a typo, not three tonnes
                     ReviewItem(DetectedFood(item.name, item.name, grams, "manual"), food, grams, include = food != null)
                 }
                 items.filter { it.food == null }.forEach { tapp.prefs.recordMissing(it.detected.nameEn) }
@@ -287,16 +288,35 @@ class AiViewModel(app: Application) : AndroidViewModel(app) {
     private val _summaryLoading = MutableStateFlow(false)
     val summaryLoading: StateFlow<Boolean> = _summaryLoading.asStateFlow()
 
-    fun requestAdvice(summary: String, ukrainian: Boolean) = viewModelScope.launch {
-        ask(summary, ukrainian, _advice, _adviceLoading, 400)
+    /** The day the shown advice was written for: another day on screen does not show it. */
+    private val _adviceFor = MutableStateFlow<java.time.LocalDate?>(null)
+    val adviceFor: StateFlow<java.time.LocalDate?> = _adviceFor.asStateFlow()
+
+    private var adviceJob: kotlinx.coroutines.Job? = null
+
+    /** [noKcal]: under 18, an answer that talks about calories is not shown. An earlier request still running stops. */
+    fun requestAdvice(summary: String, ukrainian: Boolean, day: java.time.LocalDate, noKcal: Boolean) {
+        adviceJob?.cancel()
+        _advice.value = null
+        _adviceFor.value = day
+        adviceJob = viewModelScope.launch {
+            val me = coroutineContext[kotlinx.coroutines.Job]
+            try {
+                ask(summary, ukrainian, _advice, _adviceLoading, 400, noKcal)
+            } finally {
+                // A replaced request must not hide the spinner of the one now running.
+                if (adviceJob === me) _adviceLoading.value = false
+            }
+        }
     }
 
     /** The text for the model is built by the caller (it needs the diary), so it is passed as a function. */
     private var summaryJob: kotlinx.coroutines.Job? = null
 
-    fun requestSummary(text: suspend () -> String, ukrainian: Boolean) {
+    fun requestSummary(text: suspend () -> String, ukrainian: Boolean, noKcal: Boolean) {
         summaryJob?.cancel()
         summaryJob = viewModelScope.launch {
+            val me = coroutineContext[kotlinx.coroutines.Job]
             _summaryLoading.value = true
             try {
                 val prompt = runCatching { text() }.getOrElse {
@@ -304,9 +324,9 @@ class AiViewModel(app: Application) : AndroidViewModel(app) {
                     _summary.value = "⚠ ${it.message}"
                     return@launch
                 }
-                ask(prompt, ukrainian, _summary, _summaryLoading, 600)
+                ask(prompt, ukrainian, _summary, _summaryLoading, 600, noKcal)
             } finally {
-                _summaryLoading.value = false
+                if (summaryJob === me) _summaryLoading.value = false
             }
         }
     }
@@ -318,15 +338,19 @@ class AiViewModel(app: Application) : AndroidViewModel(app) {
         _summaryLoading.value = false
     }
 
-    private suspend fun ask(summary: String, ukrainian: Boolean, out: MutableStateFlow<String?>, loading: MutableStateFlow<Boolean>, maxTokens: Int) {
+    private suspend fun ask(summary: String, ukrainian: Boolean, out: MutableStateFlow<String?>, loading: MutableStateFlow<Boolean>, maxTokens: Int, noKcal: Boolean) {
         loading.value = true
-        out.value = runCatching {
+        val result = runCatching {
             var text = gemma.advice(summary, ukrainian, maxTokens)
             // The small model sometimes slips into Russian or another alphabet: ask once more, then show nothing.
-            val lang = ua.tarilka.data.Lang
-            if (!lang.isClean(text, ukrainian)) text = gemma.advice(summary, ukrainian, maxTokens)
-            if (lang.isClean(text, ukrainian)) text else null
+            // Under 18 the app never shows a calorie number; the prompt says so, and the answer is checked too.
+            fun ok(t: String) = ua.tarilka.data.Lang.isClean(t, ukrainian) && !(noKcal && ua.tarilka.data.Lang.mentionsCalories(t))
+            if (!ok(text)) text = gemma.advice(summary, ukrainian, maxTokens)
+            if (ok(text)) text else null
         }.getOrElse { if (it is kotlinx.coroutines.CancellationException) throw it else "⚠ ${it.message}" }
+        // The model may finish after the request was replaced: its answer belongs to another day or period.
+        kotlinx.coroutines.currentCoroutineContext().ensureActive()
+        out.value = result
         loading.value = false
     }
 

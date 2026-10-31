@@ -648,6 +648,65 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     /**
+     * Deletes everything logged on one day: food, drinks, note, sleep, bowel, workouts, weight and waist.
+     * Cycle dates stay (they span several days). What this app wrote to Health Connect for the day goes too.
+     * Undo brings it all back.
+     */
+    fun deleteDay(d: LocalDate) = viewModelScope.launch {
+        val day = d.toEpochDay()
+        // Read and delete in one transaction, so what Undo brings back is exactly what was deleted.
+        class Gone(
+            val food: List<DiaryEntry>, val drinks: List<FluidEntry>, val note: ua.tarilka.data.DayNote?,
+            val sleep: ua.tarilka.data.SleepEntry?, val bowel: ua.tarilka.data.BowelEntry?, val work: List<ua.tarilka.data.WorkoutEntry>,
+            val weight: WeightEntry?, val waist: ua.tarilka.data.WaistEntry?,
+        )
+        val gone = db.withTransaction {
+            val g = Gone(
+                db.diary().range(day, day), db.fluids().onDay(day), db.notes().onDay(day),
+                db.sleep().range(day, day).firstOrNull(), db.bowel().range(day, day).firstOrNull(), db.workouts().range(day, day),
+                db.weights().allOnce().firstOrNull { it.day == day }, db.waist().allOnce().firstOrNull { it.day == day },
+            )
+            val (food, drinks, work) = Triple(g.food, g.drinks, g.work)
+            val (weight, waist) = g.weight to g.waist
+            if (food.isNotEmpty()) db.diary().deleteMany(food)
+            if (drinks.isNotEmpty()) db.fluids().deleteMany(drinks)
+            db.notes().delete(day)
+            db.sleep().delete(day)
+            db.bowel().delete(day)
+            work.forEach { db.workouts().delete(it) }
+            weight?.let { db.weights().delete(it) }
+            waist?.let { db.waist().delete(it) }
+            g
+        }
+        val food = gone.food; val drinks = gone.drinks; val note = gone.note; val sleep = gone.sleep
+        val bowel = gone.bowel; val work = gone.work; val weight = gone.weight; val waist = gone.waist
+        val count = food.size + drinks.size + work.size + listOfNotNull(note, sleep, bowel, weight, waist).size
+        if (count == 0) return@launch
+        sync {
+            food.forEach { health.deleteMeal(it) }
+            drinks.forEach { health.deleteFluid(it) }
+            weight?.let { health.deleteWeight(it) }
+        }
+        offerUndo(count) {
+            db.withTransaction {
+                db.diary().insertAll(food)
+                db.fluids().insertAll(drinks)
+                note?.let { db.notes().upsert(it) }
+                sleep?.let { db.sleep().upsert(it) }
+                bowel?.let { db.bowel().upsert(it) }
+                db.workouts().insertAll(work)
+                weight?.let { db.weights().upsert(it) }
+                waist?.let { db.waist().upsert(it) }
+            }
+            sync {
+                food.forEach { health.writeMeal(it) }
+                drinks.forEach { health.writeFluid(it) }
+                weight?.let { health.writeWeight(it) }
+            }
+        }
+    }
+
+    /**
      * Clears the diary (food, drinks, weight, notes). With [everything] also own foods, recipes,
      * favorites, the profile and the not-found list. The AI model and app settings stay.
      */
@@ -1060,7 +1119,11 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
             }
             appendLine("Techniques you may suggest (pick 1–2 that fit what you see, explain simply):")
             Habits.TECHNIQUES.forEach { appendLine("- $it") }
-            if (h.alcoholPerWeek > 0) {
+            // Cutting-down tips ("alcohol-free days") would read as permission under 18 or in pregnancy.
+            val noAlcohol = !tg.showKcal || tg.limit == ua.tarilka.data.Limit.PREGNANT
+            if (h.alcoholPerWeek > 0 && noAlcohol) {
+                appendLine("Alcohol was logged. For this person no amount of alcohol is advised: say kindly that the safest is none, give no tips for drinking less, and mention a doctor or a trusted adult can help.")
+            } else if (h.alcoholPerWeek > 0) {
                 appendLine("For alcohol (WHO brief intervention; if there is alcohol, always include 2 of these, more if drinking is frequent or heavy):")
                 Habits.ALCOHOL_TECHNIQUES.forEach { appendLine("- $it") }
             }
@@ -1145,6 +1208,57 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
             writeText(uri, kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) { ua.tarilka.data.Backup.diaryCsv(db, ukrainian) })
             getApplication<Application>().getString(ua.tarilka.R.string.export_done)
         }.getOrElse { failedExport(uri, it) }
+    }
+
+    /**
+     * Every day with steps, in all years: those counted by the phone and those in Health Connect.
+     * Lines "2026-10-31,8450" (date,steps), a plain format other step apps (e.g. Stepsy) also read.
+     */
+    fun exportStepsCsv(uri: android.net.Uri) = viewModelScope.launch {
+        dataMessage.value = runCatching {
+            val all = prefs.loggedSteps().toMutableMap()
+            // Health Connect a year at a time, back until two years in a row have nothing (at most 30 years).
+            var end = LocalDate.now()
+            var empty = 0
+            repeat(30) {
+                if (empty >= 2) return@repeat
+                val start = end.minusYears(1).plusDays(1)
+                val year = runCatching { health.stepsByDay(start, end) }.getOrDefault(emptyMap()).filterValues { it > 0 }
+                empty = if (year.isEmpty()) empty + 1 else 0
+                year.forEach { (d, n) -> all[d] = maxOf(all[d] ?: 0L, n) }
+                end = start.minusDays(1)
+            }
+            val text = ua.tarilka.data.Backup.stepsCsv(all)
+            require(text.isNotEmpty()) { getApplication<Application>().getString(ua.tarilka.R.string.steps_none) }
+            writeText(uri, text)
+            getApplication<Application>().getString(ua.tarilka.R.string.export_done)
+        }.getOrElse { failedExport(uri, it) }
+    }
+
+    /** Adds the days of a steps file (as written by [exportStepsCsv] or another step app) to the step log. */
+    fun importStepsCsv(uri: android.net.Uri) = viewModelScope.launch {
+        val app = getApplication<Application>()
+        dataMessage.value = runCatching {
+            val text = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                // At most 5 MB: about 200 years of days; anything bigger is not a steps file.
+                app.contentResolver.openInputStream(uri)!!.use { input ->
+                    val out = java.io.ByteArrayOutputStream()
+                    val buf = ByteArray(64 * 1024)
+                    while (true) {
+                        val n = input.read(buf)
+                        if (n < 0) break
+                        out.write(buf, 0, n)
+                        require(out.size() <= 5 * 1024 * 1024) { app.getString(ua.tarilka.R.string.steps_import_bad) }
+                    }
+                    out.toString(Charsets.UTF_8.name())
+                }
+            }
+            val file = ua.tarilka.data.Backup.parseStepsCsv(text)
+            require(file.days.isNotEmpty()) { app.getString(ua.tarilka.R.string.steps_import_bad) }
+            prefs.mergeSteps(file.days)
+            refreshSteps()
+            app.getString(ua.tarilka.R.string.steps_imported, file.days.size, file.skipped)
+        }.getOrElse { if (it is kotlinx.coroutines.CancellationException) throw it else it.message ?: app.getString(ua.tarilka.R.string.steps_import_bad) }
     }
 
     private val MAX_BACKUP_BYTES = 64 * 1024 * 1024

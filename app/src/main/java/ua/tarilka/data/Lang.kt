@@ -23,6 +23,14 @@ object Lang {
     /** Text fit to show: no stray alphabets, and for Ukrainian no Russian. */
     fun isClean(s: String, ukrainian: Boolean): Boolean = !hasForeignScript(s) && !(ukrainian && looksRussian(s))
 
+    /** The words of the under-18 rule in the prompts (see [Targets.aiSafety]); checked by a test. */
+    const val NO_KCAL_MARK = "never mention calories"
+
+    private val CALORIES = Regex("(?iu)ккал|kcal|калор|calor")
+
+    /** The text talks about calories (an AI answer for someone under 18 must not). */
+    fun mentionsCalories(s: String): Boolean = CALORIES.containsMatchIn(s)
+
     /** A Ukrainian name if it is clean, otherwise the English one. */
     fun safeUk(uk: String, en: String): String = if (uk.isBlank() || looksRussian(uk)) en else uk
 }

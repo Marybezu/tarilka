@@ -12,6 +12,7 @@ import ua.tarilka.data.Nutrition
 import ua.tarilka.data.Profile
 import ua.tarilka.data.Sex
 import ua.tarilka.data.WeightEntry
+import ua.tarilka.data.aiSafety
 import java.io.File
 
 class LogicTest {
@@ -254,6 +255,27 @@ class LogicTest {
         assertEquals(0.5, c[1].amount!!, 0.01)
         assertEquals(100.0, c[2].amount!!, 0.01)
         assertEquals(250.0, c[3].amount!!, 0.01)
+        // No comma between two foods: each keeps its own amount when both parts are foods.
+        val known = mapOf("котлети" to 0.6, "гречка" to 0.6, "яйця" to 0.6, "варені яйця" to 0.9)
+        val m: (String) -> Double = { known[it] ?: 0.0 }
+        val d = t.parse("2 котлети гречка 200 г", m)
+        assertEquals(listOf("котлети", "гречка"), d.map { it.name })
+        assertEquals(listOf(2.0, 200.0), d.map { it.amount })
+        assertEquals(ua.tarilka.data.TextMeal.Unit.PIECES, d[0].unit)
+        // Words that are one food together stay together.
+        val eggs = mapOf("варені яйця" to 0.9, "гречка" to 0.6, "варені" to 0.2)
+        assertEquals(listOf("варені яйця", "гречка"), t.parse("2 варені яйця гречка 100 г") { eggs[it] ?: 0.0 }.map { it.name })
+        // The same with the real database and matcher, as the app does it.
+        fun real(s: String) = t.parse(s) { FoodMatcher.best(it, it, foods)?.score ?: 0.0 }.map { it.name }
+        assertEquals(listOf("котлети", "гречка"), real("2 котлети гречка 200 г"))
+        assertEquals(listOf("житній хліб"), real("2 житній хліб 50 г").take(1))
+        assertEquals(listOf("млинці зі сметаною"), real("3 млинці зі сметаною 100 г").take(1))
+        // An adjective starts a dish name: no split after it.
+        for (dish in listOf("гречана каша", "вівсяна каша", "молочна каша", "куряче філе", "варені яйця")) {
+            assertEquals(dish, real("1 $dish 250 г").first())
+        }
+        assertEquals(listOf("яйця", "хліб"), real("2 яйця хліб 50 г"))
+        assertEquals(listOf("банан", "кефір"), real("1 банан кефір 200 г"))
     }
 
     @Test
@@ -336,5 +358,39 @@ class LogicTest {
         assertEquals(1, ua.tarilka.ui.passwordStrength("Tarilka2024"))
         assertEquals(2, ua.tarilka.ui.passwordStrength("кіт сонце ложка вікно"))
         assertEquals(2, ua.tarilka.ui.passwordStrength("Xk9!pQ2#vL7z"))
+    }
+
+    @Test
+    fun fibreTargetStaysInRange() {
+        val small = Nutrition.targets(Profile(Sex.FEMALE, 30, 160, 55.0, 0, Goal.MAINTAIN), null)
+        assertEquals(25.0, small.fiber, 0.01)
+        val big = Nutrition.targets(Profile(Sex.MALE, 25, 190, 95.0, 4, Goal.GAIN), null)
+        assertTrue("fibre is capped at 35 g, got ${big.fiber}", big.fiber <= 35.0)
+    }
+
+    @Test
+    fun caloriesInAiTextAreCaught() {
+        assertTrue(ua.tarilka.data.Lang.mentionsCalories("Це приблизно 600 ккал."))
+        assertTrue(ua.tarilka.data.Lang.mentionsCalories("Менше калорій увечері"))
+        assertTrue(ua.tarilka.data.Lang.mentionsCalories("About 600 kcal"))
+        assertTrue(!ua.tarilka.data.Lang.mentionsCalories("Додайте до вечері тарілку овочів."))
+        // The under-18 safety text carries the mark that turns the check on.
+        val teen = Nutrition.targets(Profile(Sex.FEMALE, 16, 160, 50.0, 1, Goal.MAINTAIN), null)
+        assertTrue(ua.tarilka.data.Lang.NO_KCAL_MARK in teen.aiSafety())
+        assertTrue("no alcohol for teens", "no alcohol" in teen.aiSafety())
+    }
+
+    @Test
+    fun stepsForStepsy() {
+        val d = java.time.LocalDate.of(2026, 10, 30).toEpochDay()
+        assertEquals("2026-10-30,8450\r\n2026-10-31,120\r\n", ua.tarilka.data.Backup.stepsCsv(mapOf(d + 1 to 120L, d to 8450L, d - 1 to 0L)))
+        // Read back: our own file, a header, other separators and dates, an old Stepsy timestamp, bad lines.
+        val back = ua.tarilka.data.Backup.parseStepsCsv(ua.tarilka.data.Backup.stepsCsv(mapOf(d to 8450L, d + 1 to 120L)))
+        assertEquals(mapOf(d to 8450L, d + 1 to 120L), back.days)
+        assertEquals(0, back.skipped)
+        val mixed = ua.tarilka.data.Backup.parseStepsCsv("\uFEFFdate,steps\n29.10.2026;5000\n1761696000000,7000\n2026-10-31,abc\n2026-10-31,999999\n\n")
+        assertEquals(5000L, mixed.days[d - 1])
+        assertEquals(7000L, mixed.days[java.time.LocalDate.of(2025, 10, 29).toEpochDay()])
+        assertEquals(3, mixed.skipped)
     }
 }

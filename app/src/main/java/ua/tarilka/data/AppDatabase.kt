@@ -8,7 +8,8 @@ import androidx.room.RoomDatabase
 @Database(
     entities = [Food::class, DiaryEntry::class, WeightEntry::class, FluidEntry::class, DayNote::class, SleepEntry::class, BowelEntry::class, WorkoutEntry::class, PeriodEntry::class, PeriodDay::class, WaistEntry::class],
     version = AppDatabase.VERSION,
-    exportSchema = false,
+    // Written to app/schemas at build time; CI checks the migrations against it (scripts/check_migrations.py).
+    exportSchema = true,
 )
 abstract class AppDatabase : RoomDatabase() {
     abstract fun foods(): FoodDao

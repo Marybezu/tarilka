@@ -8,3 +8,5 @@ build/
 *.keystore
 captures/
 .kotlin/
+__pycache__/
+app/schemas/

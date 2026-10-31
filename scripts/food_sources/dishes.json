@@ -266,6 +266,16 @@
     {"code": "u121", "category": "dairy", "uk": "Сирна маса з родзинками", "en": "Sweet cottage cheese spread with raisins", "portion": [100, "порція", "serving"], "yield": 100,
      "items": [["d48", 60], ["d18", 12], ["c01", 20], ["f24", 8]]},
     {"code": "u122", "category": "dairy", "uk": "Згущене молоко варене", "en": "Boiled sweetened condensed milk (dulce de leche style)", "portion": [20, "ложка", "tbsp"], "yield": 100,
-     "items": [["d24", 100]]}
+     "items": [["d24", 100]]},
+    {"code": "u123", "category": "drinks", "uk": "Протеїновий коктейль на молоці", "en": "Protein shake with milk", "portion": [330, "склянка", "glass"], "yield": 330,
+     "items": [["d64", 30], ["d02", 300]]},
+    {"code": "u124", "category": "drinks", "uk": "Протеїновий коктейль на воді", "en": "Protein shake with water", "portion": [330, "склянка", "glass"], "yield": 330,
+     "items": [["d64", 30], ["dr13", 300]]},
+    {"code": "u125", "category": "drinks", "uk": "Банановий протеїновий коктейль", "en": "Banana protein shake", "portion": [400, "склянка", "glass"], "yield": 400,
+     "items": [["d64", 30], ["d02", 250], ["f03", 120]]},
+    {"code": "u126", "category": "drinks", "uk": "Молочний коктейль з морозивом", "en": "Milkshake with ice cream", "portion": [300, "склянка", "glass"], "yield": 300,
+     "items": [["d02", 200], ["c07", 100]]},
+    {"code": "u127", "category": "grains", "uk": "Вівсянка протеїнова (на ніч)", "en": "Overnight protein oats", "portion": [225, "порція", "serving"], "yield": 225,
+     "items": [["g07", 50], ["d02", 150], ["d64", 25]]}
   ]
 }

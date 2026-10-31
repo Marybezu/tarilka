@@ -73,7 +73,7 @@ object Backup {
             .put("customFoods", JSONArray().apply {
                 custom.forEach { f ->
                     put(
-                        JSONObject().put("id", f.id).put("nameUk", f.nameUk).put("nameEn", f.nameEn)
+                        JSONObject().put("id", f.id).put("nameUk", f.nameUk).put("nameEn", f.nameEn).put("category", f.category)
                             .put("kcal", f.kcal).put("protein", f.protein).put("fat", f.fat)
                             .put("carbs", f.carbs).put("fiber", f.fiber)
                             .put("portionG", f.portionG ?: JSONObject.NULL).put("favorite", f.favorite)
@@ -182,7 +182,7 @@ object Backup {
                     val en = f.getString("nameEn")
                     val newId = db.foods().insert(
                         Food(
-                            category = "custom", nameUk = uk, nameEn = en,
+                            category = OwnKinds.clean(f.optString("category", "custom")), nameUk = uk, nameEn = en,
                             kcal = f.amount("kcal"), protein = f.amount("protein"), fat = f.amount("fat"),
                             carbs = f.amount("carbs"), fiber = f.amount("fiber", 0.0),
                             portionG = if (f.isNull("portionG")) null else f.amount("portionG"),
@@ -310,7 +310,13 @@ object Backup {
         o.optJSONObject("settings")?.let { st ->
             st.optInt("cycleTypical", -1).let { prefs.setCycleTypical(if (it in 15..60) it else -1) }
             st.optJSONObject("stepLog")?.let { log ->
-                log.keys().forEach { k -> k.toLongOrNull()?.let { d -> log.optLong(k, -1).takeIf { it in 0..200_000 }?.let { prefs.logSteps(d, it) } } }
+                // One write for all days (the log keeps every year); days and counts in a sane range only.
+                val max = java.time.LocalDate.now().toEpochDay()
+                val days = log.keys().asSequence().mapNotNull { k ->
+                    val d = k.toLongOrNull()?.takeIf { it in 0..max } ?: return@mapNotNull null
+                    log.optLong(k, -1).takeIf { it in 0..200_000 }?.let { d to it }
+                }.toMap()
+                prefs.mergeSteps(days)
             }
         }
         o.optJSONObject("profile")?.let { p ->
@@ -324,7 +330,7 @@ object Backup {
                         weightKg = p.optDouble("weightKg", 65.0).takeIf { it in 30.0..300.0 } ?: 65.0,
                         activity = p.optInt("activity", 1).coerceIn(0, 4),
                         goal = runCatching { Goal.valueOf(p.getString("goal")) }.getOrDefault(Goal.MAINTAIN),
-                        customKcal = if (p.isNull("customKcal")) null else p.optInt("customKcal"),
+                        customKcal = if (p.isNull("customKcal")) null else p.optInt("customKcal").takeIf { it in 800..6000 },
                         pregnant = p.optBoolean("pregnant", false),
                     ),
                 )
@@ -361,6 +367,42 @@ object Backup {
         }
         return sb.toString()
     }
+
+    /** Days read from a steps file, and lines that could not be read (a header, a broken line). */
+    data class StepsFile(val days: Map<Long, Long>, val skipped: Int)
+
+    /**
+     * Reads "date,steps" lines: the date as 2026-10-31 or 31.10.2026, or (older Stepsy files) milliseconds;
+     * a comma, semicolon or tab between. Counts over 200 000 a day, days without steps and dates outside 2000–today are skipped.
+     */
+    fun parseStepsCsv(text: String): StepsFile {
+        val days = mutableMapOf<Long, Long>()
+        var skipped = 0
+        val min = java.time.LocalDate.of(2000, 1, 1).toEpochDay()
+        val max = java.time.LocalDate.now().toEpochDay()
+        for (raw in text.lineSequence()) {
+            val line = raw.trim().removePrefix("\uFEFF")
+            if (line.isEmpty()) continue
+            val parts = line.split(',', ';', '\t').map { it.trim().trim('"') }
+            val day = parts.getOrNull(0)?.let(::stepDay)
+            val n = parts.getOrNull(1)?.toLongOrNull()
+            if (day == null || n == null || n !in 1..200_000 || day !in min..max) { skipped++; continue }
+            days[day] = maxOf(days[day] ?: 0L, n)
+        }
+        return StepsFile(days, skipped)
+    }
+
+    private fun stepDay(s: String): Long? = runCatching { java.time.LocalDate.parse(s).toEpochDay() }.getOrNull()
+        ?: runCatching { java.time.LocalDate.parse(s, java.time.format.DateTimeFormatter.ofPattern("dd.MM.yyyy")).toEpochDay() }.getOrNull()
+        // Older Stepsy wrote local midnight in milliseconds: read in the phone's time zone (an hour later, for clock changes).
+        ?: s.toLongOrNull()?.takeIf { it > 100_000_000_000L }?.let {
+            java.time.Instant.ofEpochMilli(it + 3_600_000L).atZone(java.time.ZoneId.systemDefault()).toLocalDate().toEpochDay()
+        }
+
+    /** "yyyy-MM-dd,steps" per day, oldest first, no header, CRLF (what step apps such as Stepsy read). Days without steps are left out. */
+    fun stepsCsv(steps: Map<Long, Long>): String =
+        steps.filterValues { it > 0 }.toSortedMap().entries
+            .joinToString("") { (d, n) -> "${java.time.LocalDate.ofEpochDay(d)},$n\r\n" }
 }
 
 /**

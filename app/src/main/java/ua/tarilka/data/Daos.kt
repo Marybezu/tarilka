@@ -140,13 +140,16 @@ interface FluidDao {
     @Query(
         """SELECT d.day AS day, SUM(CASE WHEN f.code IN (:soups) THEN d.grams * 0.8 ELSE d.grams END) AS ml FROM diary d JOIN foods f ON f.id = d.foodId
            WHERE d.day BETWEEN :from AND :to AND f.kcal < 150 AND (
-             (f.category = 'drinks' AND f.code NOT IN (:alcohol)) OR f.code IN (:milkDrinks) OR f.code IN (:soups))
+             (f.category = 'drinks' AND (f.code IS NULL OR f.code NOT IN (:alcohol))) OR f.code IN (:milkDrinks) OR f.code IN (:soups))
            GROUP BY d.day"""
     )
     fun drinksFromDiaryRange(from: Long, to: Long, alcohol: List<String>, milkDrinks: List<String>, soups: List<String>): Flow<List<DayFluid>>
 
     @Insert
     suspend fun insert(entry: FluidEntry): Long
+
+    @Query("SELECT * FROM fluids WHERE day = :day")
+    suspend fun onDay(day: Long): List<FluidEntry>
 
     @Query("SELECT COALESCE(SUM(ml), 0) FROM fluids WHERE day = :day")
     suspend fun mlOnce(day: Long): Double
@@ -180,6 +183,9 @@ interface NoteDao {
 
     @Query("SELECT * FROM notes ORDER BY day")
     fun all(): Flow<List<DayNote>>
+
+    @Query("SELECT * FROM notes WHERE day = :day")
+    suspend fun onDay(day: Long): DayNote?
 
     @Query("SELECT * FROM notes ORDER BY day")
     suspend fun allOnce(): List<DayNote>
@@ -332,7 +338,7 @@ object FluidRules {
     val ALCOHOL = Habits.ALCOHOL_G.keys.toList()
     val MILK_DRINKS = listOf(
         "d01", "d02", "d03", "d04", "d05", "d06", "d21", "d41", "d51", "d52", "d53", "d54", "d58", "d61",
-        "d63", "l15", "n20",
+        "d63", "d66", "d72", "l15", "n20",
     )
     /** Soups and borscht: about 80 % of their weight is water. */
     val SOUPS = listOf("u01", "u02", "u03", "u04", "u05", "u06", "u07", "u32", "u33", "u34", "u35", "u36", "u37", "u73", "u74", "u86", "u87")

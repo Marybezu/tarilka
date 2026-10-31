@@ -6,6 +6,14 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.FilterChip
@@ -44,15 +52,48 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 
-/** Every day with entries, newest first. Tap a day to open it. */
+/** Every day with entries, newest first. Tap a day to open it; the bin deletes the whole day (with Undo). */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HistoryScreen(vm: MainViewModel, ai: AiViewModel, onBack: () -> Unit, onOpen: (LocalDate) -> Unit) {
     val days by vm.history.collectAsState()
     val targets by vm.targets.collectAsState()
     val fmt = DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM)
+    var toDelete by remember { mutableStateOf<LocalDate?>(null) }
+    val activity = androidx.compose.ui.platform.LocalContext.current as? androidx.fragment.app.FragmentActivity
+
+    toDelete?.let { d ->
+        AlertDialog(
+            onDismissRequest = { toDelete = null },
+            title = { Text(stringResource(R.string.delete_day_title, d.format(fmt))) },
+            text = { Text(stringResource(R.string.delete_day_text)) },
+            confirmButton = {
+                TextButton(onClick = {
+                    toDelete = null
+                    if (activity != null) Protection.confirm(activity) { vm.deleteDay(d) } else vm.deleteDay(d)
+                }) { Text(stringResource(R.string.delete), color = MaterialTheme.colorScheme.error) }
+            },
+            dismissButton = { TextButton(onClick = { toDelete = null }) { Text(stringResource(R.string.cancel)) } },
+        )
+    }
+
+    // The same short Undo as on the Today screen.
+    val snackbar = remember { SnackbarHostState() }
+    val undoEvent by vm.undoEvent.collectAsState()
+    val deletedText = undoEvent?.let { stringResource(R.string.deleted_n, it.second) }
+    val undoText = stringResource(R.string.undo)
+    LaunchedEffect(undoEvent) {
+        val seq = undoEvent?.first ?: return@LaunchedEffect
+        if (deletedText == null) return@LaunchedEffect
+        try {
+            if (snackbar.showSnackbar(deletedText, actionLabel = undoText, duration = SnackbarDuration.Short) == SnackbarResult.ActionPerformed) vm.undo()
+        } finally {
+            vm.undoShown(seq)
+        }
+    }
 
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbar) },
         topBar = {
             TopAppBar(
                 title = { Text(stringResource(R.string.history_title)) },
@@ -112,6 +153,9 @@ fun HistoryScreen(vm: MainViewModel, ai: AiViewModel, onBack: () -> Unit, onOpen
                             color = if (targets.showKcal && targets.limit == null && d.kcal > targets.kcal * 1.1) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.onSurface,
                         )
                     }
+                    IconButton(onClick = { toDelete = d.day }) {
+                        Icon(Icons.Outlined.Delete, stringResource(R.string.delete_day), tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
                 }
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
             }
@@ -163,7 +207,7 @@ private fun Summaries(vm: MainViewModel, ai: AiViewModel, dayCount: Int) {
                         TextButton(onClick = ai::clearSummary) { Text(stringResource(R.string.hide)) }
                     }
                 }
-                else -> FilledTonalButton(onClick = { ai.requestSummary({ vm.periodSummary(period) }, ua.tarilka.data.isUkrainian()) }) {
+                else -> FilledTonalButton(onClick = { ai.requestSummary({ vm.periodSummary(period) }, ua.tarilka.data.isUkrainian(), noKcal = !vm.targets.value.showKcal) }) {
                     Icon(Icons.Filled.Star, null, Modifier.size(18.dp))
                     Spacer(Modifier.width(8.dp))
                     Text(stringResource(R.string.ai_summary))

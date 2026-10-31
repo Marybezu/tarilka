@@ -1,4 +1,4 @@
-**Тарілка 1.1.0** — приватний офлайн-трекер харчування для Android: без інтернету, акаунтів і реклами. Українська та англійська.
+**Тарілка 1.1.1** — приватний офлайн-трекер харчування для Android: без інтернету, акаунтів і реклами. Українська та англійська.
 
 - 🔒 **Приватність.** Дозволу на інтернет немає, дані лише на телефоні, хмарну копію вимкнено. За бажанням щоденник і профіль шифруються й відкриваються відбитком або PIN-кодом телефону; експорт і видалення ще раз просять підтвердження; можна заборонити знімки екрана. Резервна копія вручну, якщо з паролем, то шифрування AES-256.
 - 🔬 **711 продуктів офлайн.** Дані USDA, етикетки українських продуктів і ~140 страв за рецептами: борщ, вареники, сочник, фастфуд, суші, торти тощо. Біля кожного продукту видно джерело.
@@ -16,7 +16,7 @@
 
 ---
 
-**Tarilka 1.1.0** — a private, offline food tracker for Android: no internet, no accounts, no ads. Ukrainian and English.
+**Tarilka 1.1.1** — a private, offline food tracker for Android: no internet, no accounts, no ads. Ukrainian and English.
 
 - 🔒 **Privacy.** No internet permission, data stays on the phone, cloud backup is off. Optionally the diary and profile are encrypted and open with fingerprint or the phone PIN; export and deleting ask again; screenshots can be blocked. Backups by hand; with a password they are AES-256 encrypted.
 - 🔬 **711 foods offline.** USDA data, Ukrainian product labels and ~140 dishes calculated from recipes: borscht, varenyky, sochnyk, fast food, sushi, cakes and more. Every food shows its source.

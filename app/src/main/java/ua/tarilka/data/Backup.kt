@@ -339,13 +339,14 @@ object Backup {
         return summary
     }
 
-    /** The diary as a spreadsheet-friendly CSV (one row per eaten item). */
-    suspend fun diaryCsv(db: AppDatabase, ukrainian: Boolean): String {
+    /** The diary as a spreadsheet-friendly CSV (one row per eaten item). Under 18 ([showKcal] false) there is no kcal column. */
+    suspend fun diaryCsv(db: AppDatabase, ukrainian: Boolean, showKcal: Boolean = true): String {
         val zone = ZoneId.systemDefault()
+        val kcalCol = if (showKcal) (if (ukrainian) "ккал;" else "kcal;") else ""
         val header = if (ukrainian) {
-            "дата;час;прийом;продукт;грами;ккал;білки;жири;вуглеводи;клітковина;ШІ;чому;голод 1-5;важко зупинитися"
+            "дата;час;прийом;продукт;грами;${kcalCol}білки;жири;вуглеводи;клітковина;ШІ;чому;голод 1-5;важко зупинитися"
         } else {
-            "date;time;meal;food;grams;kcal;protein;fat;carbs;fiber;ai;why;hunger 1-5;hard to stop"
+            "date;time;meal;food;grams;${kcalCol}protein;fat;carbs;fiber;ai;why;hunger 1-5;hard to stop"
         }
         val reasons = if (ukrainian) listOf("голод", "стрес", "нудьга", "компанія", "звичка") else Reasons.EN
         val meals = if (ukrainian) listOf("сніданок", "обід", "вечеря", "перекус") else listOf("breakfast", "lunch", "dinner", "snack")
@@ -358,7 +359,8 @@ object Backup {
                 .let { if (it.firstOrNull() in listOf('=', '+', '-', '@', '\t', '\r')) "'$it" else it }
             sb.append(LocalDate.ofEpochDay(e.day)).append(';').append(time).append(';')
                 .append(meals.getOrElse(e.meal) { "" }).append(';').append(name).append(';')
-                .append(n(e.grams)).append(';').append(n(e.kcal)).append(';').append(n(e.protein)).append(';')
+                .append(n(e.grams)).append(';')
+                .append(if (showKcal) n(e.kcal) + ";" else "").append(n(e.protein)).append(';')
                 .append(n(e.fat)).append(';').append(n(e.carbs)).append(';').append(n(e.fiber)).append(';')
                 .append(if (e.fromAi) 1 else 0).append(';')
                 .append(e.reason?.let { reasons.getOrNull(it) } ?: "").append(';')

@@ -1205,7 +1205,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     fun exportCsv(uri: android.net.Uri) = viewModelScope.launch {
         dataMessage.value = runCatching {
             val ukrainian = ua.tarilka.data.isUkrainian()
-            writeText(uri, kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) { ua.tarilka.data.Backup.diaryCsv(db, ukrainian) })
+            writeText(uri, kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) { ua.tarilka.data.Backup.diaryCsv(db, ukrainian, targets.value.showKcal) })
             getApplication<Application>().getString(ua.tarilka.R.string.export_done)
         }.getOrElse { failedExport(uri, it) }
     }
